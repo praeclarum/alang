@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "alang"
+version = "0.0.1"
+authors = [
+  { name="Frank A. Krueger", email="fak@praeclarum.org" },
+]
+description = "A programming language specializing in cross-compiling to lots of other languages"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/praeclarum/alang"
+Issues = "https://github.com/praeclarum/alang/issues"
