@@ -1,4 +1,3 @@
-
 import io
 from typing import Callable, Optional, TypeVar, Union
 
@@ -13,13 +12,8 @@ class NodeType:
     TYPE = 'type'
     VARIABLE = 'variable'
 
-next_node_id = 1
-
 class Node:
     def __init__(self, type: NodeType):
-        global next_node_id
-        self.id = next_node_id
-        next_node_id += 1
         self.type = type
         self.attributes: dict[str, "NodeAttr"] = {}
         self.children: list["Node"] = []
@@ -51,10 +45,6 @@ class Node:
         out = io.StringIO()
         self.write(out, 0)
         return out.getvalue()
-    def lookup_variable(self, lhs: "Node" | str) -> Optional["Variable"]:
-        if expr.type == NodeType.VARIABLE:
-            return expr
-        return None
 
 class NodeAttr:
     def __init__(self, default_value=None):
@@ -113,16 +103,22 @@ class Type(Node):
         super().__init__(NodeType.TYPE)
         self.name = name
 
-class Expression(Node):
+class ASTNode(Node):
+    def __init__(self, type: NodeType):
+        super().__init__(type)
+    def parse_expr(self, expr: Code) -> Node:
+        raise NotImplementedError
+    def lookup_variable(self, name: str) -> Optional["Variable"]:
+        raise NotImplementedError
+
+class Expression(ASTNode):
     def __init__(self):
         super().__init__(NodeType.EXPRESSION)
 
-class Block(Node):
+class Block(ASTNode):
     def __init__(self, type: NodeType):
         super().__init__(type)
     def set(self, lhs: Code, rhs: Code) -> "Block":
-        raise NotImplementedError
-    def parse_expr(self, expr: Code) -> tuple[Node, Node]:
         raise NotImplementedError
 
 class Scope(Block):
@@ -137,50 +133,8 @@ class Scope(Block):
             v = Variable(lhs)
             self.append_child(v)
         return self
-    def lookup_variable(self, lhs: "Node" | str) -> Optional["Variable"]:
-        return super().lookup_variable(lhs)
-
-class Function(Scope):
-    name = NodeAttr()
-    parameters = NodeChildren(NodeType.PARAMETER)
-    returnType = NodeChild(NodeType.TYPE)
-
-    def __init__(self, name: str = None):
-        super().__init__(NodeType.FUNCTION)
-        if name is not None:
-            self.name = name
-
-    def parameter(self, name: str, param_type: TypeRef = None) -> "Function":
-        if type(name) == tuple:
-            name, param_type = name
-        p = Parameter(name, param_type)
-        self.append_child(p)
-        return self
-    
-class Module(Scope):
-    name = NodeAttr()
-    functions = NodeChildren(NodeType.FUNCTION)
-
-    def __init__(self, name: str = None):
-        super().__init__(NodeType.MODULE)
-        if name is not None:
-            self.name = name
-
-    def define(self, name: str, *parameters: list[tuple[str, TypeRef]]) -> Function:
-        f = Function(name)
-        for param in parameters:
-            f.parameter(param)
-        self.append_child(f)
-        return f
-
-class Parameter(Node):
-    name = NodeAttr()
-    parameter_type = NodeChild(NodeType.TYPE)
-
-    def __init__(self, name: str, parameter_type: "Type" = None):
-        super().__init__(NodeType.PARAMETER)
-        self.name = name
-        self.parameter_type = parameter_type
+    def lookup_variable(self, name: str) -> Optional["Variable"]:
+        raise NotImplementedError
 
 class Variable(Node):
     name = NodeAttr()
@@ -192,4 +146,3 @@ class Variable(Node):
         self.name = name
         self.variable_type = variable_type
         self.initial_value = initial_value
-

@@ -1,8 +1,9 @@
-from nodes import Module, NodeType, TypeRef, Function
+from modules import Module
+from functions import Function
 
 global_module = Module("global")
 
-def define(name: str, *parameters: list[tuple[str, TypeRef]]) -> Function:
+def define(name: str, *parameters: list) -> Function:
     return global_module.define(name, *parameters)
 
 if __name__ == "__main__":
