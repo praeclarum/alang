@@ -1,31 +1,16 @@
 from typing import TextIO, Union
+from writer import CodeWriter
+
+class WGSLWriter(CodeWriter):
+    def __init__(self, out: Union[str, TextIO]):
+        super().__init__(out)
+
+def open_writer(out: Union[str, TextIO]) -> WGSLWriter:
+    return WGSLWriter(out)
 
 wrote_vec_def = set()
 wrote_mat_def = set()
 wrote_mm = set()
-
-class CodeWriter:
-    def __init__(self, path_or_io: Union[str, TextIO]):
-        if type(path_or_io) is str:
-            self.out = open(path_or_io, "w")
-            self.owner = True
-        else:
-            self.out = path_or_io
-            self.owner = False
-    def __enter__(self):
-        return self
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.close()
-    def write(self, s: str):
-        self.out.write(s)
-    def close(self):
-        if self.owner and self.out is not None:
-            self.out.close()
-            self.out = None
-            self.owner = False
-
-def open_writer(out: Union[str, TextIO]) -> CodeWriter:
-    return CodeWriter(out)
 
 def get_mat_type(shape) -> str:
     r, c = shape
