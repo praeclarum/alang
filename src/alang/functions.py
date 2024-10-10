@@ -1,5 +1,5 @@
 from typing import Optional
-from nodes import Code, Node, NodeAttr, NodeChild, NodeChildren, NodeType, Scope, Type
+from nodes import Node, NodeAttr, NodeChild, NodeChildren, NodeType, Scope, Type
 
 class Function(Scope):
     name = NodeAttr()

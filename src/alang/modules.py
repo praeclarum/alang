@@ -1,5 +1,5 @@
 from typing import Optional
-from nodes import Code, Node, NodeAttr, NodeChild, NodeChildren, NodeType, Scope
+from nodes import Node, NodeAttr, NodeChild, NodeChildren, NodeType, Scope
 from functions import Function
 
 class Module(Scope):

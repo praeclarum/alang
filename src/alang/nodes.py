@@ -2,6 +2,7 @@ import io
 from typing import Callable, Optional, TypeVar, Union
 
 TypeRef = str
+
 Code = str
 
 class NodeType:
@@ -9,6 +10,7 @@ class NodeType:
     FUNCTION = 'function'
     MODULE = 'module'
     PARAMETER = 'parameter'
+    STATEMENT = 'statement'
     TYPE = 'type'
     VARIABLE = 'variable'
 
@@ -106,8 +108,6 @@ class Type(Node):
 class ASTNode(Node):
     def __init__(self, type: NodeType):
         super().__init__(type)
-    def parse_expr(self, expr: Code) -> Node:
-        raise NotImplementedError
     def lookup_variable(self, name: str) -> Optional["Variable"]:
         raise NotImplementedError
 
@@ -115,9 +115,17 @@ class Expression(ASTNode):
     def __init__(self):
         super().__init__(NodeType.EXPRESSION)
 
+class Statement(ASTNode):
+    def __init__(self):
+        super().__init__(NodeType.STATEMENT)
+
+import parser
+
 class Block(ASTNode):
     def __init__(self, type: NodeType):
         super().__init__(type)
+    def parse_expr(self, expr: Code) -> "Expression":
+        return parser.parse_expr(expr)
     def set(self, lhs: Code, rhs: Code) -> "Block":
         raise NotImplementedError
 
