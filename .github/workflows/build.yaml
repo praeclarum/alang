@@ -13,8 +13,10 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.x"
-    - name: Install build
-      run: python3 -m pip install build --user
+    - name: Install dependencies
+      run: python3 -m pip install build pytest --user
+    - name: Test
+      run: python3 -m pytest
     - name: Build
       run: python3 -m build
     - name: Store the distribution packages
