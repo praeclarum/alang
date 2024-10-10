@@ -135,7 +135,7 @@ class Block(ASTNode):
         super().__init__(type)
         self.can_define_functions = can_define_functions
         self.can_define_variables = can_define_variables
-    def parse_expr(self, expr: Code) -> "Expression":
+    def parse_expr(self, expr: Optional[Code]) -> Optional["Expression"]:
         return parser.parse_expr(expr)
     def set(self, lhs: Code, rhs: Code) -> "Block":
         lhs = self.parse_expr(lhs)

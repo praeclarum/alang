@@ -1,5 +1,8 @@
 from typing import Optional
 from nodes import Block, Node, NodeAttr, NodeChild, NodeChildren, NodeType, Type
+from stmts import Return
+
+Code = str
 
 class Function(Block):
     name = NodeAttr()
@@ -16,6 +19,10 @@ class Function(Block):
             name, param_type = name
         p = Parameter(name, param_type)
         self.append_child(p)
+        return self
+    
+    def ret(self, value: Optional[Code]) -> "Function":
+        r = Return(self.parse_expr(value))
         return self
 
 class Parameter(Node):

@@ -1,12 +1,20 @@
-from nodes import Expression
+import nodes
+from nodes import Expression, ASTNode
+import exprs
+
 import ast
-import alang.exprs as exprs
 
 Code = str
 
 def parse_expr(expr: Code) -> Expression:
-    ast_expr = ast.parse(expr).body[0].value
-    return python_expr_to_alang_expr(ast_expr)
+    if expr is None:
+        return None
+    if isinstance(expr, ASTNode):
+        return expr
+    if isinstance(expr, str):
+        ast_expr = ast.parse(expr).body[0].value
+        return python_expr_to_alang_expr(ast_expr)
+    return exprs.Constant(expr)
 
 def python_expr_to_alang_expr(expr: ast.expr) -> Expression:
     if isinstance(expr, ast.Name):
