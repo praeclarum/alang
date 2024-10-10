@@ -1,5 +1,8 @@
 import io
-from typing import Callable, Optional, TypeVar, Union
+from typing import Any, Callable, Optional, TypeVar, Union
+
+import lang
+from writer import CodeWriter
 
 TypeRef = str
 
@@ -117,6 +120,13 @@ class ASTNode(Node):
                 return p.lookup_variable(name)
             p = p.parent
         return None
+    def write_code(self, writer: CodeWriter):
+        raise NotImplementedError(f"Cannot write code for {self.type}")
+    def get_code(self, language: Optional[Any] = "alang") -> str:
+        language = lang.get_language(language)
+        out = io.StringIO()
+        self.write_code(CodeWriter(out))
+        return out.getvalue()
 
 class Expression(ASTNode):
     def __init__(self):

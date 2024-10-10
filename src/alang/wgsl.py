@@ -1,12 +1,19 @@
 from typing import TextIO, Union
+import lang
 from writer import CodeWriter
 
 class WGSLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO]):
         super().__init__(out)
 
-def open_writer(out: Union[str, TextIO]) -> WGSLWriter:
-    return WGSLWriter(out)
+class WGSLLanguage(lang.Language):
+    def __init__(self):
+        super().__init__("wgsl")
+    def open_writer(self, out: Union[str, TextIO]) -> WGSLWriter:
+        return WGSLWriter(out)
+
+wgsl_lang = WGSLLanguage()
+lang.register_language(wgsl_lang)
 
 wrote_vec_def = set()
 wrote_mat_def = set()
