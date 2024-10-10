@@ -1,5 +1,5 @@
 from modules import Module
-from functions import Function
+from alang.funcs import Function
 
 global_module = Module("global")
 
