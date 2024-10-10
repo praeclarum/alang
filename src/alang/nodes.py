@@ -1,26 +1,26 @@
 
 from typing import Callable
 
-
 TypeRef = str
-
-class Node:
-    def __init__(self):
-        pass
 
 class NodeType:
     FUNCTION = 'function'
 
+next_node_id = 1
+
 class NodeData:
     def __init__(self, type: NodeType):
+        global next_node_id
+        self.id = next_node_id
+        next_node_id += 1
         self.type = type
         self.attributes = {}
         self.children = []
-        self.node = create_node_for_data(type, self)
-    def set_type(self, new_type: NodeType) -> Node:
-        self.type = new_type
-        self.node = create_node_for_data(new_type, self)
-        return self.node
+    def get_node(self) -> "Node":
+        global node_types
+        if self.type not in node_types:
+            raise ValueError(f"Invalid node type: {type}")
+        return node_types[self.type](self)
     def __getitem__(self, key):
         default = None
         if type(key) == tuple:
@@ -35,9 +35,16 @@ class NodeData:
         return None
     def __setitem__(self, key: str, value):
         self.attributes[key] = value
+    def __str__(self):
+        return f"NodeData({self.type}, {self.attributes})"
 
-class Function:
+class Node:
     def __init__(self, data: NodeData):
+        self.data = data
+
+class Function(Node):
+    def __init__(self, data: NodeData):
+        super().__init__(data)
         self.data = data
 
     @property
@@ -64,13 +71,8 @@ node_types = {
     NodeType.FUNCTION: Function,
 }
 
-def create_node_for_data(type: NodeType, data: NodeData) -> Node:
-    if type not in node_types:
-        raise ValueError(f"Invalid node type: {type}")
-    return node_types[type](data)
-    
 def create_node(type: NodeType) -> Node:
-    return create_node_for_data(type, NodeData(type))
+    return NodeData(type).get_node()
 
 def define(name: str, *parameters: list[tuple[str, TypeRef]]) -> Function:
     n = create_node(NodeType.FUNCTION)
