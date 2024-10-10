@@ -3,12 +3,15 @@ import io
 from typing import Callable, Optional, TypeVar, Union
 
 TypeRef = str
+Code = str
 
 class NodeType:
+    EXPRESSION = 'expression'
     FUNCTION = 'function'
     MODULE = 'module'
     PARAMETER = 'parameter'
     TYPE = 'type'
+    VARIABLE = 'variable'
 
 next_node_id = 1
 
@@ -18,7 +21,7 @@ class Node:
         self.id = next_node_id
         next_node_id += 1
         self.type = type
-        self.attributes: dict[str, "Attr"] = {}
+        self.attributes: dict[str, "NodeAttr"] = {}
         self.children: list["Node"] = []
     def get_children_with_type(self, type: NodeType):
         return [child for child in self.children if child.type == type]
@@ -48,6 +51,10 @@ class Node:
         out = io.StringIO()
         self.write(out, 0)
         return out.getvalue()
+    def lookup_variable(self, lhs: "Node" | str) -> Optional["Variable"]:
+        if expr.type == NodeType.VARIABLE:
+            return expr
+        return None
 
 class NodeAttr:
     def __init__(self, default_value=None):
@@ -87,8 +94,8 @@ class NodeChild:
         self.child_node_type = child_node_type
     def __get__(self, obj: Node, objtype=None) -> list[Node]:
         return obj.get_child_with_type(self.child_node_type)
-    def __set__(self, obj: Node, value: Node):
-        if value.type != self.child_node_type:
+    def __set__(self, obj: Node, value: Optional[Node]):
+        if value is not None and value.type != self.child_node_type:
             raise ValueError(f"Expected child of type {self.child_node_type}, got {value.type}")
         num_children = len(obj.children)
         i = 0
@@ -97,9 +104,43 @@ class NodeChild:
                 obj.children.pop(i)
             else:
                 i += 1
-        obj.children.insert(num_children, value)
+        if value is not None:
+            obj.children.insert(num_children, value)
 
-class Function(Node):
+class Type(Node):
+    name = NodeAttr()
+    def __init__(self, name: str):
+        super().__init__(NodeType.TYPE)
+        self.name = name
+
+class Expression(Node):
+    def __init__(self):
+        super().__init__(NodeType.EXPRESSION)
+
+class Block(Node):
+    def __init__(self, type: NodeType):
+        super().__init__(type)
+    def set(self, lhs: Code, rhs: Code) -> "Block":
+        raise NotImplementedError
+    def parse_expr(self, expr: Code) -> tuple[Node, Node]:
+        raise NotImplementedError
+
+class Scope(Block):
+    variables = NodeChildren(NodeType.VARIABLE)
+    def __init__(self, type: NodeType):
+        super().__init__(type)
+    def set(self, lhs: Code, rhs: Code) -> "Scope":
+        lhs = self.parse_expr(lhs)
+        rhs = self.parse_expr(rhs)
+        v = self.lookup_variable(lhs)
+        if v is None:
+            v = Variable(lhs)
+            self.append_child(v)
+        return self
+    def lookup_variable(self, lhs: "Node" | str) -> Optional["Variable"]:
+        return super().lookup_variable(lhs)
+
+class Function(Scope):
     name = NodeAttr()
     parameters = NodeChildren(NodeType.PARAMETER)
     returnType = NodeChild(NodeType.TYPE)
@@ -116,7 +157,7 @@ class Function(Node):
         self.append_child(p)
         return self
     
-class Module(Node):
+class Module(Scope):
     name = NodeAttr()
     functions = NodeChildren(NodeType.FUNCTION)
 
@@ -136,17 +177,19 @@ class Parameter(Node):
     name = NodeAttr()
     parameter_type = NodeChild(NodeType.TYPE)
 
-    def __init__(self, name: str = None, parameter_type: "Type" = None):
+    def __init__(self, name: str, parameter_type: "Type" = None):
         super().__init__(NodeType.PARAMETER)
-        if name is not None:
-            self.name = name
-        if parameter_type is not None:
-            self.parameter_type = parameter_type
+        self.name = name
+        self.parameter_type = parameter_type
 
-class Type(Node):
+class Variable(Node):
     name = NodeAttr()
+    variable_type = NodeChild(NodeType.TYPE)
+    initial_value = NodeChild(NodeType.EXPRESSION)
 
-    def __init__(self, name: str = None):
-        super().__init__(NodeType.TYPE)
-        if name is not None:
-            self.name = name
+    def __init__(self, name: str, variable_type: Type = None, initial_value: Expression = None):
+        super().__init__(NodeType.VARIABLE)
+        self.name = name
+        self.variable_type = variable_type
+        self.initial_value = initial_value
+

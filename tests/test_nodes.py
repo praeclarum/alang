@@ -20,3 +20,7 @@ def test_new_module():
     assert len(m.functions) == 2
     assert m.functions[0].name == "f"
     assert m.functions[1].name == "g"
+
+def test_var():
+    f = define("f", "x").set("y", "2*x").ret("y")
+    assert len(f.variables) == 1
