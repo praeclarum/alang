@@ -6,6 +6,7 @@ TypeRef = str
 
 class NodeType:
     FUNCTION = 'function'
+    MODULE = 'module'
     PARAMETER = 'parameter'
     TYPE = 'type'
 
@@ -114,6 +115,22 @@ class Function(Node):
         p = Parameter(name, param_type)
         self.append_child(p)
         return self
+    
+class Module(Node):
+    name = NodeAttr()
+    functions = NodeChildren(NodeType.FUNCTION)
+
+    def __init__(self, name: str = None):
+        super().__init__(NodeType.MODULE)
+        if name is not None:
+            self.name = name
+
+    def define(self, name: str, *parameters: list[tuple[str, TypeRef]]) -> Function:
+        f = Function(name)
+        for param in parameters:
+            f.parameter(param)
+        self.append_child(f)
+        return f
 
 class Parameter(Node):
     name = NodeAttr()
