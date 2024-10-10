@@ -1,9 +1,33 @@
+from typing import TextIO, Union
 
 wrote_vec_def = set()
 wrote_mat_def = set()
 wrote_mm = set()
 
-def get_mat_type(shape):
+class CodeWriter:
+    def __init__(self, path_or_io: Union[str, TextIO]):
+        if type(path_or_io) is str:
+            self.out = open(path_or_io, "w")
+            self.owner = True
+        else:
+            self.out = path_or_io
+            self.owner = False
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+    def write(self, s: str):
+        self.out.write(s)
+    def close(self):
+        if self.owner and self.out is not None:
+            self.out.close()
+            self.out = None
+            self.owner = False
+
+def open_writer(out: Union[str, TextIO]) -> CodeWriter:
+    return CodeWriter(out)
+
+def get_mat_type(shape) -> str:
     r, c = shape
     if c == 1 or r == 1:
         n = max(r, c)
@@ -191,4 +215,3 @@ def write_mat(name, mat, out):
             if col < c - 1:
                 out.write(",\n")
         out.write("\n);\n")
-
