@@ -1,13 +1,13 @@
 from typing import Optional
-from nodes import Node, NodeAttr, NodeChild, NodeChildren, NodeType, Scope, Type
+from nodes import Block, Node, NodeAttr, NodeChild, NodeChildren, NodeType, Type
 
-class Function(Scope):
+class Function(Block):
     name = NodeAttr()
     parameters = NodeChildren(NodeType.PARAMETER)
     returnType = NodeChild(NodeType.TYPE)
 
     def __init__(self, name: str = None):
-        super().__init__(NodeType.FUNCTION)
+        super().__init__(NodeType.FUNCTION, can_define_functions=False, can_define_variables=True)
         if name is not None:
             self.name = name
 
@@ -18,7 +18,6 @@ class Function(Scope):
         self.append_child(p)
         return self
 
-
 class Parameter(Node):
     name = NodeAttr()
     parameter_type = NodeChild(NodeType.TYPE)
@@ -27,4 +26,3 @@ class Parameter(Node):
         super().__init__(NodeType.PARAMETER)
         self.name = name
         self.parameter_type = parameter_type
-

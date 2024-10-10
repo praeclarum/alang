@@ -1,13 +1,13 @@
 from typing import Optional
-from nodes import Node, NodeAttr, NodeChild, NodeChildren, NodeType, Scope
+from nodes import Block, Node, NodeAttr, NodeChild, NodeChildren, NodeType
 from alang.funcs import Function
 
-class Module(Scope):
+class Module(Block):
     name = NodeAttr()
     functions = NodeChildren(NodeType.FUNCTION)
 
     def __init__(self, name: str = None):
-        super().__init__(NodeType.MODULE)
+        super().__init__(NodeType.MODULE, can_define_functions=True, can_define_variables=True)
         if name is not None:
             self.name = name
 

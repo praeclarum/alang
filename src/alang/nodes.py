@@ -19,12 +19,14 @@ class Node:
         self.type = type
         self.attributes: dict[str, "NodeAttr"] = {}
         self.children: list["Node"] = []
+        self.parent: Optional["Node"] = None
     def get_children_with_type(self, type: NodeType):
         return [child for child in self.children if child.type == type]
     def get_child_with_type(self, type: NodeType):
         return self.get_children_with_type(type)[0]
     def append_child(self, child: "Node"):
         self.children.append(child)
+        child.parent = self
         return self
     def write(self, out, depth):
         if depth > 3:
@@ -109,7 +111,12 @@ class ASTNode(Node):
     def __init__(self, type: NodeType):
         super().__init__(type)
     def lookup_variable(self, name: str) -> Optional["Variable"]:
-        raise NotImplementedError
+        p = self.parent
+        while p is not None:
+            if isinstance(p, ASTNode):
+                return p.lookup_variable(name)
+            p = p.parent
+        return None
 
 class Expression(ASTNode):
     def __init__(self):
@@ -122,27 +129,27 @@ class Statement(ASTNode):
 import parser
 
 class Block(ASTNode):
-    def __init__(self, type: NodeType):
+    variables = NodeChildren(NodeType.VARIABLE)
+    functions = NodeChildren(NodeType.FUNCTION)
+    def __init__(self, type: NodeType, can_define_functions: bool, can_define_variables: bool):
         super().__init__(type)
+        self.can_define_functions = can_define_functions
+        self.can_define_variables = can_define_variables
     def parse_expr(self, expr: Code) -> "Expression":
         return parser.parse_expr(expr)
     def set(self, lhs: Code, rhs: Code) -> "Block":
-        raise NotImplementedError
-
-class Scope(Block):
-    variables = NodeChildren(NodeType.VARIABLE)
-    def __init__(self, type: NodeType):
-        super().__init__(type)
-    def set(self, lhs: Code, rhs: Code) -> "Scope":
         lhs = self.parse_expr(lhs)
         rhs = self.parse_expr(rhs)
         v = self.lookup_variable(lhs)
         if v is None:
-            v = Variable(lhs)
-            self.append_child(v)
+            if self.can_define_variables:
+                v = Variable(lhs)
+                self.append_child(v)
+            else:
+                raise ValueError(f"Variable {lhs} not defined")
+        else:
+            raise ValueError(f"Variable {lhs} already defined")
         return self
-    def lookup_variable(self, name: str) -> Optional["Variable"]:
-        raise NotImplementedError
 
 class Variable(Node):
     name = NodeAttr()
