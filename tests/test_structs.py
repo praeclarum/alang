@@ -1,4 +1,4 @@
-from alang import struct
+from alang import array, struct
 
 def test_simple_struct_layout():
     # https://www.w3.org/TR/WGSL/#structure-member-layout
@@ -28,6 +28,7 @@ def test_nested_struct_layout():
         ("w", "vec2f"),
         ("x", "float"),
     )
+    a = array(s_a, 3)
     s_b = struct(
         "B",
         ("a", "vec2f"),
@@ -36,16 +37,23 @@ def test_nested_struct_layout():
         ("d", "float"),
         ("e", s_a),
         ("f", "vec3f"),
+        ("g", a),
+        ("h", "int"),
     )
     l = s_b.layout
     fs = l.fields
-    assert len(fs) == 6
+    assert len(fs) == 8
     assert fs[0].triple == (0, 8, 8)
     assert fs[1].triple == (16, 16, 12)
     assert fs[2].triple == (28, 4, 4)
     assert fs[3].triple == (32, 4, 4)
     assert fs[4].triple == (40, 8, 24)
     assert fs[5].triple == (64, 16, 12)
+    assert a.layout.element_stride == 24
+    assert fs[6].triple == (80, 8, 72)
+    assert fs[7].triple == (152, 4, 4)
+    assert l.align == 16
+    assert l.byte_size == 160
 
 def test_struct_a():
     s = struct("Point", ("x", "int"), ("y", "int"))
