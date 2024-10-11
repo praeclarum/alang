@@ -119,12 +119,14 @@ class Field(Node):
         self.name = name
         self.field_type = field_type
 
-class FieldLayout:
+class FieldLayout(TypeLayout):
     def __init__(self, field: Field):
         self.field = field
         self.offset = 0
-        self.align = 0
-        self.size = 0
+    @property
+    def triple(self) -> tuple[int, int, int]:
+        """Returns a tuple of (offset, align, size)"""
+        return (self.offset, self.align, self.size)
 
 class StructLayout(TypeLayout):
     def __init__(self, struct: "Struct", fields: list[Field]):
@@ -135,6 +137,7 @@ class StructLayout(TypeLayout):
     def analyze(self):
         last_offset = 0
         last_size = 0
+        max_field_align = 0
         for field_index, field_layout in enumerate(self.fields):
             field = field_layout.field
             type_layout = field.field_type.layout
@@ -142,10 +145,12 @@ class StructLayout(TypeLayout):
             field_layout.offset = offset
             field_layout.size = type_layout.size
             field_layout.align = type_layout.align
+            max_field_align = max(max_field_align, type_layout.align)
             last_offset = offset
             last_size = type_layout.size
-        self.size = 0
-        self.align = 0
+        self.align = max_field_align
+        just_past_last_field = self.fields[-1].offset + self.fields[-1].size
+        self.size = round_up(self.align, just_past_last_field)
 
 def round_up(k: int, n: int) -> int:
     # roundUp(k, n) = ⌈n ÷ k⌉ × k
