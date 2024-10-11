@@ -14,7 +14,6 @@ class JSWriter(CodeWriter):
         n = len(fs)
         anno_col = 46
         anno = self.options.struct_annotations
-        self.write(f"class {s.name} {{")
         def write_anno(o, a, s, text_len):
             if anno:
                 tab = " " * max(anno_col - text_len, 1)
@@ -23,18 +22,29 @@ class JSWriter(CodeWriter):
                     o_text = f"offset({o})"
                 a_text = f"align({a})"
                 self.write(f"{tab}// {o_text.ljust(12)}{a_text.ljust(10)}size({s})")
+        self.write(f"class {s.name} {{")
         write_anno(None, sl.align, sl.byte_size, len(s.name) + 8)
         self.write("\n")
+        self.write(f"    constructor(buffer, index, length) {{\n")
+        self.write(f"        if (buffer instanceof ArrayBuffer) {{\n")
+        self.write(f"            this.buffer = buffer;\n")
+        self.write(f"            this.index = index || 0;\n")
+        self.write(f"            this.length = length || {sl.byte_size};\n")
+        self.write(f"            if (this.length < {sl.byte_size}) throw new Error(`Buffer too small. \"{s.name}\" requires at least {sl.byte_size} bytes, got ${{this.length}}`);\n")
+        self.write(f"            if (this.index + this.length >= buffer.byteLength) throw new Error(`Buffer overflow. \"{s.name}\" requires ${{this.length}} bytes starting at ${{this.index}}, but the buffer is only ${{buffer.byteLength}} bytes long`);\n")
+        self.write(f"        }} else {{\n")
+        self.write(f"            this.buffer = new ArrayBuffer({sl.byte_size});\n")
+        self.write(f"            this.index = 0;\n")
+        self.write(f"            this.length = {sl.byte_size};\n")
+        self.write(f"        }}\n")
+        self.write(f"    }}\n")
         for i, field in enumerate(fs):
             field_type = self.get_typed_name(field.field_type)
-            self.write(f"    {field.name}: {field_type}")
+            # self.write(f"        this.{field.name} = new DataView {field_type}")
             text_len = len(field.name) + len(field_type) + 5
-            if i < n - 1:
-                self.write(",")
-                text_len += 1
             fl = sl.fields[i]
-            write_anno(fl.offset, fl.align, fl.byte_size, text_len)
-            self.write("\n")
+            # write_anno(fl.offset, fl.align, fl.byte_size, text_len)
+            # self.write("\n")
         self.write("}\n")
 
     def get_typed_name(self, t: typs.Type) -> str:
