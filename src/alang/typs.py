@@ -54,9 +54,11 @@ class Array(Type):
         self.element_type = element_type
         self.length = length
         self.cached_layout = get_array_layout(element_type, length)
+    def get_layout(self, buffer_byte_size: Optional[int]) -> ArrayLayout:
+        return self.cached_layout
     @property
     def layout(self) -> ArrayLayout:
-        return self.cached_layout
+        return self.get_layout(None)
     @property
     def is_fixed_size(self) -> bool:
         return self.length is not None
@@ -108,8 +110,7 @@ class Integer(Primitive):
         self.bits = bits
         self.signed = signed
         self.cached_layout = get_int_layout(bits)
-    @property
-    def layout(self) -> TypeLayout:
+    def get_layout(self, buffer_byte_size: Optional[int]) -> TypeLayout:
         return self.cached_layout
     def get_type_suffix(self) -> str:
         return self.name[0]
@@ -147,8 +148,7 @@ class Float(Primitive):
         self.cached_layout = get_float_layout(bits)
     def get_type_suffix(self) -> str:
         return self.name[0]
-    @property
-    def layout(self) -> TypeLayout:
+    def get_layout(self, buffer_byte_size: Optional[int]) -> TypeLayout:
         return self.cached_layout
 
 half_type = Float(16)
@@ -207,18 +207,24 @@ class Struct(Type):
         if fields is not None:
             for field in fields:
                 self.append_child(field)
-        self.saved_layout = None
+        self.nobuffer_layout = None
+
+    def get_layout(self, buffer_byte_size: Optional[int]) -> StructLayout:
+        if buffer_byte_size is None:
+            if self.nobuffer_layout is None:
+                self.nobuffer_layout = StructLayout(self, self.fields)
+            return self.nobuffer_layout
+        else:
+            raise NotImplementedError("Runtime sized struct layout not implemented")
 
     @property
     def layout(self) -> StructLayout:
-        if self.saved_layout is None:
-            self.saved_layout = StructLayout(self, self.fields)
-        return self.saved_layout
+        return self.get_layout(None)
 
     def field(self, name: str, type: Type) -> "Struct":
         f = Field(name, try_resolve_type(type, self))
         self.append_child(f)
-        self.saved_layout = None
+        self.nobuffer_layout = None
         return self
 
     def write_code(self, writer):
@@ -250,10 +256,9 @@ class Vector(Type):
         super().__init__(get_vector_name(element_type, size))
         self.element_type = element_type
         self.size = size
-        self.cached_layout = get_vector_layout(element_type, size)
-    @property
-    def layout(self) -> TypeLayout:
-        return self.cached_layout
+        self.nobuffer_layout = get_vector_layout(element_type, size)
+    def get_layout(self, buffer_byte_size: Optional[int]) -> TypeLayout:
+        return self.nobuffer_layout
 
 vec2h_type = Vector(half_type, 2)
 vec3h_type = Vector(half_type, 3)
