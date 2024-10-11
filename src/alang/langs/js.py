@@ -57,6 +57,7 @@ class JSWriter(CodeWriter):
                 self.write(f"        this.{field.name}Array = new {element_type_name}Array(this.buffer, byteOffset + {sl.fields[i].offset}, {scalar_array_num_elements[i]});\n")
         self.write(f"    }}\n")
         self.write(f"    dirty(begin, end) {{\n")
+        self.write(f"        if (begin === undefined || end === undefined) {{ begin = 0; end = this.byteLength; }}\n")
         self.write(f"        if (this.isDirty) {{ this.dirtyBegin = Math.min(this.dirtyBegin, begin); this.dirtyEnd = Math.max(this.dirtyEnd, end); }}\n")
         self.write(f"        else {{ this.dirtyBegin = begin; this.dirtyEnd = end; }}\n")
         self.write(f"        this.isDirty = true;\n")

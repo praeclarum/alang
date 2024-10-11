@@ -31,6 +31,7 @@ class A {
         this.wArray = new Float32Array(this.buffer, byteOffset + 8, 2);
     }
     dirty(begin, end) {
+        if (begin === undefined || end === undefined) { begin = 0; end = this.byteLength; }
         if (this.isDirty) { this.dirtyBegin = Math.min(this.dirtyBegin, begin); this.dirtyEnd = Math.max(this.dirtyEnd, end); }
         else { this.dirtyBegin = begin; this.dirtyEnd = end; }
         this.isDirty = true;
