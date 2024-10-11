@@ -48,6 +48,14 @@ class JSWriter(CodeWriter):
         self.write(f"        else {{ this.dirtyBegin = begin; this.dirtyEnd = end; }}\n")
         self.write(f"        this.isDirty = true;\n")
         self.write(f"    }}\n")
+        self.write(f"    getGPUBuffer(device, usage) {{\n")
+        self.write(f"        if (this.gpuBuffer === null) {{\n")
+        self.write(f"            this.gpuBuffer = device.createBuffer({{ size: Math.max(this.byteLength, 256), usage: usage, label: \"{s.name}\", mappedAtCreation: true }});\n")
+        self.write(f"            device.queue.writeBuffer(this.gpuBuffer, 0, this.buffer, this.view.byteOffset, this.byteLength);\n")
+        self.write(f"            this.isDirty = false;\n")
+        self.write(f"        }}\n")
+        self.write(f"        return this.gpuBuffer;\n")
+        self.write(f"    }}\n")
         for i, field in enumerate(fs):
             field_type = field.field_type
             if field_type.is_array:

@@ -34,6 +34,14 @@ class A {
         else { this.dirtyBegin = begin; this.dirtyEnd = end; }
         this.isDirty = true;
     }
+    getGPUBuffer(device, usage) {
+        if (this.gpuBuffer === null) {
+            this.gpuBuffer = device.createBuffer({ size: Math.max(this.byteLength, 256), usage: usage, label: "A", mappedAtCreation: true });
+            device.queue.writeBuffer(this.gpuBuffer, 0, this.buffer, this.view.byteOffset, this.byteLength);
+            this.isDirty = false;
+        }
+        return this.gpuBuffer;
+    }
     get u() { return this.view.getFloat32(0); }
     set u(value) { return this.view.setFloat32(0, value); this.dirty(0, 4); }
     get v() { return this.view.getFloat32(4); }
