@@ -181,7 +181,14 @@ class Block(Node):
             return s
         else:
             raise ValueError(f"Cannot define struct in {self.type}")
-
+    def array(self, element_type: str, length: Optional[int] = None) -> "Array":
+        if self.can_define_types:
+            from typs import Array
+            a = Array(element_type, length)
+            self.append_child(a)
+            return a
+        else:
+            raise ValueError(f"Cannot define array in {self.type}")
 
 class Variable(Node):
     name = NodeAttr()

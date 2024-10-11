@@ -28,6 +28,34 @@ class TypeLayout:
         self.size = 0
         self.align = 0
 
+def get_array_layout(element_type: Type, length: Optional[int]) -> TypeLayout:
+    e_layout = element_type.layout
+    layout = TypeLayout()
+    layout.size = 0
+    layout.align = e_layout.align
+    return layout
+
+class Array(Type):
+    element_type = NodeChild(NodeType.TYPE)
+    length = NodeAttr()
+    def __init__(self, element_type: Type, length: Optional[int]):
+        element_type = try_resolve_type(element_type, self)
+        super().__init__(f"{element_type.name}[{length}]")
+        self.element_type = element_type
+        self.length = length
+        self.cached_layout = get_array_layout(element_type, length)
+    @property
+    def layout(self) -> TypeLayout:
+        return self.cached_layout
+    @property
+    def is_fixed_size(self) -> bool:
+        return self.length is not None
+    @property
+    def is_runtime_sized(self) -> bool:
+        return self.length is None
+    def get_type_suffix(self) -> str:
+        return "A"    
+
 class Primitive(Type):
     def __init__(self, name):
         super().__init__(name)
@@ -265,7 +293,7 @@ def resolve_builtin_type(name: str) -> Type:
         raise ValueError(f"Unknown builtin type: {name}")
     return bt
 
-def try_resolve_type(type, context: Node) -> Type:
+def try_resolve_type(type, context: Optional[Node]) -> Type:
     if type is None:
         return None
     if isinstance(type, Type):
