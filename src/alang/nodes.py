@@ -107,7 +107,7 @@ class Type(Node):
         super().__init__(NodeType.TYPE)
         self.name = name
 
-import languages
+import langs
 
 class ASTNode(Node):
     def __init__(self, type: NodeType):
@@ -122,7 +122,7 @@ class ASTNode(Node):
     def write_code(self, writer):
         raise NotImplementedError(f"Cannot write code for {self.type}")
     def get_code(self, language: Optional[Any] = "alang") -> str:
-        language = languages.get_language(language)
+        language = langs.get_language(language)
         out = io.StringIO()
         with language.open_writer(out) as writer:
             self.write_code(writer)

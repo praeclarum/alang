@@ -1,4 +1,4 @@
-from alang.languages.writer import CodeWriter
+from alang.langs.writer import CodeWriter
 from nodes import Expression, NodeAttr
 
 class Name(Expression):

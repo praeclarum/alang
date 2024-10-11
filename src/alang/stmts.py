@@ -1,5 +1,5 @@
 from typing import Optional
-from alang.languages.writer import CodeWriter
+from alang.langs.writer import CodeWriter
 from nodes import Expression, NodeAttr, Statement
 
 class Return(Statement):

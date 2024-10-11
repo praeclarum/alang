@@ -17,3 +17,6 @@ class Module(Block):
             f.parameter(param)
         self.append_child(f)
         return f
+
+    def write_code(self, writer):
+        writer.write_module(self)
