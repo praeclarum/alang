@@ -22,3 +22,5 @@ class CodeWriter:
 
     def write_function(self, f):
         raise NotImplementedError
+    def write_struct(self, s):
+        raise NotImplementedError

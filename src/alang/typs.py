@@ -7,17 +7,12 @@ class Type(ASTNode):
         super().__init__(NodeType.TYPE)
         self.name = name
 
+    def write_code(self, writer):
+        writer.write_type(self)
+
 class Primitive(Type):
     def __init__(self, name):
         super().__init__(name)
-
-builtin_types = {
-    "int32": Primitive("int32"),
-}
-def resolve_builtin_type(name: str) -> Type:
-    if name in builtin_types:
-        return builtin_types[name]
-    raise ValueError(f"Unknown type: {name}")
 
 class Field(Node):
     name = NodeAttr()
@@ -39,3 +34,14 @@ class Struct(Type):
         f = Field(name, resolve_builtin_type(type))
         self.append_child(f)
         return self
+
+    def write_code(self, writer):
+        writer.write_struct(self)
+
+builtin_types = {
+    "int32": Primitive("int32"),
+}
+def resolve_builtin_type(name: str) -> Type:
+    if name in builtin_types:
+        return builtin_types[name]
+    raise ValueError(f"Unknown type: {name}")

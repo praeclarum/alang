@@ -5,12 +5,23 @@ from langs.writer import CodeWriter
 import ast
 import nodes
 import exprs
+import typs
 
 Code = str
 
 class AWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO]):
         super().__init__(out)
+
+    def write_struct(self, s: typs.Struct):
+        self.write(f"struct {s.name}:\n")
+        for field in s.fields:
+            self.write(f"    {field.name}: ")
+            self.write_type(field.field_type)
+            self.write("\n")
+
+    def write_type(self, t: typs.Type):
+        self.write(t.name)
 
 class ALanguage(Language):
     def __init__(self):
