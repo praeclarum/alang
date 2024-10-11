@@ -1,12 +1,15 @@
 import io
 from typing import Any, Callable, Optional, TypeVar, Union
 
+import langs
+
 TypeRef = str
 
 Code = str
 
 class NodeType:
     EXPRESSION = 'expression'
+    FIELD = 'field'
     FUNCTION = 'function'
     MODULE = 'module'
     PARAMETER = 'parameter'
@@ -101,14 +104,6 @@ class NodeChild:
         if value is not None:
             obj.children.insert(num_children, value)
 
-class Type(Node):
-    name = NodeAttr()
-    def __init__(self, name: str):
-        super().__init__(NodeType.TYPE)
-        self.name = name
-
-import langs
-
 class ASTNode(Node):
     def __init__(self, type: NodeType):
         super().__init__(type)
@@ -168,7 +163,7 @@ class Variable(Node):
     variable_type = NodeChild(NodeType.TYPE)
     initial_value = NodeChild(NodeType.EXPRESSION)
 
-    def __init__(self, name: str, variable_type: Type = None, initial_value: Expression = None):
+    def __init__(self, name: str, variable_type: Optional["Type"] = None, initial_value: Expression = None):
         super().__init__(NodeType.VARIABLE)
         self.name = name
         self.variable_type = variable_type
