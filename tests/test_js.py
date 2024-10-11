@@ -21,7 +21,7 @@ class A {
             this.buffer = new ArrayBuffer(byteLength);
             byteOffset = 0;
         }
-        if (byteOffset + byteLength >= this.buffer.byteLength) throw new Error(`Buffer overflow. "A" requires ${byteLength} bytes starting at ${byteOffset}, but the buffer is only ${this.buffer.byteLength} bytes long`);
+        if (byteOffset + byteLength > this.buffer.byteLength) throw new Error(`Buffer overflow. "A" requires ${byteLength} bytes starting at ${byteOffset}, but the buffer is only ${this.buffer.byteLength} bytes long`);
         this.view = new DataView(this.buffer, byteOffset, byteLength);
         this.byteLength = byteLength;
         this.gpuBuffer = null;

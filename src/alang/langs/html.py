@@ -19,21 +19,41 @@ class HTMLWriter(CodeWriter):
         self.write(f"</head>\n")
         self.write(f"<body>\n")
         for type in s.types:
-            self.write_type(type)
+            self.write_type_ui(type)
         self.write(f"<script type='module'>\n")
         self.write(s.get_code("js", self.options))
+        for type in s.types:
+            self.write_type_ui_code(type)
         self.write(f"</script>\n")
         self.write(f"</body>\n")
         self.write(f"</html>\n")
 
     def write_type(self, t: typs.Type):
+        self.write_type_ui(t)
+        self.write_type_ui_code(t)
+
+    def write_type_ui(self, t: typs.Type):
         if isinstance(t, typs.Struct):
-            self.write_struct(t)
+            self.write_struct_ui(t)
         else:
             self.write(f"<h2>{encode(t.name)}</h2>\n")
             self.write(f"<code><pre>{encode(str(t))}</pre></code>\n")
 
+    def write_type_ui_code(self, t: typs.Type):
+        if isinstance(t, typs.Struct):
+            self.write_struct_ui_code(t)
+        else:
+            pass
+
     def write_struct(self, s: typs.Struct):
+        self.write_struct_ui(s)
+        self.write_struct_ui_code(s)
+
+    def write_struct_ui_code(self, s: typs.Struct):
+        self.write(f"let test{s.name} = new {s.name}();\n")
+        self.write(f"console.log(test{s.name});\n")
+
+    def write_struct_ui(self, s: typs.Struct):
         fs: list[typs.Field] = s.fields
         sl = s.layout
         n = len(fs)

@@ -48,7 +48,7 @@ class JSWriter(CodeWriter):
         self.write(f"            this.buffer = new ArrayBuffer(byteLength);\n")
         self.write(f"            byteOffset = 0;\n")
         self.write(f"        }}\n")
-        self.write(f"        if (byteOffset + byteLength >= this.buffer.byteLength) throw new Error(`Buffer overflow. \"{s.name}\" requires ${{byteLength}} bytes starting at ${{byteOffset}}, but the buffer is only ${{this.buffer.byteLength}} bytes long`);\n")
+        self.write(f"        if (byteOffset + byteLength > this.buffer.byteLength) throw new Error(`Buffer overflow. \"{s.name}\" requires ${{byteLength}} bytes starting at ${{byteOffset}}, but the buffer is only ${{this.buffer.byteLength}} bytes long`);\n")
         self.write(f"        this.view = new DataView(this.buffer, byteOffset, byteLength);\n")
         self.write(f"        this.byteLength = byteLength;\n")
         self.write(f"        this.gpuBuffer = null;\n")
