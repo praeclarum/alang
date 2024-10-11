@@ -8,7 +8,7 @@ class CWriter(CodeWriter):
 
 class CLanguage(Language):
     def __init__(self):
-        super().__init__("a")
+        super().__init__("c")
 
     def open_writer(self, out: Union[str, TextIO]) -> CWriter:
         return CWriter(out)

@@ -3,6 +3,8 @@ from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
 import ast
+import nodes
+import exprs
 
 Code = str
 
@@ -18,10 +20,9 @@ class ALanguage(Language):
         return AWriter(out)
 
     def parse_expr(self, expr: Code):
-        from nodes import ASTNode
         if expr is None:
             return None
-        if isinstance(expr, ASTNode):
+        if isinstance(expr, nodes.ASTNode):
             return expr
         if isinstance(expr, str):
             ast_expr = ast.parse(expr).body[0].value
@@ -29,7 +30,6 @@ class ALanguage(Language):
         return exprs.Constant(expr)
 
 def python_expr_to_alang_expr(expr: ast.expr):
-    import exprs
     if isinstance(expr, ast.Name):
         return exprs.Name(expr.id)
     elif isinstance(expr, ast.BinOp):
