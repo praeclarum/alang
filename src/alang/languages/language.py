@@ -1,5 +1,5 @@
 from typing import Any, Optional, TextIO, Union
-from writer import CodeWriter
+from languages.writer import CodeWriter
 
 class Language:
     def __init__(self, name: str):
@@ -11,12 +11,9 @@ language_registry = {}
 def register_language(lang: Language):
     language_registry[lang.name] = lang
 
-a_lang = Language("alang")
-register_language(a_lang)
-
 def get_language(language: Optional[Any]) -> str:
     if language is None:
-        return a_lang
+        return language_registry["alang"]
     elif isinstance(language, Language):
         return language
     elif isinstance(language, str):

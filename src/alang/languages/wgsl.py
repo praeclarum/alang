@@ -1,5 +1,5 @@
 from typing import TextIO, Union
-import lang
+import language
 from writer import CodeWriter
 
 class WGSLWriter(CodeWriter):
@@ -13,7 +13,7 @@ class WGSLLanguage(lang.Language):
         return WGSLWriter(out)
 
 wgsl_lang = WGSLLanguage()
-lang.register_language(wgsl_lang)
+language.register_language(wgsl_lang)
 
 wrote_vec_def = set()
 wrote_mat_def = set()

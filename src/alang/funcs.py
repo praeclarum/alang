@@ -1,4 +1,5 @@
 from typing import Optional
+from alang.languages.writer import CodeWriter
 from nodes import Block, Node, NodeAttr, NodeChild, NodeChildren, NodeType, Type
 from stmts import Return
 
@@ -13,6 +14,9 @@ class Function(Block):
         super().__init__(NodeType.FUNCTION, can_define_functions=False, can_define_variables=True)
         if name is not None:
             self.name = name
+
+    def write_code(self, writer: CodeWriter):
+        writer.write_function(self)
 
     def parameter(self, name: str, param_type: str = None) -> "Function":
         if type(name) == tuple:

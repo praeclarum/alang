@@ -1,7 +1,5 @@
 from modules import Module
 from funcs import Function
-from lang import a_lang
-from wgsl import wgsl_lang
 
 global_module = Module("global")
 

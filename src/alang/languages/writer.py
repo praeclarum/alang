@@ -19,3 +19,6 @@ class CodeWriter:
             self.out.close()
             self.out = None
             self.owner = False
+
+    def write_function(self, f):
+        raise NotImplementedError

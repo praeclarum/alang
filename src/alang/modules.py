@@ -1,6 +1,6 @@
 from typing import Optional
 from nodes import Block, Node, NodeAttr, NodeChild, NodeChildren, NodeType
-from alang.funcs import Function
+from funcs import Function
 
 class Module(Block):
     name = NodeAttr()
