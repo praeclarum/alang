@@ -24,6 +24,8 @@ class JSWriter(CodeWriter):
                 self.write(f"{tab}// {o_text.ljust(12)}{a_text.ljust(10)}size({s})")
         self.write(f"class {s.name} {{")
         write_anno(None, sl.align, sl.byte_size, len(s.name) + 8)
+        is_scalar_array = [False] * n
+        scalar_array_num_elements = [0] * n
         self.write("\n")
         self.write(f"    constructor(buffer, byteOffset, byteLength) {{\n")
         self.write(f"        byteOffset = byteOffset || 0;\n")
@@ -42,6 +44,17 @@ class JSWriter(CodeWriter):
         self.write(f"        this.isDirty = false;\n")
         self.write(f"        this.dirtyBegin = 0;\n")
         self.write(f"        this.dirtyEnd = 0;\n")
+        for i, field in enumerate(fs):
+            field_type: typs.Type = field.field_type
+            if field_type.is_array:
+                is_scalar_array[i] = field_type.element_type.is_scalar
+                scalar_array_num_elements[i] = field_type.num_elements
+            elif field_type.is_vector:
+                is_scalar_array[i] = True
+                scalar_array_num_elements[i] = field_type.size
+            if is_scalar_array[i]:
+                element_type_name = self.get_typed_name(field_type.element_type)
+                self.write(f"        this.{field.name}Array = new {element_type_name}Array(this.buffer, byteOffset + {sl.fields[i].offset}, {scalar_array_num_elements[i]});\n")
         self.write(f"    }}\n")
         self.write(f"    dirty(begin, end) {{\n")
         self.write(f"        if (this.isDirty) {{ this.dirtyBegin = Math.min(this.dirtyBegin, begin); this.dirtyEnd = Math.max(this.dirtyEnd, end); }}\n")
@@ -58,19 +71,15 @@ class JSWriter(CodeWriter):
         self.write(f"    }}\n")
         for i, field in enumerate(fs):
             field_type = field.field_type
-            if field_type.is_array:
-                # raise NotImplementedError("Arrays not implemented")
-                pass
-            elif field_type.is_vector:
-                # raise NotImplementedError("Vectors not implemented")
-                pass
-            elif field_type.is_struct:
-                # raise NotImplementedError("Structs not implemented")
-                pass
-            else:
+            if field_type.is_scalar:
                 field_type_name = self.get_typed_name(field_type)
                 self.write(f"    get {field.name}() {{ return this.view.get{field_type_name}({sl.fields[i].offset}); }}\n")
                 self.write(f"    set {field.name}(value) {{ return this.view.set{field_type_name}({sl.fields[i].offset}, value); this.dirty({sl.fields[i].offset}, {sl.fields[i].offset + sl.fields[i].byte_size}); }}\n")
+            elif is_scalar_array[i]:
+                self.write(f"    get {field.name}() {{ return this.{field.name}Array; }}\n")
+                self.write(f"    set {field.name}(value) {{ this.{field.name}Array.set(value); this.dirty({sl.fields[i].offset}, {sl.fields[i].offset + sl.fields[i].byte_size}); }}\n")
+            else:
+                raise NotImplementedError(f"Field type {field_type} not implemented")
         self.write("}\n")
 
     def get_typed_name(self, t: typs.Type) -> str:
@@ -85,7 +94,7 @@ class JSWriter(CodeWriter):
             elif tn == "uint":
                 return "UInt32"
             elif tn == "long":
-                return "BigInt"
+                return "BigInt64"
             elif tn == "ulong":
                 return "BigUint64"
             else:

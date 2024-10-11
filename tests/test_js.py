@@ -28,6 +28,7 @@ class A {
         this.isDirty = false;
         this.dirtyBegin = 0;
         this.dirtyEnd = 0;
+        this.wArray = new Float32Array(this.buffer, byteOffset + 8, 2);
     }
     dirty(begin, end) {
         if (this.isDirty) { this.dirtyBegin = Math.min(this.dirtyBegin, begin); this.dirtyEnd = Math.max(this.dirtyEnd, end); }
@@ -46,6 +47,8 @@ class A {
     set u(value) { return this.view.setFloat32(0, value); this.dirty(0, 4); }
     get v() { return this.view.getFloat32(4); }
     set v(value) { return this.view.setFloat32(4, value); this.dirty(4, 8); }
+    get w() { return this.wArray; }
+    set w(value) { this.wArray.set(value); this.dirty(8, 16); }
     get x() { return this.view.getFloat32(16); }
     set x(value) { return this.view.setFloat32(16, value); this.dirty(16, 20); }
 }
