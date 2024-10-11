@@ -78,6 +78,9 @@ class Node:
     def c_code(self) -> str:
         return self.get_code("c")
     @property
+    def html_code(self) -> str:
+        return self.get_code("html")
+    @property
     def js_code(self) -> str:
         return self.get_code("js")
     @property
