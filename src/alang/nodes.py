@@ -23,12 +23,12 @@ class NodeType:
 
 class Node:
     def __init__(self, type: NodeType):
-        self.type = type
+        self.node_type = type
         self.attributes: dict[str, "NodeAttr"] = {}
         self.children: list["Node"] = []
         self.parent: Optional["Node"] = None
     def get_children_with_type(self, type: NodeType):
-        return [child for child in self.children if child.type == type]
+        return [child for child in self.children if child.node_type == type]
     def get_child_with_type(self, type: NodeType):
         return self.get_children_with_type(type)[0]
     def append_child(self, child: "Node"):
@@ -40,7 +40,7 @@ class Node:
             out.write("...")
             return
         indent = "    " * depth
-        out.write(f"{indent}({self.type} (")
+        out.write(f"{indent}({self.node_type} (")
         head = ""
         for k, a in self.attributes.items():
             out.write(f"{head}{a.name}={repr(getattr(self, a.private_name))}")
@@ -64,7 +64,7 @@ class Node:
             p = p.parent
         return None
     def write_code(self, writer):
-        raise NotImplementedError(f"Cannot write code for {self.type}")
+        raise NotImplementedError(f"Cannot write code for {self.node_type}")
     def get_code(self, language: Optional[Any] = None, options: Optional[CodeOptions] = None) -> str:
         language = langs.get_language(language)
         out = io.StringIO()
@@ -110,13 +110,13 @@ class NodeChildren:
         num_children = len(obj.children)
         i = 0
         while i < len(obj.children):
-            if obj.children[i].type == self.child_node_type:
+            if obj.children[i].node_type == self.child_node_type:
                 obj.children.pop(i)
             else:
                 i += 1
         for child in value:
-            if child.type != self.child_node_type:
-                raise ValueError(f"Expected child of type {self.child_node_type}, got {child.type}")
+            if child.node_type != self.child_node_type:
+                raise ValueError(f"Expected child of type {self.child_node_type}, got {child.node_type}")
             obj.children.insert(num_children, child)
             num_children += 1
 
@@ -126,12 +126,12 @@ class NodeChild:
     def __get__(self, obj: Node, objtype=None) -> list[Node]:
         return obj.get_child_with_type(self.child_node_type)
     def __set__(self, obj: Node, value: Optional[Node]):
-        if value is not None and value.type != self.child_node_type:
-            raise ValueError(f"Expected child of type {self.child_node_type}, got {value.type}")
+        if value is not None and value.node_type != self.child_node_type:
+            raise ValueError(f"Expected child of type {self.child_node_type}, got {value.node_type}")
         num_children = len(obj.children)
         i = 0
         while i < len(obj.children):
-            if obj.children[i].type == self.child_node_type:
+            if obj.children[i].node_type == self.child_node_type:
                 obj.children.pop(i)
             else:
                 i += 1
@@ -151,6 +151,7 @@ class Statement(Node):
 class Block(Node):
     variables = NodeChildren(NodeType.VARIABLE)
     functions = NodeChildren(NodeType.FUNCTION)
+    types = NodeChildren(NodeType.TYPE)
     def __init__(self, type: NodeType, can_define_types: bool, can_define_functions: bool, can_define_variables: bool):
         super().__init__(type)
         self.can_define_types = can_define_types
@@ -180,7 +181,7 @@ class Block(Node):
             self.append_child(f)
             return f
         else:
-            raise ValueError(f"Cannot define function in {self.type}")
+            raise ValueError(f"Cannot define function in {self.node_type}")
     def struct(self, name: str, *fields: list) -> "Struct":
         if self.can_define_types:
             from typs import Struct
@@ -190,7 +191,7 @@ class Block(Node):
             self.append_child(s)
             return s
         else:
-            raise ValueError(f"Cannot define struct in {self.type}")
+            raise ValueError(f"Cannot define struct in {self.node_type}")
     def array(self, element_type: str, length: Optional[int] = None) -> "Array":
         if self.can_define_types:
             from typs import Array
@@ -198,7 +199,7 @@ class Block(Node):
             self.append_child(a)
             return a
         else:
-            raise ValueError(f"Cannot define array in {self.type}")
+            raise ValueError(f"Cannot define array in {self.node_type}")
 
 class Variable(Node):
     name = NodeAttr()

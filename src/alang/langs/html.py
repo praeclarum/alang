@@ -1,23 +1,43 @@
 from typing import Optional, TextIO, Union
+from alang import Module
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
 import typs
 
+def encode(str):
+    return str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
 class HTMLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
-    def encode(self, str):
-        return str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    def write_module(self, s: Module):
+        self.write(f"<html>\n")
+        self.write(f"<head>\n")
+        self.write(f"<title>{encode(s.name)}</title>\n")
+        self.write(f"</head>\n")
+        self.write(f"<body>\n")
+        for type in s.types:
+            self.write_type(type)
+        self.write(f"</body>\n")
+        self.write(f"</html>\n")
+
+    def write_type(self, t: typs.Type):
+        if isinstance(t, typs.Struct):
+            self.write_struct(t)
+        else:
+            self.write(f"<h2>{encode(t.name)}</h2>\n")
+            self.write(f"<code><pre>{encode(str(t))}</pre></code>\n")
 
     def write_struct(self, s: typs.Struct):
         fs: list[typs.Field] = s.fields
         sl = s.layout
         n = len(fs)
         anno = self.options.struct_annotations
-        enc_name = self.encode(s.name)
+        enc_name = encode(s.name)
         self.write(f"<h2>{enc_name}</h2>\n")
+        self.write(f"<code><pre>{encode(str(s))}</pre></code>\n")
 
     def get_typed_name(self, t: typs.Type) -> str:
         if isinstance(t, typs.Integer):

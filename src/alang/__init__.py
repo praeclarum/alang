@@ -4,6 +4,8 @@ from funcs import Function
 from typs import Array, Struct
 from nodes import CodeOptions
 
+from langs import get_language
+
 global_module = Module("global")
 
 def define(name: str, *parameters: list) -> Function:
