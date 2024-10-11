@@ -11,7 +11,7 @@ class Type(Node):
     def layout(self) -> "TypeLayout":
         return self.get_layout(None)
 
-    def get_layout(self, buffer_byte_size: Optional[int]) -> "TypeLayout":
+    def get_layout(self, buffer_byte_size: Optional[int] = None) -> "TypeLayout":
         raise NotImplementedError(f"Type {self.name} does not have a layout")
 
     def write_code(self, writer):
@@ -35,13 +35,24 @@ class ArrayLayout(TypeLayout):
     def __init__(self):
         super().__init__()
         self.element_stride = 0
+        self.num_elements = 0
 
-def get_array_layout(element_type: Type, length: Optional[int]) -> ArrayLayout:
+def get_array_layout(element_type: Type, length: Optional[int], buffer_byte_size: Optional[int] = None) -> ArrayLayout:
     e_layout = element_type.layout
     layout = ArrayLayout()
     layout.element_stride = round_up(e_layout.align, e_layout.byte_size)
-    if length is not None:
-        layout.byte_size = layout.element_stride * length
+    if length is None:
+        if buffer_byte_size is None:
+            print("Warning: Buffer size must be provided for runtime sized arrays")
+            layout.num_elements = 0
+        else:
+            # If B is the effective buffer binding size for the binding on the
+            # draw or dispatch command, the number of elements is:
+            #   N_runtime = floor(B / element stride)
+            layout.num_elements = buffer_byte_size // layout.element_stride
+    else:
+        layout.num_elements = length
+    layout.byte_size = layout.element_stride * layout.num_elements
     layout.align = e_layout.align
     return layout
 
@@ -53,9 +64,11 @@ class Array(Type):
         super().__init__(f"{element_type.name}[{length}]")
         self.element_type = element_type
         self.length = length
-        self.cached_layout = get_array_layout(element_type, length)
-    def get_layout(self, buffer_byte_size: Optional[int]) -> ArrayLayout:
-        return self.cached_layout
+        self.nobuffer_layout = get_array_layout(element_type, length)
+    def get_layout(self, buffer_byte_size: Optional[int] = None) -> ArrayLayout:
+        if buffer_byte_size is not None:
+            return get_array_layout(self.element_type, self.length, buffer_byte_size)
+        return self.nobuffer_layout
     @property
     def layout(self) -> ArrayLayout:
         return self.get_layout(None)
@@ -110,7 +123,7 @@ class Integer(Primitive):
         self.bits = bits
         self.signed = signed
         self.cached_layout = get_int_layout(bits)
-    def get_layout(self, buffer_byte_size: Optional[int]) -> TypeLayout:
+    def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.cached_layout
     def get_type_suffix(self) -> str:
         return self.name[0]
@@ -148,7 +161,7 @@ class Float(Primitive):
         self.cached_layout = get_float_layout(bits)
     def get_type_suffix(self) -> str:
         return self.name[0]
-    def get_layout(self, buffer_byte_size: Optional[int]) -> TypeLayout:
+    def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.cached_layout
 
 half_type = Float(16)
@@ -209,7 +222,7 @@ class Struct(Type):
                 self.append_child(field)
         self.nobuffer_layout = None
 
-    def get_layout(self, buffer_byte_size: Optional[int]) -> StructLayout:
+    def get_layout(self, buffer_byte_size: Optional[int] = None) -> StructLayout:
         if buffer_byte_size is None:
             if self.nobuffer_layout is None:
                 self.nobuffer_layout = StructLayout(self, self.fields)
@@ -257,7 +270,7 @@ class Vector(Type):
         self.element_type = element_type
         self.size = size
         self.nobuffer_layout = get_vector_layout(element_type, size)
-    def get_layout(self, buffer_byte_size: Optional[int]) -> TypeLayout:
+    def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.nobuffer_layout
 
 vec2h_type = Vector(half_type, 2)
