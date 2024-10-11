@@ -1,5 +1,5 @@
 from typing import Optional, TextIO, Union
-from alang import Module
+import modules
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
@@ -12,7 +12,7 @@ class HTMLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
-    def write_module(self, s: Module):
+    def write_module(self, s: modules.Module):
         self.write(f"<html>\n")
         self.write(f"<head>\n")
         self.write(f"<title>{encode(s.name)}</title>\n")
@@ -20,6 +20,9 @@ class HTMLWriter(CodeWriter):
         self.write(f"<body>\n")
         for type in s.types:
             self.write_type(type)
+        self.write(f"<script type='module'>\n")
+        self.write(s.get_code("js", self.options))
+        self.write(f"</script>\n")
         self.write(f"</body>\n")
         self.write(f"</html>\n")
 
