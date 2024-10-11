@@ -58,3 +58,12 @@ def test_runtime_sized_float3s():
     assert l.element_stride == 16
     assert l.num_elements == 3
     assert l.byte_size == 48
+
+def test_runtime_truncation():
+    # https://www.w3.org/TR/WGSL/#buffer-binding-determines-runtime-sized-array-element-count
+    a = array("float")
+    assert a.get_layout(1024).num_elements == 256
+    assert a.get_layout(1025).num_elements == 256
+    assert a.get_layout(1026).num_elements == 256
+    assert a.get_layout(1027).num_elements == 256
+    assert a.get_layout(1028).num_elements == 257
