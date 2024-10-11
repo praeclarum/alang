@@ -13,7 +13,7 @@ language_registry = {}
 def register_language(lang: Language):
     language_registry[lang.name] = lang
 
-def get_language(language: Optional[Any]) -> str:
+def get_language(language: Optional[Any]) -> Language:
     if language is None:
         return language_registry["alang"]
     elif isinstance(language, Language):
