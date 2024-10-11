@@ -6,11 +6,14 @@ class Type(Node):
     def __init__(self, name: str):
         super().__init__(NodeType.TYPE)
         self.name = name
+        self.is_scalar = False
+        self.is_array = False
+        self.is_vector = False
+        self.is_struct = False
 
     @property
     def layout(self) -> "TypeLayout":
         return self.get_layout(None)
-
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> "TypeLayout":
         raise NotImplementedError(f"Type {self.name} does not have a layout")
 
@@ -65,6 +68,7 @@ class Array(Type):
         self.element_type = element_type
         self.length = length
         self.nobuffer_layout = get_array_layout(element_type, length)
+        self.is_array = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> ArrayLayout:
         if buffer_byte_size is not None:
             return get_array_layout(self.element_type, self.length, buffer_byte_size)
@@ -123,6 +127,7 @@ class Integer(Primitive):
         self.bits = bits
         self.signed = signed
         self.cached_layout = get_int_layout(bits)
+        self.is_scalar = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.cached_layout
     def get_type_suffix(self) -> str:
@@ -159,6 +164,7 @@ class Float(Primitive):
         super().__init__(get_float_name(bits))
         self.bits = bits
         self.cached_layout = get_float_layout(bits)
+        self.is_scalar = True
     def get_type_suffix(self) -> str:
         return self.name[0]
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
@@ -234,6 +240,7 @@ class Struct(Type):
             for field in fields:
                 self.append_child(field)
         self.nobuffer_layout = None
+        self.is_struct = True
 
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> StructLayout:
         if buffer_byte_size is None:
@@ -280,9 +287,12 @@ class Vector(Type):
     size = NodeAttr()
     def __init__(self, element_type: Type, size: int):
         super().__init__(get_vector_name(element_type, size))
+        if size < 2 or size > 4:
+            raise ValueError(f"Invalid vector size: {size}. Size must be 2, 3, or 4")
         self.element_type = element_type
         self.size = size
         self.nobuffer_layout = get_vector_layout(element_type, size)
+        self.is_vector = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.nobuffer_layout
 

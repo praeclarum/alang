@@ -23,6 +23,13 @@ class A {
         }
         if (byteOffset + byteLength >= this.buffer.byteLength) throw new Error(`Buffer overflow. "A" requires ${byteLength} bytes starting at ${byteOffset}, but the buffer is only ${this.buffer.byteLength} bytes long`);
         this.view = new DataView(this.buffer, byteOffset, byteLength);
+        this.byteLength = byteLength;
     }
+    get u() { return this.view.getFloat32(0); }
+    set u(value) { return this.view.setFloat32(0, value); }
+    get v() { return this.view.getFloat32(4); }
+    set v(value) { return this.view.setFloat32(4, value); }
+    get x() { return this.view.getFloat32(16); }
+    set x(value) { return this.view.setFloat32(16, value); }
 }
 """.strip()
