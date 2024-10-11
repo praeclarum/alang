@@ -38,7 +38,10 @@ class JSWriter(CodeWriter):
         self.write(f"        if (byteOffset + byteLength >= this.buffer.byteLength) throw new Error(`Buffer overflow. \"{s.name}\" requires ${{byteLength}} bytes starting at ${{byteOffset}}, but the buffer is only ${{this.buffer.byteLength}} bytes long`);\n")
         self.write(f"        this.view = new DataView(this.buffer, byteOffset, byteLength);\n")
         self.write(f"        this.byteLength = byteLength;\n")
+        self.write(f"        this.gpuBuffer = null;\n")
+        self.write(f"        this.isDirty = false;\n")
         self.write(f"    }}\n")
+        self.write(f"    dirty() {{ this.isDirty = true; }}\n")
         for i, field in enumerate(fs):
             field_type = field.field_type
             if field_type.is_array:
@@ -53,7 +56,7 @@ class JSWriter(CodeWriter):
             else:
                 field_type_name = self.get_typed_name(field_type)
                 self.write(f"    get {field.name}() {{ return this.view.get{field_type_name}({sl.fields[i].offset}); }}\n")
-                self.write(f"    set {field.name}(value) {{ return this.view.set{field_type_name}({sl.fields[i].offset}, value); }}\n")
+                self.write(f"    set {field.name}(value) {{ return this.view.set{field_type_name}({sl.fields[i].offset}, value); this.dirty(); }}\n")
         self.write("}\n")
 
     def get_typed_name(self, t: typs.Type) -> str:
