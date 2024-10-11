@@ -7,11 +7,20 @@ class Type(Node):
         super().__init__(NodeType.TYPE)
         self.name = name
 
+    @property
+    def layout(self):
+        raise NotImplementedError(f"Type {self.name} does not have a layout")
+
     def write_code(self, writer):
         writer.write_type(self)
 
     def get_type_suffix(self) -> str:
-        return ""
+        raise NotImplementedError()
+
+class TypeLayout:
+    def __init__(self):
+        self.size = 0
+        self.align = 0
 
 class Primitive(Type):
     def __init__(self, name):
@@ -40,6 +49,12 @@ def get_int_name(bits: int, signed: bool) -> str:
             return "ulong"
     else:
         raise ValueError(f"Invalid integer size: {bits}")
+    
+def get_int_layout(bits: int) -> TypeLayout:
+    layout = TypeLayout()
+    layout.size = ((bits // 8 + 3) // 4) * 4
+    layout.align = layout.size
+    return layout
 
 class Integer(Primitive):
     bits = NodeAttr()
@@ -48,6 +63,10 @@ class Integer(Primitive):
         super().__init__(get_int_name(bits, signed))
         self.bits = bits
         self.signed = signed
+        self.cached_layout = get_int_layout(bits)
+    @property
+    def layout(self) -> TypeLayout:
+        return self.cached_layout
     def get_type_suffix(self) -> str:
         return self.name[0]
 
@@ -69,14 +88,24 @@ def get_float_name(bits: int) -> str:
         return "double"
     else:
         raise ValueError(f"Invalid float size: {bits}")
+    
+def get_float_layout(bits: int) -> TypeLayout:
+    layout = TypeLayout()
+    layout.size = ((bits // 8 + 3) // 4) * 4
+    layout.align = layout.size
+    return layout
 
 class Float(Primitive):
     bits = NodeAttr()
     def __init__(self, bits: int):
         super().__init__(get_float_name(bits))
         self.bits = bits
+        self.cached_layout = get_float_layout(bits)
     def get_type_suffix(self) -> str:
         return self.name[0]
+    @property
+    def layout(self) -> TypeLayout:
+        return self.cached_layout
 
 half_type = Float(16)
 float_type = Float(32)
@@ -97,13 +126,30 @@ class FieldLayout:
         self.align = 0
         self.size = 0
 
-class StructLayout:
+class StructLayout(TypeLayout):
     def __init__(self, struct: "Struct", fields: list[Field]):
+        super().__init__()
         self.struct = struct
         self.fields = [FieldLayout(field) for field in fields]
         self.analyze()
     def analyze(self):
-        pass
+        last_offset = 0
+        last_size = 0
+        for field_index, field_layout in enumerate(self.fields):
+            field = field_layout.field
+            type_layout = field.field_type.layout
+            offset = round_up(type_layout.align, last_offset + last_size)
+            field_layout.offset = offset
+            field_layout.size = type_layout.size
+            field_layout.align = type_layout.align
+            last_offset = offset
+            last_size = type_layout.size
+        self.size = 0
+        self.align = 0
+
+def round_up(k: int, n: int) -> int:
+    # roundUp(k, n) = ⌈n ÷ k⌉ × k
+    return ((n + k - 1) // k) * k
 
 class Struct(Type):
     fields = NodeChildren(NodeType.FIELD)
@@ -132,6 +178,22 @@ class Struct(Type):
 def get_vector_name(element_type: Type, size: int) -> str:
     return f"vec{size}{element_type.get_type_suffix()}"
 
+def get_vector_layout(element_type: Type, size: int) -> TypeLayout:
+    e_layout = element_type.layout
+    layout = TypeLayout()
+    if size == 2:
+        layout.size = e_layout.size * 2
+        layout.align = layout.size
+    elif size == 3:
+        layout.size = e_layout.size * 3
+        layout.align = e_layout.size * 4
+    elif size == 4:
+        layout.size = e_layout.size * 4
+        layout.align = layout.size
+    else:
+        raise ValueError(f"Invalid vector size: {size}")
+    return layout
+
 class Vector(Type):
     element_type = NodeChild(NodeType.TYPE)
     size = NodeAttr()
@@ -139,6 +201,10 @@ class Vector(Type):
         super().__init__(get_vector_name(element_type, size))
         self.element_type = element_type
         self.size = size
+        self.cached_layout = get_vector_layout(element_type, size)
+    @property
+    def layout(self) -> TypeLayout:
+        return self.cached_layout
 
 vec2h_type = Vector(half_type, 2)
 vec3h_type = Vector(half_type, 3)
