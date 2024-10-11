@@ -64,7 +64,7 @@ class JSWriter(CodeWriter):
         self.write(f"    }}\n")
         self.write(f"    getGPUBuffer(device, usage) {{\n")
         self.write(f"        if (this.gpuBuffer === null) {{\n")
-        self.write(f"            this.gpuBuffer = device.createBuffer({{ size: Math.max(this.byteLength, 256), usage: usage, label: \"{s.name}\", mappedAtCreation: true }});\n")
+        self.write(f"            this.gpuBuffer = device.createBuffer({{ size: Math.max(this.byteLength, 256), usage: usage, label: \"{s.name}\", mappedAtCreation: false }});\n")
         self.write(f"            device.queue.writeBuffer(this.gpuBuffer, 0, this.buffer, this.view.byteOffset, this.byteLength);\n")
         self.write(f"            this.isDirty = false;\n")
         self.write(f"        }}\n")

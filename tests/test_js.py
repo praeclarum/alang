@@ -38,7 +38,7 @@ class A {
     }
     getGPUBuffer(device, usage) {
         if (this.gpuBuffer === null) {
-            this.gpuBuffer = device.createBuffer({ size: Math.max(this.byteLength, 256), usage: usage, label: "A", mappedAtCreation: true });
+            this.gpuBuffer = device.createBuffer({ size: Math.max(this.byteLength, 256), usage: usage, label: "A", mappedAtCreation: false });
             device.queue.writeBuffer(this.gpuBuffer, 0, this.buffer, this.view.byteOffset, this.byteLength);
             this.isDirty = false;
         }
