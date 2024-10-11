@@ -1,4 +1,4 @@
-from typing import TextIO, Union
+from typing import Optional, TextIO, Union
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
@@ -10,8 +10,8 @@ import typs
 Code = str
 
 class AWriter(CodeWriter):
-    def __init__(self, out: Union[str, TextIO]):
-        super().__init__(out)
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]):
+        super().__init__(out, options)
 
     def write_struct(self, s: typs.Struct):
         self.write(f"struct {s.name}:\n")
@@ -27,8 +27,8 @@ class ALanguage(Language):
     def __init__(self):
         super().__init__("a")
 
-    def open_writer(self, out: Union[str, TextIO]) -> AWriter:
-        return AWriter(out)
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> AWriter:
+        return AWriter(out, options)
 
     def parse_expr(self, expr: Code):
         if expr is None:

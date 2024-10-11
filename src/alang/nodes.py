@@ -6,6 +6,10 @@ import langs
 TypeRef = str
 
 Code = str
+class CodeOptions:
+    def __init__(self, standalone: bool = False, struct_annotations: bool = False) -> None:
+        self.standalone = standalone
+        self.struct_annotations = struct_annotations
 
 class NodeType:
     EXPRESSION = 'expression'
@@ -61,22 +65,22 @@ class Node:
         return None
     def write_code(self, writer):
         raise NotImplementedError(f"Cannot write code for {self.type}")
-    def get_code(self, language: Optional[Any] = None) -> str:
+    def get_code(self, language: Optional[Any] = None, options: Optional[CodeOptions] = None) -> str:
         language = langs.get_language(language)
         out = io.StringIO()
-        with language.open_writer(out) as writer:
+        with language.open_writer(out, options) as writer:
             self.write_code(writer)
         return out.getvalue()
     @property
-    def code(self) -> str:
-        return self.get_code()
+    def code(self, options: Optional[CodeOptions] = None) -> str:
+        return self.get_code("a", options)
     @property
-    def c_code(self) -> str:
-        return self.get_code("c")
+    def c_code(self, options: Optional[CodeOptions] = None) -> str:
+        return self.get_code("c", options)
     @property
-    def wgsl_code(self) -> str:
-        return self.get_code("wgsl")
-
+    def wgsl_code(self, options: Optional[CodeOptions] = None) -> str:
+        return self.get_code("wgsl", options)
+    
 class NodeAttr:
     def __init__(self, default_value=None):
         self.default_value = default_value

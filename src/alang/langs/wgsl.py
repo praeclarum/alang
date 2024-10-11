@@ -1,12 +1,12 @@
-from typing import TextIO, Union
+from typing import Optional, TextIO, Union
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
 import typs
 
 class WGSLWriter(CodeWriter):
-    def __init__(self, out: Union[str, TextIO]):
-        super().__init__(out)
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]):
+        super().__init__(out, options)
 
     def write_struct(self, s: typs.Struct):
         self.write(f"struct {s.name} {{\n")
@@ -67,8 +67,8 @@ class WGSLLanguage(Language):
     def __init__(self):
         super().__init__("wgsl")
 
-    def open_writer(self, out: Union[str, TextIO]) -> WGSLWriter:
-        return WGSLWriter(out)
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> WGSLWriter:
+        return WGSLWriter(out, options)
 
 wgsl_lang = WGSLLanguage()
 register_language(wgsl_lang)

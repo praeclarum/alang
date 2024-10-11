@@ -1,7 +1,8 @@
-from typing import TextIO, Union
+from typing import Optional, TextIO, Union
 
 class CodeWriter:
-    def __init__(self, path_or_io: Union[str, TextIO]):
+    def __init__(self, path_or_io: Union[str, TextIO], options: Optional["CodeOptions"]):
+        self.options = options
         if type(path_or_io) is str:
             self.out = open(path_or_io, "w")
             self.owner = True
