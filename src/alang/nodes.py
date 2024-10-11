@@ -72,14 +72,17 @@ class Node:
             self.write_code(writer)
         return out.getvalue()
     @property
-    def code(self, options: Optional[CodeOptions] = None) -> str:
-        return self.get_code("a", options)
+    def code(self) -> str:
+        return self.get_code("a")
     @property
-    def c_code(self, options: Optional[CodeOptions] = None) -> str:
-        return self.get_code("c", options)
+    def c_code(self) -> str:
+        return self.get_code("c")
     @property
-    def wgsl_code(self, options: Optional[CodeOptions] = None) -> str:
-        return self.get_code("wgsl", options)
+    def js_code(self) -> str:
+        return self.get_code("js")
+    @property
+    def wgsl_code(self) -> str:
+        return self.get_code("wgsl")
     
 class NodeAttr:
     def __init__(self, default_value=None):
