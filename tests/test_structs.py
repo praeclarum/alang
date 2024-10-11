@@ -34,16 +34,18 @@ def test_nested_struct_layout():
         ("b", "vec3f"),
         ("c", "float"),
         ("d", "float"),
-        # ("e", s_a),
+        ("e", s_a),
+        ("f", "vec3f"),
     )
     l = s_b.layout
     fs = l.fields
-    assert len(fs) == 4
+    assert len(fs) == 6
     assert fs[0].triple == (0, 8, 8)
     assert fs[1].triple == (16, 16, 12)
     assert fs[2].triple == (28, 4, 4)
     assert fs[3].triple == (32, 4, 4)
-    # assert fs[4].triple == (40, 8, 24)
+    assert fs[4].triple == (40, 8, 24)
+    assert fs[5].triple == (64, 16, 12)
 
 def test_struct_a():
     s = struct("Point", ("x", "int"), ("y", "int"))

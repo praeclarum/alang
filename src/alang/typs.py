@@ -16,6 +16,12 @@ class Type(Node):
 
     def get_type_suffix(self) -> str:
         raise NotImplementedError()
+    
+class UnresolvedType(Type):
+    def __init__(self, name: str):
+        super().__init__(name)
+    def get_type_suffix(self) -> str:
+        return "X"
 
 class TypeLayout:
     def __init__(self):
@@ -172,7 +178,7 @@ class Struct(Type):
         return self.saved_layout
 
     def field(self, name: str, type: Type) -> "Struct":
-        f = Field(name, resolve_builtin_type(type))
+        f = Field(name, try_resolve_type(type, self))
         self.append_child(f)
         self.saved_layout = None
         return self
@@ -247,7 +253,26 @@ builtin_types = {
     vec3i_type.name: vec3i_type,
     vec4i_type.name: vec4i_type,
 }
-def resolve_builtin_type(name: str) -> Type:
+
+def find_builtin_type(name: str) -> Optional[Type]:
     if name in builtin_types:
         return builtin_types[name]
-    raise ValueError(f"Unknown type: {name}")
+    return None
+
+def resolve_builtin_type(name: str) -> Type:
+    bt = find_builtin_type(name)
+    if bt is None:
+        raise ValueError(f"Unknown builtin type: {name}")
+    return bt
+
+def try_resolve_type(type, context: Node) -> Type:
+    if type is None:
+        return None
+    if isinstance(type, Type):
+        return type
+    if isinstance(type, str):
+        bt = find_builtin_type(type)
+        if bt is not None:
+            return bt
+        # TODO: Implement lookup in context
+    return UnresolvedType(type)
