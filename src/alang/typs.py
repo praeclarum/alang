@@ -177,37 +177,50 @@ class Field(Node):
         self.field_type = field_type
 
 class FieldLayout(TypeLayout):
-    def __init__(self, field: Field):
-        self.field = field
+    def __init__(self):
         self.offset = 0
+        self.num_elements = 0
     @property
     def triple(self) -> tuple[int, int, int]:
         """Returns a tuple of (offset, align, size)"""
         return (self.offset, self.align, self.byte_size)
 
 class StructLayout(TypeLayout):
-    def __init__(self, struct: "Struct", fields: list[Field]):
+    def __init__(self):
         super().__init__()
-        self.struct = struct
-        self.fields = [FieldLayout(field) for field in fields]
-        self.analyze()
-    def analyze(self):
-        last_offset = 0
-        last_size = 0
-        max_field_align = 0
-        for field_index, field_layout in enumerate(self.fields):
-            field = field_layout.field
-            type_layout = field.field_type.layout
-            offset = round_up(type_layout.align, last_offset + last_size)
-            field_layout.offset = offset
-            field_layout.byte_size = type_layout.byte_size
-            field_layout.align = type_layout.align
-            max_field_align = max(max_field_align, type_layout.align)
-            last_offset = offset
-            last_size = type_layout.byte_size
-        self.align = max_field_align
-        just_past_last_field = self.fields[-1].offset + self.fields[-1].byte_size
-        self.byte_size = round_up(self.align, just_past_last_field)
+        self.fields = []
+
+def get_struct_layout(fields: list[Field], buffer_byte_size: Optional[int] = None) -> StructLayout:
+    struct_layout = StructLayout()
+    last_offset = 0
+    last_size = 0
+    max_field_align = 0
+    if len(fields) == 0:
+        return struct_layout
+    for field_index, field in enumerate(fields):
+        type_layout = field.field_type.layout
+        offset = round_up(type_layout.align, last_offset + last_size)
+        field_layout = FieldLayout()
+        field_layout.offset = offset
+        field_layout.num_elements = 1
+        if buffer_byte_size is not None:
+            remaining_bytes = buffer_byte_size - offset
+            if remaining_bytes < 0:
+                print(f"Warning: Buffer size too small for field {field.name}")
+            else:
+                type_layout = field.field_type.get_layout(remaining_bytes)
+                if isinstance(type_layout, ArrayLayout):
+                    field_layout.num_elements = type_layout.num_elements
+        field_layout.byte_size = type_layout.byte_size
+        field_layout.align = type_layout.align
+        struct_layout.fields.append(field_layout)
+        max_field_align = max(max_field_align, type_layout.align)
+        last_offset = offset
+        last_size = type_layout.byte_size
+    struct_layout.align = max_field_align
+    just_past_last_field = struct_layout.fields[-1].offset + struct_layout.fields[-1].byte_size
+    struct_layout.byte_size = round_up(struct_layout.align, just_past_last_field)
+    return struct_layout
 
 def round_up(k: int, n: int) -> int:
     # roundUp(k, n) = ⌈n ÷ k⌉ × k
@@ -225,10 +238,10 @@ class Struct(Type):
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> StructLayout:
         if buffer_byte_size is None:
             if self.nobuffer_layout is None:
-                self.nobuffer_layout = StructLayout(self, self.fields)
+                self.nobuffer_layout = get_struct_layout(self.fields)
             return self.nobuffer_layout
         else:
-            raise NotImplementedError("Runtime sized struct layout not implemented")
+            return get_struct_layout(self.fields, buffer_byte_size)
 
     @property
     def layout(self) -> StructLayout:
