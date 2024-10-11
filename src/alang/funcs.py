@@ -1,6 +1,6 @@
 from typing import Optional
 from alang.langs.writer import CodeWriter
-from nodes import Block, Node, NodeAttr, NodeChild, NodeChildren, NodeType, Type
+from nodes import Block, Node, NodeAttr, NodeChild, NodeChildren, NodeType
 from stmts import Return
 
 Code = str
@@ -33,7 +33,7 @@ class Parameter(Node):
     name = NodeAttr()
     parameter_type = NodeChild(NodeType.TYPE)
 
-    def __init__(self, name: str, parameter_type: Type = None):
+    def __init__(self, name: str, parameter_type: "Type" = None):
         super().__init__(NodeType.PARAMETER)
         self.name = name
         self.parameter_type = parameter_type

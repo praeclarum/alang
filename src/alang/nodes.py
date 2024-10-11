@@ -133,8 +133,6 @@ class Statement(ASTNode):
     def __init__(self):
         super().__init__(NodeType.STATEMENT)
 
-import parser
-
 class Block(ASTNode):
     variables = NodeChildren(NodeType.VARIABLE)
     functions = NodeChildren(NodeType.FUNCTION)
@@ -143,7 +141,7 @@ class Block(ASTNode):
         self.can_define_functions = can_define_functions
         self.can_define_variables = can_define_variables
     def parse_expr(self, expr: Optional[Code]) -> Optional["Expression"]:
-        return parser.parse_expr(expr)
+        return langs.a_lang.parse_expr(expr)
     def set(self, lhs: Code, rhs: Code) -> "Block":
         lhs = self.parse_expr(lhs)
         rhs = self.parse_expr(rhs)

@@ -6,6 +6,8 @@ class Language:
         self.name = name
     def open_writer(self, out: Union[str, TextIO]) -> CodeWriter:
         return CodeWriter(out)
+    def parse_expr(self, code: str):
+        raise NotImplementedError()
 
 language_registry = {}
 def register_language(lang: Language):
