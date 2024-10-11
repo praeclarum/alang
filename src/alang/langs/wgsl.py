@@ -9,59 +9,75 @@ class WGSLWriter(CodeWriter):
         super().__init__(out, options)
 
     def write_struct(self, s: typs.Struct):
-        self.write(f"struct {s.name} {{\n")
         fs = s.fields
+        sl = s.layout
         n = len(fs)
+        anno_col = 46
+        anno = self.options.struct_annotations
+        self.write(f"struct {s.name} {{")
+        def write_anno(o, a, s, text_len):
+            if anno:
+                tab = " " * max(anno_col - text_len, 1)
+                o_text = ""
+                if o is not None:
+                    o_text = f"offset({o})"
+                a_text = f"align({a})"
+                self.write(f"{tab}// {o_text.ljust(12)}{a_text.ljust(10)}size({s})")
+        write_anno(None, sl.align, sl.byte_size, len(s.name) + 8)
+        self.write("\n")
         for i, field in enumerate(fs):
-            self.write(f"    {field.name}: ")
-            self.write_type(field.field_type)
+            field_type = self.get_type_name(field.field_type)
+            self.write(f"    {field.name}: {field_type}")
+            text_len = len(field.name) + len(field_type) + 5
             if i < n - 1:
                 self.write(",")
+                text_len += 1
+            fl = sl.fields[i]
+            write_anno(fl.offset, fl.align, fl.byte_size, text_len)
             self.write("\n")
         self.write("}\n")
 
-    def write_type(self, t: typs.Type):
+    def get_type_name(self, t: typs.Type) -> str:
         if isinstance(t, typs.Integer):
             tn = t.name
             if tn == "sbyte":
-                self.write("i8")
+                return "i8"
             elif tn == "byte":
-                self.write("u8")
+                return "u8"
             elif tn == "int":
-                self.write("i32")
+                return "i32"
             elif tn == "uint":
-                self.write("u32")
+                return "u32"
             elif tn == "long":
-                self.write("i64")
+                return "i64"
             elif tn == "ulong":
-                self.write("u64")
+                return "u64"
             else:
                 raise ValueError(f"Invalid integer type: {tn}")
         elif isinstance(t, typs.Float):
             tn = t.name
             if tn == "half":
-                self.write("f16")
+                return "f16"
             elif tn == "float":
-                self.write("f32")
+                return "f32"
             elif tn == "double":
-                self.write("f64")
+                return "f64"
             else:
                 raise ValueError(f"Invalid float type: {tn}")
         elif isinstance(t, typs.Vector):
             n = t.size
             if n == 2:
-                self.write("vec2")
+                vec_type = "vec2"
             elif n == 3:
-                self.write("vec3")
+                vec_type = "vec3"
             elif n == 4:
-                self.write("vec4")
+                vec_type = "vec4"
             else:
                 raise ValueError(f"Invalid vector size: {n}")
-            self.write("<")
-            self.write_type(t.element_type)
-            self.write(">")
+            element_type = self.get_type_name(t.element_type)
+            return f"{vec_type}<{element_type}>"
         else:
-            self.write(t.name)
+            return t.name
 
 class WGSLLanguage(Language):
     def __init__(self):

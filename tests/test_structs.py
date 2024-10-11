@@ -1,4 +1,4 @@
-from alang import array, struct
+from alang import array, struct, CodeOptions
 
 def test_simple_struct_layout():
     # https://www.w3.org/TR/WGSL/#structure-member-layout
@@ -103,3 +103,21 @@ def test_runtime_sized():
     test_buffer_size(1025, 31)
     test_buffer_size(1039, 31)
     test_buffer_size(1040, 32)
+
+def test_annotations():
+    # https://www.w3.org/TR/WGSL/#structure-member-layout
+    s_a = struct(
+        "A",
+        ("u", "float"),
+        ("v", "float"),
+        ("w", "vec2f"),
+        ("x", "float"),
+    )
+    assert s_a.get_code("wgsl", CodeOptions(struct_annotations=True)).strip() == """
+struct A {                                     //             align(8)  size(24)
+    u: f32,                                    // offset(0)   align(4)  size(4)
+    v: f32,                                    // offset(4)   align(4)  size(4)
+    w: vec2<f32>,                              // offset(8)   align(8)  size(8)
+    x: f32                                     // offset(16)  align(4)  size(4)
+}
+""".strip()

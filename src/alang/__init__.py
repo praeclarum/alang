@@ -2,6 +2,7 @@ from typing import Optional
 from modules import Module
 from funcs import Function
 from typs import Array, Struct
+from nodes import CodeOptions
 
 global_module = Module("global")
 

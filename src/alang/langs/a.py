@@ -10,7 +10,7 @@ import typs
 Code = str
 
 class AWriter(CodeWriter):
-    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]):
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
     def write_struct(self, s: typs.Struct):
@@ -27,7 +27,7 @@ class ALanguage(Language):
     def __init__(self):
         super().__init__("a")
 
-    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> AWriter:
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> AWriter: # type: ignore
         return AWriter(out, options)
 
     def parse_expr(self, expr: Code):

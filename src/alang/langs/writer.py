@@ -3,6 +3,9 @@ from typing import Optional, TextIO, Union
 class CodeWriter:
     def __init__(self, path_or_io: Union[str, TextIO], options: Optional["CodeOptions"]):
         self.options = options
+        if self.options is None:
+            from nodes import CodeOptions
+            self.options = CodeOptions()
         if type(path_or_io) is str:
             self.out = open(path_or_io, "w")
             self.owner = True
