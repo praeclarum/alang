@@ -1,7 +1,7 @@
 from typing import Optional
-from nodes import ASTNode, Node, NodeChild, NodeChildren, NodeType, NodeAttr
+from nodes import Node, Node, NodeChild, NodeChildren, NodeType, NodeAttr
 
-class Type(ASTNode):
+class Type(Node):
     name = NodeAttr()
     def __init__(self, name: str):
         super().__init__(NodeType.TYPE)

@@ -2,9 +2,20 @@ from alang import struct
 
 def test_struct():
     s = struct("Point", ("x", "int32"), ("y", "int32"))
-    code = s.get_code()
-    assert code.strip() == """
+    assert s.code.strip() == """
 struct Point:
     x: int32
     y: int32
     """.strip()
+
+def test_wgsl_struct():
+    s = struct(
+        "Point",
+        ("x", "int32"),
+        ("y", "int32"),
+    )
+    assert s.wgsl_code.strip() == """
+struct Point {
+    x: int32,
+    y: int32
+}""".strip()

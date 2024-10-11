@@ -33,7 +33,7 @@ class ALanguage(Language):
     def parse_expr(self, expr: Code):
         if expr is None:
             return None
-        if isinstance(expr, nodes.ASTNode):
+        if isinstance(expr, nodes.Node):
             return expr
         if isinstance(expr, str):
             ast_expr = ast.parse(expr).body[0].value

@@ -52,6 +52,30 @@ class Node:
         out = io.StringIO()
         self.write(out, 0)
         return out.getvalue()
+    def lookup_variable(self, name: str) -> Optional["Variable"]:
+        p = self.parent
+        while p is not None:
+            if isinstance(p, Node):
+                return p.lookup_variable(name)
+            p = p.parent
+        return None
+    def write_code(self, writer):
+        raise NotImplementedError(f"Cannot write code for {self.type}")
+    def get_code(self, language: Optional[Any] = None) -> str:
+        language = langs.get_language(language)
+        out = io.StringIO()
+        with language.open_writer(out) as writer:
+            self.write_code(writer)
+        return out.getvalue()
+    @property
+    def code(self) -> str:
+        return self.get_code()
+    @property
+    def c_code(self) -> str:
+        return self.get_code("c")
+    @property
+    def wgsl_code(self) -> str:
+        return self.get_code("wgsl")
 
 class NodeAttr:
     def __init__(self, default_value=None):
@@ -104,36 +128,17 @@ class NodeChild:
         if value is not None:
             obj.children.insert(num_children, value)
 
-class ASTNode(Node):
-    def __init__(self, type: NodeType):
-        super().__init__(type)
-    def lookup_variable(self, name: str) -> Optional["Variable"]:
-        p = self.parent
-        while p is not None:
-            if isinstance(p, ASTNode):
-                return p.lookup_variable(name)
-            p = p.parent
-        return None
-    def write_code(self, writer):
-        raise NotImplementedError(f"Cannot write code for {self.type}")
-    def get_code(self, language: Optional[Any] = None) -> str:
-        language = langs.get_language(language)
-        out = io.StringIO()
-        with language.open_writer(out) as writer:
-            self.write_code(writer)
-        return out.getvalue()
-
-class Expression(ASTNode):
+class Expression(Node):
     def __init__(self):
         super().__init__(NodeType.EXPRESSION)
     def write_code(self, writer):
         writer.write_expr(self)
 
-class Statement(ASTNode):
+class Statement(Node):
     def __init__(self):
         super().__init__(NodeType.STATEMENT)
 
-class Block(ASTNode):
+class Block(Node):
     variables = NodeChildren(NodeType.VARIABLE)
     functions = NodeChildren(NodeType.FUNCTION)
     def __init__(self, type: NodeType, can_define_types: bool, can_define_functions: bool, can_define_variables: bool):

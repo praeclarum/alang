@@ -2,9 +2,26 @@ from typing import TextIO, Union
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
+import typs
+
 class WGSLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO]):
         super().__init__(out)
+
+    def write_struct(self, s: typs.Struct):
+        self.write(f"struct {s.name} {{\n")
+        fs = s.fields
+        n = len(fs)
+        for i, field in enumerate(fs):
+            self.write(f"    {field.name}: ")
+            self.write_type(field.field_type)
+            if i < n - 1:
+                self.write(",")
+            self.write("\n")
+        self.write("}\n")
+
+    def write_type(self, t: typs.Type):
+        self.write(t.name)
 
 class WGSLLanguage(Language):
     def __init__(self):
