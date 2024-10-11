@@ -76,3 +76,30 @@ struct Ray {
     position: vec3<f32>,
     direction: vec3<f32>
 }""".strip()
+
+def test_runtime_sized():
+    # https://www.w3.org/TR/WGSL/#buffer-binding-determines-runtime-sized-array-element-count
+    point_light = struct(
+        "PointLight",
+        ("position", "vec3f"),
+        ("color", "vec3f"),
+    )
+    light_storage = struct(
+        "LightStorage",
+        ("pointCount", "uint"),
+        ("point", array(point_light)),
+    )
+    pl = point_light.layout
+    assert pl.align == 16
+    assert pl.byte_size == 32
+    
+    def test_buffer_size(buffer_size, expected_point_count):
+        sl = light_storage.get_layout(buffer_size)
+        fl = sl.fields[-1]
+        assert sl.align == 16
+        assert fl.num_elements == expected_point_count
+
+    test_buffer_size(1024, 31)
+    test_buffer_size(1025, 31)
+    test_buffer_size(1039, 31)
+    test_buffer_size(1040, 32)
