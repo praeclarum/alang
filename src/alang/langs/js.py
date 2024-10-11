@@ -40,8 +40,14 @@ class JSWriter(CodeWriter):
         self.write(f"        this.byteLength = byteLength;\n")
         self.write(f"        this.gpuBuffer = null;\n")
         self.write(f"        this.isDirty = false;\n")
+        self.write(f"        this.dirtyBegin = 0;\n")
+        self.write(f"        this.dirtyEnd = 0;\n")
         self.write(f"    }}\n")
-        self.write(f"    dirty() {{ this.isDirty = true; }}\n")
+        self.write(f"    dirty(begin, end) {{\n")
+        self.write(f"        if (this.isDirty) {{ this.dirtyBegin = Math.min(this.dirtyBegin, begin); this.dirtyEnd = Math.max(this.dirtyEnd, end); }}\n")
+        self.write(f"        else {{ this.dirtyBegin = begin; this.dirtyEnd = end; }}\n")
+        self.write(f"        this.isDirty = true;\n")
+        self.write(f"    }}\n")
         for i, field in enumerate(fs):
             field_type = field.field_type
             if field_type.is_array:
@@ -56,7 +62,7 @@ class JSWriter(CodeWriter):
             else:
                 field_type_name = self.get_typed_name(field_type)
                 self.write(f"    get {field.name}() {{ return this.view.get{field_type_name}({sl.fields[i].offset}); }}\n")
-                self.write(f"    set {field.name}(value) {{ return this.view.set{field_type_name}({sl.fields[i].offset}, value); this.dirty(); }}\n")
+                self.write(f"    set {field.name}(value) {{ return this.view.set{field_type_name}({sl.fields[i].offset}, value); this.dirty({sl.fields[i].offset}, {sl.fields[i].offset + sl.fields[i].byte_size}); }}\n")
         self.write("}\n")
 
     def get_typed_name(self, t: typs.Type) -> str:

@@ -26,13 +26,19 @@ class A {
         this.byteLength = byteLength;
         this.gpuBuffer = null;
         this.isDirty = false;
+        this.dirtyBegin = 0;
+        this.dirtyEnd = 0;
     }
-    dirty() { this.isDirty = true; }
+    dirty(begin, end) {
+        if (this.isDirty) { this.dirtyBegin = Math.min(this.dirtyBegin, begin); this.dirtyEnd = Math.max(this.dirtyEnd, end); }
+        else { this.dirtyBegin = begin; this.dirtyEnd = end; }
+        this.isDirty = true;
+    }
     get u() { return this.view.getFloat32(0); }
-    set u(value) { return this.view.setFloat32(0, value); this.dirty(); }
+    set u(value) { return this.view.setFloat32(0, value); this.dirty(0, 4); }
     get v() { return this.view.getFloat32(4); }
-    set v(value) { return this.view.setFloat32(4, value); this.dirty(); }
+    set v(value) { return this.view.setFloat32(4, value); this.dirty(4, 8); }
     get x() { return this.view.getFloat32(16); }
-    set x(value) { return this.view.setFloat32(16, value); this.dirty(); }
+    set x(value) { return this.view.setFloat32(16, value); this.dirty(16, 20); }
 }
 """.strip()
