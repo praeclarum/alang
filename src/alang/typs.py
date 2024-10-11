@@ -10,6 +10,9 @@ class Type(Node):
     def write_code(self, writer):
         writer.write_type(self)
 
+    def get_type_suffix(self) -> str:
+        return ""
+
 class Primitive(Type):
     def __init__(self, name):
         super().__init__(name)
@@ -45,6 +48,8 @@ class Integer(Primitive):
         super().__init__(get_int_name(bits, signed))
         self.bits = bits
         self.signed = signed
+    def get_type_suffix(self) -> str:
+        return self.name[0]
 
 sbyte_type = Integer(8, True)
 byte_type = Integer(8, False)
@@ -70,6 +75,8 @@ class Float(Primitive):
     def __init__(self, bits: int):
         super().__init__(get_float_name(bits))
         self.bits = bits
+    def get_type_suffix(self) -> str:
+        return self.name[0]
 
 float_type = Float(32)
 double_type = Float(64)
@@ -98,6 +105,25 @@ class Struct(Type):
     def write_code(self, writer):
         writer.write_struct(self)
 
+def get_vector_name(element_type: Type, size: int) -> str:
+    return f"vec{size}{element_type.get_type_suffix()}"
+
+class Vector(Type):
+    element_type = NodeChild(NodeType.TYPE)
+    size = NodeAttr()
+    def __init__(self, element_type: Type, size: int):
+        super().__init__(get_vector_name(element_type, size))
+        self.element_type = element_type
+        self.size = size
+
+vec2f_type = Vector(float_type, 2)
+vec3f_type = Vector(float_type, 3)
+vec4f_type = Vector(float_type, 4)
+
+vec2i_type = Vector(int_type, 2)
+vec3i_type = Vector(int_type, 3)
+vec4i_type = Vector(int_type, 4)
+
 builtin_types = {
     sbyte_type.name: sbyte_type,
     byte_type.name: byte_type,
@@ -107,8 +133,16 @@ builtin_types = {
     uint_type.name: uint_type,
     long_type.name: long_type,
     ulong_type.name: ulong_type,
+
     float_type.name: float_type,
-    double_type.name: double_type
+    double_type.name: double_type,
+
+    vec2f_type.name: vec2f_type,
+    vec3f_type.name: vec3f_type,
+    vec4f_type.name: vec4f_type,
+    vec2i_type.name: vec2i_type,
+    vec3i_type.name: vec3i_type,
+    vec4i_type.name: vec4i_type,
 }
 def resolve_builtin_type(name: str) -> Type:
     if name in builtin_types:

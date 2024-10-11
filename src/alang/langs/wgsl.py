@@ -47,6 +47,19 @@ class WGSLWriter(CodeWriter):
                 self.write("f64")
             else:
                 raise ValueError(f"Invalid float type: {tn}")
+        elif isinstance(t, typs.Vector):
+            n = t.size
+            if n == 2:
+                self.write("vec2")
+            elif n == 3:
+                self.write("vec3")
+            elif n == 4:
+                self.write("vec4")
+            else:
+                raise ValueError(f"Invalid vector size: {n}")
+            self.write("<")
+            self.write_type(t.element_type)
+            self.write(">")
         else:
             self.write(t.name)
 

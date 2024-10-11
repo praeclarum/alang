@@ -10,12 +10,14 @@ struct Point:
 
 def test_wgsl_struct():
     s = struct(
-        "Point",
-        ("x", "int"),
-        ("y", "int"),
+        "Ray",
+        ("id", "int"),
+        ("position", "vec3f"),
+        ("direction", "vec3f"),
     )
     assert s.wgsl_code.strip() == """
-struct Point {
-    x: i32,
-    y: i32
+struct Ray {
+    id: i32,
+    position: vec3<f32>,
+    direction: vec3<f32>
 }""".strip()
