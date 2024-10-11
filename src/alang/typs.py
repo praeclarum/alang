@@ -28,10 +28,17 @@ class TypeLayout:
         self.size = 0
         self.align = 0
 
-def get_array_layout(element_type: Type, length: Optional[int]) -> TypeLayout:
+class ArrayLayout(TypeLayout):
+    def __init__(self):
+        super().__init__()
+        self.element_stride = 0
+
+def get_array_layout(element_type: Type, length: Optional[int]) -> ArrayLayout:
     e_layout = element_type.layout
-    layout = TypeLayout()
-    layout.size = 0
+    layout = ArrayLayout()
+    layout.element_stride = round_up(e_layout.align, e_layout.size)
+    if length is not None:
+        layout.size = layout.element_stride * length
     layout.align = e_layout.align
     return layout
 
@@ -45,7 +52,7 @@ class Array(Type):
         self.length = length
         self.cached_layout = get_array_layout(element_type, length)
     @property
-    def layout(self) -> TypeLayout:
+    def layout(self) -> ArrayLayout:
         return self.cached_layout
     @property
     def is_fixed_size(self) -> bool:
