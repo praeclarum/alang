@@ -8,7 +8,10 @@ class Type(Node):
         self.name = name
 
     @property
-    def layout(self):
+    def layout(self) -> "TypeLayout":
+        return self.get_layout(None)
+
+    def get_layout(self, buffer_byte_size: Optional[int]) -> "TypeLayout":
         raise NotImplementedError(f"Type {self.name} does not have a layout")
 
     def write_code(self, writer):
@@ -25,7 +28,7 @@ class UnresolvedType(Type):
 
 class TypeLayout:
     def __init__(self):
-        self.size = 0
+        self.byte_size = 0
         self.align = 0
 
 class ArrayLayout(TypeLayout):
@@ -36,9 +39,9 @@ class ArrayLayout(TypeLayout):
 def get_array_layout(element_type: Type, length: Optional[int]) -> ArrayLayout:
     e_layout = element_type.layout
     layout = ArrayLayout()
-    layout.element_stride = round_up(e_layout.align, e_layout.size)
+    layout.element_stride = round_up(e_layout.align, e_layout.byte_size)
     if length is not None:
-        layout.size = layout.element_stride * length
+        layout.byte_size = layout.element_stride * length
     layout.align = e_layout.align
     return layout
 
@@ -93,8 +96,8 @@ def get_int_name(bits: int, signed: bool) -> str:
     
 def get_int_layout(bits: int) -> TypeLayout:
     layout = TypeLayout()
-    layout.size = ((bits // 8 + 3) // 4) * 4
-    layout.align = layout.size
+    layout.byte_size = ((bits // 8 + 3) // 4) * 4
+    layout.align = layout.byte_size
     return layout
 
 class Integer(Primitive):
@@ -132,8 +135,8 @@ def get_float_name(bits: int) -> str:
     
 def get_float_layout(bits: int) -> TypeLayout:
     layout = TypeLayout()
-    layout.size = ((bits // 8 + 3) // 4) * 4
-    layout.align = layout.size
+    layout.byte_size = ((bits // 8 + 3) // 4) * 4
+    layout.align = layout.byte_size
     return layout
 
 class Float(Primitive):
@@ -167,7 +170,7 @@ class FieldLayout(TypeLayout):
     @property
     def triple(self) -> tuple[int, int, int]:
         """Returns a tuple of (offset, align, size)"""
-        return (self.offset, self.align, self.size)
+        return (self.offset, self.align, self.byte_size)
 
 class StructLayout(TypeLayout):
     def __init__(self, struct: "Struct", fields: list[Field]):
@@ -184,14 +187,14 @@ class StructLayout(TypeLayout):
             type_layout = field.field_type.layout
             offset = round_up(type_layout.align, last_offset + last_size)
             field_layout.offset = offset
-            field_layout.size = type_layout.size
+            field_layout.byte_size = type_layout.byte_size
             field_layout.align = type_layout.align
             max_field_align = max(max_field_align, type_layout.align)
             last_offset = offset
-            last_size = type_layout.size
+            last_size = type_layout.byte_size
         self.align = max_field_align
-        just_past_last_field = self.fields[-1].offset + self.fields[-1].size
-        self.size = round_up(self.align, just_past_last_field)
+        just_past_last_field = self.fields[-1].offset + self.fields[-1].byte_size
+        self.byte_size = round_up(self.align, just_past_last_field)
 
 def round_up(k: int, n: int) -> int:
     # roundUp(k, n) = ⌈n ÷ k⌉ × k
@@ -225,17 +228,17 @@ def get_vector_name(element_type: Type, size: int) -> str:
     return f"vec{size}{element_type.get_type_suffix()}"
 
 def get_vector_layout(element_type: Type, size: int) -> TypeLayout:
-    e_layout = element_type.layout
+    e_layout: TypeLayout = element_type.layout
     layout = TypeLayout()
     if size == 2:
-        layout.size = e_layout.size * 2
-        layout.align = layout.size
+        layout.byte_size = e_layout.byte_size * 2
+        layout.align = layout.byte_size
     elif size == 3:
-        layout.size = e_layout.size * 3
-        layout.align = e_layout.size * 4
+        layout.byte_size = e_layout.byte_size * 3
+        layout.align = e_layout.byte_size * 4
     elif size == 4:
-        layout.size = e_layout.size * 4
-        layout.align = layout.size
+        layout.byte_size = e_layout.byte_size * 4
+        layout.align = layout.byte_size
     else:
         raise ValueError(f"Invalid vector size: {size}")
     return layout

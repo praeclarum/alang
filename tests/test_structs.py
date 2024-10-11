@@ -17,7 +17,7 @@ def test_simple_struct_layout():
     assert fs[2].triple == (8, 8, 8)
     assert fs[3].triple == (16, 4, 4)
     assert l.align == 8
-    assert l.size == 24
+    assert l.byte_size == 24
 
 def test_nested_struct_layout():
     # https://www.w3.org/TR/WGSL/#structure-member-layout

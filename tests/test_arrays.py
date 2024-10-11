@@ -18,7 +18,7 @@ def test_small_stride():
     l = a.layout
     assert l.align == 4
     assert l.element_stride == 4
-    assert l.size == 32
+    assert l.byte_size == 32
 
 def test_bigger_stride():
     # https://www.w3.org/TR/WGSL/#array-layout-examples
@@ -26,4 +26,4 @@ def test_bigger_stride():
     l = a.layout
     assert l.align == 16
     assert l.element_stride == 16
-    assert l.size == 128
+    assert l.byte_size == 128
