@@ -11,18 +11,18 @@ def test_simple_struct():
     )
     assert s_a.js_code.strip() == """
 class A {
-    constructor(buffer, index, length) {
+    constructor(buffer, byteOffset, byteLength) {
+        byteOffset = byteOffset || 0;
+        byteLength = byteLength || 24;
+        if (byteLength < 24) throw new Error(`Buffer too small. "A" requires at least 24 bytes, got ${byteLength}`);
         if (buffer instanceof ArrayBuffer) {
             this.buffer = buffer;
-            this.index = index || 0;
-            this.length = length || 24;
-            if (this.length < 24) throw new Error(`Buffer too small. "A" requires at least 24 bytes, got ${this.length}`);
-            if (this.index + this.length >= buffer.byteLength) throw new Error(`Buffer overflow. "A" requires ${this.length} bytes starting at ${this.index}, but the buffer is only ${buffer.byteLength} bytes long`);
         } else {
-            this.buffer = new ArrayBuffer(24);
-            this.index = 0;
-            this.length = 24;
+            this.buffer = new ArrayBuffer(byteLength);
+            byteOffset = 0;
         }
+        if (byteOffset + byteLength >= this.buffer.byteLength) throw new Error(`Buffer overflow. "A" requires ${byteLength} bytes starting at ${byteOffset}, but the buffer is only ${this.buffer.byteLength} bytes long`);
+        this.view = new DataView(this.buffer, byteOffset, byteLength);
     }
 }
 """.strip()
