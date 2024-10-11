@@ -21,7 +21,34 @@ class WGSLWriter(CodeWriter):
         self.write("}\n")
 
     def write_type(self, t: typs.Type):
-        self.write(t.name)
+        if isinstance(t, typs.Integer):
+            tn = t.name
+            if tn == "sbyte":
+                self.write("i8")
+            elif tn == "byte":
+                self.write("u8")
+            elif tn == "int":
+                self.write("i32")
+            elif tn == "uint":
+                self.write("u32")
+            elif tn == "long":
+                self.write("i64")
+            elif tn == "ulong":
+                self.write("u64")
+            else:
+                raise ValueError(f"Invalid integer type: {tn}")
+        elif isinstance(t, typs.Float):
+            tn = t.name
+            if tn == "half":
+                self.write("f16")
+            elif tn == "float":
+                self.write("f32")
+            elif tn == "double":
+                self.write("f64")
+            else:
+                raise ValueError(f"Invalid float type: {tn}")
+        else:
+            self.write(t.name)
 
 class WGSLLanguage(Language):
     def __init__(self):
