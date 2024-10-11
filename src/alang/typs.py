@@ -78,6 +78,7 @@ class Float(Primitive):
     def get_type_suffix(self) -> str:
         return self.name[0]
 
+half_type = Float(16)
 float_type = Float(32)
 double_type = Float(64)
 
@@ -139,6 +140,10 @@ class Vector(Type):
         self.element_type = element_type
         self.size = size
 
+vec2h_type = Vector(half_type, 2)
+vec3h_type = Vector(half_type, 3)
+vec4h_type = Vector(half_type, 4)
+
 vec2f_type = Vector(float_type, 2)
 vec3f_type = Vector(float_type, 3)
 vec4f_type = Vector(float_type, 4)
@@ -157,9 +162,13 @@ builtin_types = {
     long_type.name: long_type,
     ulong_type.name: ulong_type,
 
+    half_type.name: half_type,
     float_type.name: float_type,
     double_type.name: double_type,
 
+    vec2h_type.name: vec2h_type,
+    vec3h_type.name: vec3h_type,
+    vec4h_type.name: vec4h_type,
     vec2f_type.name: vec2f_type,
     vec3f_type.name: vec3f_type,
     vec4f_type.name: vec4f_type,
