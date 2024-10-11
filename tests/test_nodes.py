@@ -1,4 +1,4 @@
-from alang import *
+from alang import define, global_module, Module
 
 def test_define():
     f_count = len(global_module.functions)

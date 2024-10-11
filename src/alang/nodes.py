@@ -116,7 +116,7 @@ class ASTNode(Node):
         return None
     def write_code(self, writer):
         raise NotImplementedError(f"Cannot write code for {self.type}")
-    def get_code(self, language: Optional[Any] = "alang") -> str:
+    def get_code(self, language: Optional[Any] = None) -> str:
         language = langs.get_language(language)
         out = io.StringIO()
         with language.open_writer(out) as writer:
@@ -136,8 +136,9 @@ class Statement(ASTNode):
 class Block(ASTNode):
     variables = NodeChildren(NodeType.VARIABLE)
     functions = NodeChildren(NodeType.FUNCTION)
-    def __init__(self, type: NodeType, can_define_functions: bool, can_define_variables: bool):
+    def __init__(self, type: NodeType, can_define_types: bool, can_define_functions: bool, can_define_variables: bool):
         super().__init__(type)
+        self.can_define_types = can_define_types
         self.can_define_functions = can_define_functions
         self.can_define_variables = can_define_variables
     def parse_expr(self, expr: Optional[Code]) -> Optional["Expression"]:
@@ -155,6 +156,27 @@ class Block(ASTNode):
         else:
             raise ValueError(f"Variable {lhs} already defined")
         return self
+    def define(self, name: str, *parameters: list) -> "Function":
+        if self.can_define_functions:
+            from funcs import Function
+            f = Function(name)
+            for param in parameters:
+                f.parameter(param)
+            self.append_child(f)
+            return f
+        else:
+            raise ValueError(f"Cannot define function in {self.type}")
+    def struct(self, name: str, *fields: list) -> "Struct":
+        if self.can_define_types:
+            from typs import Struct
+            s = Struct(name)
+            for field in fields:
+                s.field(*field)
+            self.append_child(s)
+            return s
+        else:
+            raise ValueError(f"Cannot define struct in {self.type}")
+
 
 class Variable(Node):
     name = NodeAttr()

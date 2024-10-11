@@ -11,13 +11,21 @@ class Primitive(Type):
     def __init__(self, name):
         super().__init__(name)
 
+builtin_types = {
+    "int32": Primitive("int32"),
+}
+def resolve_builtin_type(name: str) -> Type:
+    if name in builtin_types:
+        return builtin_types[name]
+    raise ValueError(f"Unknown type: {name}")
+
 class Field(Node):
     name = NodeAttr()
-    type = NodeChild(NodeType.TYPE)
-    def __init__(self, name: str, type: Type):
+    field_type = NodeChild(NodeType.TYPE)
+    def __init__(self, name: str, field_type: Type):
         super().__init__(NodeType.FIELD)
         self.name = name
-        self.type = type
+        self.field_type = field_type
 
 class Struct(Type):
     fields = NodeChildren(NodeType.FIELD)
@@ -26,3 +34,8 @@ class Struct(Type):
         if fields is not None:
             for field in fields:
                 self.append_child(field)
+
+    def field(self, name: str, type: Type) -> "Struct":
+        f = Field(name, resolve_builtin_type(type))
+        self.append_child(f)
+        return self
