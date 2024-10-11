@@ -89,6 +89,21 @@ class Field(Node):
         self.name = name
         self.field_type = field_type
 
+class FieldLayout:
+    def __init__(self, field: Field):
+        self.field = field
+        self.offset = 0
+        self.align = 0
+        self.size = 0
+
+class StructLayout:
+    def __init__(self, struct: "Struct", fields: list[Field]):
+        self.struct = struct
+        self.fields = [FieldLayout(field) for field in fields]
+        self.analyze()
+    def analyze(self):
+        pass
+
 class Struct(Type):
     fields = NodeChildren(NodeType.FIELD)
     def __init__(self, name, fields: Optional[list[Field]] = None):
@@ -96,10 +111,18 @@ class Struct(Type):
         if fields is not None:
             for field in fields:
                 self.append_child(field)
+        self.saved_layout = None
+
+    @property
+    def layout(self) -> StructLayout:
+        if self.saved_layout is None:
+            self.saved_layout = StructLayout(self, self.fields)
+        return self.saved_layout
 
     def field(self, name: str, type: Type) -> "Struct":
         f = Field(name, resolve_builtin_type(type))
         self.append_child(f)
+        self.saved_layout = None
         return self
 
     def write_code(self, writer):

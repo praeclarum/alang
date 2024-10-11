@@ -8,6 +8,22 @@ struct Point:
     y: int
     """.strip()
 
+def test_struct_layout():
+    s = struct(
+        "Ray",
+        ("id", "int"),
+        ("position", "vec3f"),
+        ("direction", "vec3f"),
+    )
+    l = s.layout
+    fs = l.fields
+    assert len(fs) == 3
+    assert fs[0].offset == 0
+    assert fs[0].align == 4
+    assert fs[0].size == 4
+    assert l.align == 4
+    assert l.size == 28
+
 def test_wgsl_struct():
     s = struct(
         "Ray",
