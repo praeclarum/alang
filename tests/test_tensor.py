@@ -1,6 +1,20 @@
-from alang import array, struct, tensor, CodeOptions, float_type
+from alang import array, struct, tensor, Tensor, CodeOptions, float_type, int_type
 
 import test_html
+
+def test_tensor_from_element_type():
+    t = tensor((3, 5, 7, 11), int_type)
+    assert t.element_type.name == "int"
+
+def test_tensor_from_str_element_type():
+    t = tensor((3, 5, 7, 11), "short")
+    assert t.element_type.name == "short"
+
+def test_tensor_from_str_element_type():
+    s = struct("S", ("t", "byte42x69x7"))
+    t: Tensor = s.fields[0].field_type
+    assert t.node_type == "tensor"
+    assert t.element_type.name == "byte"
 
 def test_tensor_wgsl():
     t = tensor((3, 5, 7, 11), float_type)

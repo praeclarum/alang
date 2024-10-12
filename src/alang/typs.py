@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 from nodes import Node, Node, NodeLink, NodeLinks, NodeType, NodeAttr
 
@@ -26,7 +27,7 @@ class Type(Node):
     
 class UnresolvedType(Type):
     def __init__(self, name: str):
-        super().__init__(name)
+        super().__init__(name, NodeType.UNRESOLVED_TYPE)
     def get_type_suffix(self) -> str:
         return "X"
 
@@ -264,9 +265,6 @@ def get_tensor_name(shape: tuple, element_type: Type):
     sn = "x".join([str(s) for s in shape])
     return f"{element_type.name}{sn}"
 
-def tensor(shape: tuple, element_type: str):
-    return Tensor(shape, try_resolve_type(element_type, None))
-
 class Tensor(Type):
     element_type = NodeLink()
     shape = NodeAttr()
@@ -335,7 +333,7 @@ vec2i_type = Vector(int_type, 2)
 vec3i_type = Vector(int_type, 3)
 vec4i_type = Vector(int_type, 4)
 
-builtin_types = {
+scalar_types = {
     sbyte_type.name: sbyte_type,
     byte_type.name: byte_type,
     short_type.name: short_type,
@@ -348,7 +346,9 @@ builtin_types = {
     half_type.name: half_type,
     float_type.name: float_type,
     double_type.name: double_type,
+}
 
+builtin_types = {
     vec2h_type.name: vec2h_type,
     vec3h_type.name: vec3h_type,
     vec4h_type.name: vec4h_type,
@@ -359,17 +359,32 @@ builtin_types = {
     vec3i_type.name: vec3i_type,
     vec4i_type.name: vec4i_type,
 }
+builtin_types.update(scalar_types)
 
-def find_builtin_type(name: str) -> Optional[Type]:
+def try_resolve_builtin_type(name: str) -> Optional[Type]:
     if name in builtin_types:
         return builtin_types[name]
     return None
 
 def resolve_builtin_type(name: str) -> Type:
-    bt = find_builtin_type(name)
+    bt = try_resolve_builtin_type(name)
     if bt is None:
         raise ValueError(f"Unknown builtin type: {name}")
     return bt
+
+tensor_type_re = re.compile(r"^([a-z][a-z]+)(((\d+)x)+(\d+))$", 0)
+
+def try_resolve_tensor_type(name: str) -> Optional[Type]:
+    m = tensor_type_re.match(name)
+    if m is None:
+        return None
+    element_type_name = m.group(1)
+    element_type = try_resolve_builtin_type(element_type_name)
+    if element_type is None:
+        return None
+    shape_str = m.group(2)
+    shape = tuple([int(s) for s in shape_str.split("x")])
+    return Tensor(shape, element_type)
 
 def try_resolve_type(type, context: Optional[Node]) -> Type:
     if type is None:
@@ -377,8 +392,15 @@ def try_resolve_type(type, context: Optional[Node]) -> Type:
     if isinstance(type, Type):
         return type
     if isinstance(type, str):
-        bt = find_builtin_type(type)
+        bt = try_resolve_builtin_type(type)
         if bt is not None:
             return bt
+        tt = try_resolve_tensor_type(type)
+        if tt is not None:
+            return tt
         # TODO: Implement lookup in context
     return UnresolvedType(type)
+
+def tensor(shape: tuple, element_type: str):
+    return Tensor(shape, try_resolve_type(element_type, None))
+
