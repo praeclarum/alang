@@ -14,7 +14,7 @@ def write_standalone_html(mod_name, node):
     mod = node
     if mod.node_type != "module":
         mod = Module(mod_name)
-        mod.append_child(node)
+        mod.append_any(node)
     with html_lang.open_writer(path, CodeOptions(standalone=True)) as ws:
         ws.write_module(mod)
     with open(path, "r") as f:

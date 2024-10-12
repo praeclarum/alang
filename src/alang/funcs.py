@@ -8,8 +8,8 @@ Code = str
 
 class Function(Block):
     name = NodeAttr()
-    parameters = NodeChildren(NodeType.PARAMETER)
-    returnType = NodeChild(NodeType.TYPE)
+    parameters = NodeChildren()
+    returnType = NodeChild()
 
     def __init__(self, name: str = None):
         super().__init__(NodeType.FUNCTION, can_define_types=False, can_define_functions=False, can_define_variables=True)
@@ -23,17 +23,17 @@ class Function(Block):
         if type(name) == tuple:
             name, param_type = name
         p = Parameter(name, typs.try_resolve_type(param_type, self))
-        self.append_child(p)
+        self.append_child(p, "parameters")
         return self
     
     def ret(self, value: Optional[Code]) -> "Function":
         r = Return(self.parse_expr(value))
-        self.append_child(r)
+        self.append_child(r, "statements")
         return self
 
 class Parameter(Node):
     name = NodeAttr()
-    parameter_type = NodeChild(NodeType.TYPE)
+    parameter_type = NodeChild()
 
     def __init__(self, name: str, parameter_type: "Type" = None):
         super().__init__(NodeType.PARAMETER)

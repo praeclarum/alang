@@ -60,7 +60,7 @@ def get_array_layout(element_type: Type, length: Optional[int], buffer_byte_size
     return layout
 
 class Array(Type):
-    element_type = NodeChild(NodeType.TYPE)
+    element_type = NodeChild()
     length = NodeAttr()
     def __init__(self, element_type: Type, length: Optional[int]):
         element_type = try_resolve_type(element_type, self)
@@ -176,7 +176,7 @@ double_type = Float(64)
 
 class Field(Node):
     name = NodeAttr()
-    field_type = NodeChild(NodeType.TYPE)
+    field_type = NodeChild()
     def __init__(self, name: str, field_type: Type):
         super().__init__(NodeType.FIELD)
         self.name = name
@@ -233,12 +233,12 @@ def round_up(k: int, n: int) -> int:
     return ((n + k - 1) // k) * k
 
 class Struct(Type):
-    fields = NodeChildren(NodeType.FIELD)
+    fields = NodeChildren()
     def __init__(self, name, fields: Optional[list[Field]] = None):
         super().__init__(name)
         if fields is not None:
             for field in fields:
-                self.append_child(field)
+                self.append_child(field, "fields")
         self.nobuffer_layout = None
         self.is_struct = True
 
@@ -256,7 +256,7 @@ class Struct(Type):
 
     def field(self, name: str, type: Type) -> "Struct":
         f = Field(name, try_resolve_type(type, self))
-        self.append_child(f)
+        self.append_child(f, "fields")
         self.nobuffer_layout = None
         return self
 
@@ -283,7 +283,7 @@ def get_vector_layout(element_type: Type, size: int) -> TypeLayout:
     return layout
 
 class Vector(Type):
-    element_type = NodeChild(NodeType.TYPE)
+    element_type = NodeChild()
     size = NodeAttr()
     def __init__(self, element_type: Type, size: int):
         super().__init__(get_vector_name(element_type, size))
