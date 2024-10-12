@@ -262,7 +262,7 @@ class Struct(Type):
 
 def get_tensor_name(shape: tuple, element_type: Type):
     sn = "x".join([str(s) for s in shape])
-    return f"{element_type.name}{sn}{element_type.get_type_suffix()}"
+    return f"{element_type.name}{sn}"
 
 def tensor(shape: tuple, element_type: str):
     return Tensor(shape, try_resolve_type(element_type, None))

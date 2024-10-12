@@ -7,7 +7,7 @@ def test_tensor_wgsl():
     s = struct("StructWithTensor", ("t", t))
     assert s.wgsl_code.strip() == """
 struct StructWithTensor {
-    t: float3x5x7x11f
+    t: float3x5x7x11
 }""".strip()
 
 def test_standalone_tensor():
