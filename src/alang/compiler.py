@@ -1,6 +1,34 @@
+from typing import Optional
 from nodes import Node, NodeType
 from funcs import Function
-from typs import void_type
+from typs import void_type, Type
+
+class DiagnosticKind:
+    ERROR = "error"
+    WARNING = "warning"
+
+class DiagnosticMessage:
+    def __init__(self, kind: str, message: str, node: Optional[Node]):
+        self.message = message
+        self.node = node
+        self.kind = kind
+    def print(self):
+        if self.node is not None:
+            print(f"{self.kind.upper()}: {self.message} at {self.node}")
+        else:
+            print(f"{self.kind.upper()}: {self.message}")
+
+class Diagnostics:
+    def __init__(self):
+        self.messages: list[DiagnosticMessage] = []
+    def message(self, kind: str, message: str, node: Optional[Node] = None):
+        m = DiagnosticMessage(kind, message, node)
+        self.messages.append(m)
+        m.print()
+    def error(self, message: str, node: Optional[Node] = None):
+        self.message(DiagnosticKind.ERROR, message, node)
+    def warning(self, message: str, node: Optional[Node] = None):
+        self.message(DiagnosticKind.WARNING, message, node)
 
 class DepthFirstVisitor:
     def visit(self, node: Node, parent: Node, rel: str):
@@ -26,7 +54,30 @@ def find_descendants_with_type(node: Node, node_type: NodeType) -> list[Node]:
         descendants.extend(find_descendants_with_type(child, node_type))
     return descendants
     
+class TypeResolver:
+    def __init__(self, diags: Diagnostics):
+        self.diags = diags
+        self.resolved_nodes: dict[int, Type] = dict()
+        self.pending_nodes: set[int] = set() # prevent infinite recursion
+    def resolve(self, node: Node) -> Type:
+        if node.id in self.resolved_nodes:
+            return self.resolved_nodes[node.id]
+        if node.id in self.pending_nodes:
+            self.diags.error("Circular reference detected", node)
+            return None
+        self.pending_nodes.add(node.id)
+        print(f"Resolving {node}")
+        t = node.resolve_type(self)
+        self.pending_nodes.remove(node.id)
+        if t is None:
+            self.diags.error("Failed to resolve type", node)
+            return None
+        self.resolved_nodes[node.id] = t
+        return t
+
 class InferFunctionReturnType(DepthFirstVisitor):
+    def __init__(self, type_resolver: TypeResolver):
+        self.type_resolver = type_resolver
     def visit_generic(self, node: Node, parent: Node, rel: str, cvals: list):
         return any(cvals)
     def set_return_type(self, node: Function, return_type: str):
@@ -40,7 +91,8 @@ class InferFunctionReturnType(DepthFirstVisitor):
             self.set_return_type(node, void_type)
             return True
         # See if any of them have resolved types
-        resolved_types = [x.resolved_type for x in return_values if x is not None and x.resolved_type is not None]
+        maybe_resolved_types = [self.type_resolver.resolve(x) for x in return_values if x is not None]
+        resolved_types = [x for x in maybe_resolved_types if x is not None]
         # Distinct them by name
         distinct_types = {}
         for t in resolved_types:
@@ -50,10 +102,12 @@ class InferFunctionReturnType(DepthFirstVisitor):
 class Compiler:
     def __init__(self, ast: Node):
         self.ast = ast
+        self.diags = Diagnostics()
+        self.type_resolver = TypeResolver(self.diags)
 
     def infer_types(self) -> bool:
         """Performs one step of type inference on the AST.
         For full inference, keep running this method until it returns False.
         """
-        visitor = InferFunctionReturnType()
+        visitor = InferFunctionReturnType(self.type_resolver)
         return visitor.visit(self.ast, None, None)

@@ -30,8 +30,13 @@ class NodeType:
     VOID = 'void'
     VECTOR = 'vector'
 
+next_node_id = 1
+
 class Node:
     def __init__(self, type: NodeType):
+        global next_node_id
+        self.id = next_node_id
+        next_node_id += 1
         self.node_type = type
         self.attributes: dict[str, "NodeAttr"] = {}
         self.links: list[tuple[str, "Node"]] = []
@@ -74,6 +79,8 @@ class Node:
             if isinstance(p, Node):
                 return p.lookup_variable(name)
             p = p.parent
+        return None
+    def resolve_type(self, resolver: "TypeResolver") -> Optional["Type"]: # type: ignore
         return None
     def write_code(self, writer):
         raise NotImplementedError(f"Cannot write code for {self.node_type}")
