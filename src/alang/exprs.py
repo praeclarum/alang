@@ -1,6 +1,8 @@
 from alang.langs.writer import CodeWriter
 from nodes import Expression, NodeAttr, NodeType
 
+import typs
+
 class Name(Expression):
     name = NodeAttr()
     def __init__(self, name: str):
@@ -28,3 +30,12 @@ class Constant(Expression):
         self.value = value
     def write_code(self, writer: CodeWriter):
         writer.write_constant(self)
+    def resolve_type(self, resolver):
+        v = self.value
+        if v is None:
+            return None
+        if isinstance(v, int):
+            return typs.int_type
+        if isinstance(v, float):
+            return typs.float_type
+        return None

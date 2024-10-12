@@ -14,7 +14,7 @@ class DiagnosticMessage:
         self.kind = kind
     def print(self):
         if self.node is not None:
-            print(f"{self.kind.upper()}: {self.message} at {self.node}")
+            print(f"{self.kind.upper()}: {self.message} {self.node}")
         else:
             print(f"{self.kind.upper()}: {self.message}")
 
@@ -76,7 +76,8 @@ class TypeResolver:
         return t
 
 class InferFunctionReturnType(DepthFirstVisitor):
-    def __init__(self, type_resolver: TypeResolver):
+    def __init__(self, diags: Diagnostics, type_resolver: TypeResolver):
+        self.diags = diags
         self.type_resolver = type_resolver
     def visit_generic(self, node: Node, parent: Node, rel: str, cvals: list):
         return any(cvals)
@@ -97,7 +98,13 @@ class InferFunctionReturnType(DepthFirstVisitor):
         distinct_types = {}
         for t in resolved_types:
             distinct_types[t.name] = t
-        raise NotImplementedError("Cannot infer return type of function")
+        if len(distinct_types) == 0:
+            return any(cvals)
+        if len(distinct_types) > 1:
+            self.diags.error(f"Multiple return types found: {distinct_types}", node)
+        return_type = list(distinct_types.values())[0]
+        self.set_return_type(node, return_type)
+        return True
 
 class Compiler:
     def __init__(self, ast: Node):
@@ -109,5 +116,5 @@ class Compiler:
         """Performs one step of type inference on the AST.
         For full inference, keep running this method until it returns False.
         """
-        visitor = InferFunctionReturnType(self.type_resolver)
+        visitor = InferFunctionReturnType(self.diags, self.type_resolver)
         return visitor.visit(self.ast, None, None)
