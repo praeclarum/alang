@@ -32,7 +32,7 @@ class CodeWriter:
     def warning(self, message: str):
         self.write_multiline_comment(f"WARNING: {message}")
 
-    def write_error_value(self, message: str, type: Optional["Type"] = None):
+    def write_error_value(self, message: str, type: Optional["typs.Type"] = None): # type: ignore
         self.write_zero_value_for_type(type)
         self.write_inline_comment(f"ERROR! {message}")
 
@@ -119,5 +119,5 @@ class CodeWriter:
     def write_funcall(self, f: "Funcall"): # type: ignore
         raise NotImplementedError
     
-    def write_zero_value_for_type(self, type: Optional["Type"] = None):
+    def write_zero_value_for_type(self, type: Optional["typs.Type"] = None): # type: ignore
         raise NotImplementedError
