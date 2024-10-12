@@ -36,12 +36,11 @@ class A {
         else { this.dirtyBegin = begin; this.dirtyEnd = end; }
         this.isDirty = true;
     }
-    getGPUBuffer(device, usage) {
-        if (this.gpuBuffer === null) {
-            this.gpuBuffer = device.createBuffer({ size: Math.max(this.byteLength, 256), usage: usage, label: "A", mappedAtCreation: false });
-            device.queue.writeBuffer(this.gpuBuffer, 0, this.buffer, this.view.byteOffset, this.byteLength);
-            this.isDirty = false;
-        }
+    createGPUBuffer(device, usage) {
+        usage = usage || (GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST);
+        this.gpuBuffer = device.createBuffer({ size: Math.max(this.byteLength, 256), usage: usage, label: "A", mappedAtCreation: false });
+        device.queue.writeBuffer(this.gpuBuffer, 0, this.buffer, this.view.byteOffset, this.byteLength);
+        this.isDirty = false;
         return this.gpuBuffer;
     }
     get u() { return this.view.getFloat32(0); }

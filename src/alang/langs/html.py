@@ -22,8 +22,13 @@ class HTMLWriter(CodeWriter):
             self.write_type_ui(type)
         self.write(f"<script type='module'>\n")
         self.write(s.get_code("js", self.options))
+        self.write(f"async function main() {{\n")
+        self.write(f"const adapter = await navigator.gpu.requestAdapter();\n")
+        self.write(f"const device = await adapter.requestDevice();\n")
         for type in s.types:
             self.write_type_ui_code(type)
+        self.write(f"}}\n")
+        self.write(f"main();\n")
         self.write(f"</script>\n")
         self.write(f"</body>\n")
         self.write(f"</html>\n")
@@ -52,6 +57,8 @@ class HTMLWriter(CodeWriter):
     def write_struct_ui_code(self, s: typs.Struct):
         self.write(f"let test{s.name} = new {s.name}();\n")
         self.write(f"console.log(test{s.name});\n")
+        self.write(f"let test{s.name}GPUBuffer = test{s.name}.createGPUBuffer(device);\n")
+        self.write(f"console.log(test{s.name}GPUBuffer);\n")
 
     def write_struct_ui(self, s: typs.Struct):
         fs: list[typs.Field] = s.fields
