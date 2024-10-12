@@ -3,7 +3,8 @@ from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
 import typs
-import modules
+import funcs
+import exprs
 
 class WGSLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
@@ -37,6 +38,34 @@ class WGSLWriter(CodeWriter):
             write_anno(fl.offset, fl.align, fl.byte_size, text_len)
             self.write("\n")
         self.write("}\n")
+
+    def write_function(self, f: funcs.Function):
+        self.write(f"fn {f.name}(")
+        ps = f.parameters
+        for i, param in enumerate(ps):
+            self.write(f"{param.name}: ")
+            self.write_type_ref(param.parameter_type)
+            if i < len(ps) - 1:
+                self.write(", ")
+        self.write(") -> ")
+        self.write_type_ref(f.return_type)
+        self.write(" {\n")
+        for s in f.statements:
+            self.write_statement(s)
+        self.write("}\n")
+
+    def write_return(self, r: "Return"):
+        self.write("    return")
+        if r.value is not None:
+            self.write(" ")
+            self.write_expr(r.value)
+        self.write(";\n")
+
+    def write_name(self, n: exprs.Name):
+        self.write(n.name)
+
+    def write_type_ref(self, t: typs.Type):
+        self.write(self.get_type_name(t))
 
     def get_type_name(self, t: typs.Type) -> str:
         if t is None:

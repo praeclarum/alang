@@ -6,6 +6,7 @@ import ast
 import nodes
 import exprs
 import typs
+import funcs
 
 Code = str
 
@@ -19,6 +20,28 @@ class AWriter(CodeWriter):
             self.write(f"    {field.name}: ")
             self.write_type_ref(field.field_type)
             self.write("\n")
+
+    def write_function(self, f: funcs.Function):
+        self.write(f"def {f.name}(")
+        ps = f.parameters
+        for i, param in enumerate(ps):
+            self.write(param.name)
+            self.write(": ")
+            self.write_type_ref(param.parameter_type)
+            if i < len(ps) - 1:
+                self.write(", ")
+        self.write("):\n")
+        for s in f.statements:
+            self.write_statement(s)
+
+    def write_return(self, r: "Return"):
+        self.write("    return")
+        if r.value is not None:
+            self.write(" ")
+            self.write_expr(r.value)
+
+    def write_name(self, n: exprs.Name):
+        self.write(n.name)
 
     def write_type_ref(self, t: typs.Type):
         self.write(t.name)
