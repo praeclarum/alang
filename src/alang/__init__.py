@@ -1,7 +1,7 @@
 from typing import Optional
 from modules import Module
 from funcs import Function
-from nodes import CodeOptions
+from nodes import Node, NodeType, CodeOptions
 
 from typs import Array, Struct, Vector, Tensor, int_type, float_type, tensor
 
