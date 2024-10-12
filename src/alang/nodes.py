@@ -15,8 +15,10 @@ class NodeType:
     ARRAY = 'array'
     BINOP = 'binop'
     CONSTANT = 'constant'
+    EXPR_STMT = 'expr_stmt'
     FIELD = 'field'
     FLOAT = 'float'
+    FUNCALL = 'funcall'
     FUNCTION = 'function'
     INTEGER = 'integer'
     MODULE = 'module'
@@ -233,6 +235,17 @@ class Block(Node):
             return a
         else:
             raise ValueError(f"Cannot define array in {self.node_type}")
+    def call(self, func: str, *args: list) -> "Block":
+        from exprs import Funcall
+        from stmts import ExprStmt
+        func = self.parse_expr(func)
+        args = [self.parse_expr(x) for x in args]
+        funcall = Funcall(func, args)
+        stmt = ExprStmt(funcall)
+        self.append_stmt(stmt)
+        return self
+    def append_stmt(self, stmt):
+        self.link(stmt, "statements")
 
 class Variable(Node):
     name = NodeAttr()

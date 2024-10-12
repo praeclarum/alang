@@ -32,6 +32,13 @@ class CodeWriter:
     def warning(self, message: str):
         self.write_line_comment(f"WARNING: {message}")
 
+    def write_error_value(self, message: str, type: Optional["Type"] = None):
+        self.write_zero_value_for_type(type)
+        self.write_inline_comment(f"ERROR! {message}")
+
+    def write_inline_comment(self, comment: str):
+        raise NotImplementedError
+
     def write_line_comment(self, comment: str):
         raise NotImplementedError
 
@@ -73,10 +80,15 @@ class CodeWriter:
     def write_statement(self, s: "Statement"): # type: ignore
         if s.node_type == nodes.NodeType.RETURN:
             self.write_return(s)
+        elif s.node_type == nodes.NodeType.EXPR_STMT:
+            self.write_expr_stmt(s)
         else:
             raise ValueError(f"Cannot write statement of type {s.node_type}")
         
     def write_return(self, r: "Return"): # type: ignore
+        raise NotImplementedError
+    
+    def write_expr_stmt(self, e: "ExprStmt"): # type: ignore
         raise NotImplementedError
         
     def write_expr(self, e: "Expression"): # type: ignore
@@ -84,6 +96,8 @@ class CodeWriter:
             self.write_name(e)
         elif e.node_type == nodes.NodeType.BINOP:
             self.write_binop(e)
+        elif e.node_type == nodes.NodeType.FUNCALL:
+            self.write_funcall(e)
         else:
             raise ValueError(f"Cannot write expression of type {e.node_type}")
     
@@ -91,4 +105,10 @@ class CodeWriter:
         raise NotImplementedError
     
     def write_binop(self, b: "Binop"): # type: ignore
+        raise NotImplementedError
+    
+    def write_funcall(self, f: "Funcall"): # type: ignore
+        raise NotImplementedError
+    
+    def write_zero_value_for_type(self, type: Optional["Type"] = None):
         raise NotImplementedError

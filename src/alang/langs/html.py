@@ -5,6 +5,7 @@ import modules
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
+import stmts
 import typs
 import funcs
 
@@ -15,6 +16,9 @@ class HTMLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
         self.out_langs = ["a", "c", "glsl", "metal", "wgsl"]
+
+    def write_expr_stmt(self, e: stmts.ExprStmt):
+        self.write_expr(e.expression)
 
     def write_line_comment(self, comment: str):
         self.write("<p>")

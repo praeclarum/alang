@@ -22,6 +22,10 @@ class JSWriter(CodeWriter):
         self.write_expr(b.right)
         self.write(")")
 
+    def write_expr_stmt(self, e: stmts.ExprStmt):
+        self.write_expr(e.expression)
+        self.write(";\n")
+
     def write_line_comment(self, comment: str):
         self.write("// ")
         self.write(comment)

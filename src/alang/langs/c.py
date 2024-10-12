@@ -4,6 +4,7 @@ from langs.language import Language, register_language
 from langs.writer import CodeWriter
 import exprs
 import funcs
+import nodes
 import stmts
 import typs
 
@@ -18,6 +19,26 @@ class CWriter(CodeWriter):
         self.write(b.operator)
         self.write(" ")
         self.write_expr(b.right)
+        self.write(")")
+
+    def write_expr_stmt(self, e: stmts.ExprStmt):
+        self.write_expr(e.expression)
+        self.write(";\n")
+
+    def write_funcall(self, c: exprs.Funcall):
+        f = c.func
+        if f is None:
+            self.write_error_value("Missing function")
+            return
+        if f.node_type == nodes.NodeType.FUNCTION:
+            self.write(f.name)
+        else:
+            self.write_expr(f)
+        self.write("(")
+        for i, arg in enumerate(c.args):
+            if i > 0:
+                self.write(", ")
+            self.write_expr(arg)
         self.write(")")
 
     def write_function(self, f: funcs.Function):
