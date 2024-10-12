@@ -1,3 +1,5 @@
+"""WGSL https://www.w3.org/TR/WGSL/"""
+
 from typing import Optional, TextIO, Union
 from langs.language import Language, register_language
 from langs.writer import CodeWriter

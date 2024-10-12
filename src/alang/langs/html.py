@@ -1,3 +1,5 @@
+"""GLSL https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language"""
+
 from typing import Optional, TextIO, Union
 import modules
 from langs.language import Language, register_language
@@ -12,6 +14,7 @@ def encode(str):
 class HTMLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
+        self.out_langs = ["a", "c", "glsl", "metal", "wgsl"]
 
     def write_module(self, s: modules.Module):
         self.write(f"<html>\n")
@@ -82,8 +85,7 @@ class HTMLWriter(CodeWriter):
         enc_name = encode(s.name)
         self.write(f"<h2>{enc_name}</h2>\n")
         self.write(f"<code><pre>{encode(str(s))}</pre></code>\n")
-        out_langs = ["a", "c", "glsl", "wgsl"]
-        for lang in out_langs:
+        for lang in self.out_langs:
             self.write(f"<h3>{lang}</h3>\n")
             self.write(f"<code><pre>{encode(s.get_code(lang))}</pre></code>\n")
 

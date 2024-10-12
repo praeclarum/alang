@@ -6,5 +6,6 @@ def get_language(lang_name: str) -> Language:
     import langs.glsl
     import langs.html
     import langs.js
+    import langs.metal
     import langs.wgsl
     return get_language_x(lang_name)
