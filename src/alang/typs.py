@@ -342,6 +342,8 @@ class Void(Type):
     def write_code(self, writer):
         writer.write_void(self)
 
+void_type = Void()
+
 scalar_types = {
     sbyte_type.name: sbyte_type,
     byte_type.name: byte_type,
@@ -358,6 +360,8 @@ scalar_types = {
 }
 
 builtin_types = {
+    void_type.name: void_type,
+
     vec2h_type.name: vec2h_type,
     vec3h_type.name: vec3h_type,
     vec4h_type.name: vec4h_type,
@@ -366,7 +370,7 @@ builtin_types = {
     vec4f_type.name: vec4f_type,
     vec2i_type.name: vec2i_type,
     vec3i_type.name: vec3i_type,
-    vec4i_type.name: vec4i_type,
+    vec4i_type.name: vec4i_type,    
 }
 builtin_types.update(scalar_types)
 

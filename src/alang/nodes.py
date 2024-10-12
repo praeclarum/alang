@@ -27,6 +27,7 @@ class NodeType:
     TENSOR = 'tensor'
     UNRESOLVED_TYPE = 'unresolved_type'
     VARIABLE = 'variable'
+    VOID = 'void'
     VECTOR = 'vector'
 
 class Node:
