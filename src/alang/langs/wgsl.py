@@ -3,10 +3,21 @@ from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
 import typs
+import modules
 
 class WGSLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]):
         super().__init__(out, options)
+
+    def write_module(self, s: modules.Module):
+        for type in s.types:
+            self.write_type(type)
+
+    def write_type(self, t: typs.Type):
+        if isinstance(t, typs.Struct):
+            self.write_struct(t)
+        else:
+            self.write(f"    // {t.name}\n")
 
     def write_struct(self, s: typs.Struct):
         fs = s.fields
@@ -38,7 +49,9 @@ class WGSLWriter(CodeWriter):
         self.write("}\n")
 
     def get_type_name(self, t: typs.Type) -> str:
-        if isinstance(t, typs.Integer):
+        if t is None:
+            return "void"
+        elif isinstance(t, typs.Integer):
             tn = t.name
             if tn == "sbyte":
                 return "i8"
