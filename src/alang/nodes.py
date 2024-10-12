@@ -25,26 +25,21 @@ class Node:
     def __init__(self, type: NodeType):
         self.node_type = type
         self.attributes: dict[str, "NodeAttr"] = {}
-        self.children: list["Node"] = []
-        self.parent: Optional["Node"] = None
-        self.role: Optional[str] = None
-    def get_children_with_type(self, type: NodeType) -> list["Node"]:
-        return [child for child in self.children if child.node_type == type]
-    def get_child_with_type(self, type: NodeType) -> Optional["Node"]:
-        cs = self.get_children_with_type(type)
+        self.links: list[tuple[str, "Node"]] = []
+        self.last_backlink: Optional["Node"] = None
+    def append_backlink(self, backlink: "Node", rel: str):
+        self.last_backlink = backlink
+    def get_rels(self, rel: str) -> list["Node"]:
+        return [child for (crel, child) in self.links if crel == rel]
+    def get_rel(self, rel: str) -> Optional["Node"]:
+        cs = self.get_rels(rel)
         return cs[0] if len(cs) > 0 else None
-    def get_children_with_role(self, role: str) -> list["Node"]:
-        return [child for child in self.children if child.role == role]
-    def get_child_with_role(self, role: str) -> Optional["Node"]:
-        cs = self.get_children_with_role(role)
-        return cs[0] if len(cs) > 0 else None
-    def append_child(self, child: "Node", role: str) -> "Node":
-        child.role = role
-        self.children.append(child)
-        child.parent = self
+    def link(self, child: "Node", rel: str) -> "Node":
+        self.links.append((rel, child))
+        child.append_backlink(self, rel)
         return self
-    def write(self, out, depth):
-        if depth > 3:
+    def write(self, out, depth, rel):
+        if depth > 5:
             out.write("...")
             return
         indent = "    " * depth
@@ -53,19 +48,19 @@ class Node:
         for k, a in self.attributes.items():
             out.write(f"{head}{a.name}={repr(getattr(self, a.private_name))}")
             head = " "
-        if len(self.children) > 0:
+        if len(self.links) > 0:
             out.write(")\n")
-            for child in self.children:
-                child.write(out, depth + 1)
+            for crel, child in self.links:
+                child.write(out, depth + 1, crel)
             out.write(f"{indent})\n")
         else:
             out.write("))\n")
     def __str__(self):
         out = io.StringIO()
-        self.write(out, 0)
+        self.write(out, 0, None)
         return out.getvalue()
     def lookup_variable(self, name: str) -> Optional["Variable"]:
-        p = self.parent
+        p = self.last_backlink
         while p is not None:
             if isinstance(p, Node):
                 return p.lookup_variable(name)
@@ -109,45 +104,41 @@ class NodeAttr:
         obj.attributes[self.name] = self
         setattr(obj, self.private_name, value)
 
-class NodeChildren:
+class NodeRels:
     def __init__(self):
-        self.role = None
+        self.rel = None
     def __set_name__(self, owner: Node, name: str):
-        self.role = name
+        self.rel = name
     def __get__(self, obj: Node, objtype=None) -> list[Node]:
-        return obj.get_children_with_role(self.role)
+        return obj.get_rels(self.rel)
     def __set__(self, obj: Node, value: list[Node]):
-        num_children = len(obj.children)
         i = 0
-        while i < len(obj.children):
-            if obj.children[i].role == self.role:
-                ch = obj.children.pop(i)
-                ch.parent = None
+        while i < len(obj.links):
+            if obj.links[i][0] == self.rel:
+                ch = obj.links.pop(i)[1]
+                ch.last_backlink = None
             else:
                 i += 1
         for child in value:
-            obj.append_child(child, self.role)
-            num_children += 1
+            obj.link(child, self.rel)
 
-class NodeChild:
+class NodeRel:
     def __init__(self):
-        self.role = None
+        self.rel = None
     def __set_name__(self, owner: Node, name: str):
-        self.role = name
+        self.rel = name
     def __get__(self, obj: Node, objtype=None) -> list[Node]:
-        return obj.get_child_with_role(self.role)
+        return obj.get_rel(self.rel)
     def __set__(self, obj: Node, value: Optional[Node]):
         i = 0
-        while i < len(obj.children):
-            if obj.children[i].role == self.role:
-                ch = obj.children.pop(i)
-                ch.parent = None
+        while i < len(obj.links):
+            if obj.links[i][0] == self.rel:
+                ch = obj.links.pop(i)[1]
+                ch.last_backlink = None
             else:
                 i += 1
         if value is not None:
-            value.role = self.role
-            obj.append_child(value, self.role)
-            value.parent = obj
+            obj.link(value, self.rel)
 
 class Expression(Node):
     def __init__(self):
@@ -162,9 +153,9 @@ class Statement(Node):
         writer.write_stmt(self)
 
 class Block(Node):
-    types = NodeChildren()
-    variables = NodeChildren()
-    functions = NodeChildren()
+    types = NodeRels()
+    variables = NodeRels()
+    functions = NodeRels()
     def __init__(self, type: NodeType, can_define_types: bool, can_define_functions: bool, can_define_variables: bool):
         super().__init__(type)
         self.can_define_types = can_define_types
@@ -174,11 +165,11 @@ class Block(Node):
         return langs.get_language("a").parse_expr(expr)
     def append_any(self, child: Node):
         if child.node_type == NodeType.TYPE:
-            self.append_child(child, "types")
+            self.link(child, "types")
         elif child.node_type == NodeType.VARIABLE:
-            self.append_child(child, "variables")
+            self.link(child, "variables")
         elif child.node_type == NodeType.FUNCTION:
-            self.append_child(child, "functions")
+            self.link(child, "functions")
         else:
             raise ValueError(f"Cannot append {child.node_type} to {self.node_type}")
     def set(self, lhs: Code, rhs: Code) -> "Block":
@@ -188,7 +179,7 @@ class Block(Node):
         if v is None:
             if self.can_define_variables:
                 v = Variable(lhs)
-                self.append_child(v, "variables")
+                self.link(v, "variables")
             else:
                 raise ValueError(f"Variable {lhs} not defined")
         else:
@@ -200,7 +191,7 @@ class Block(Node):
             f = Function(name)
             for param in parameters:
                 f.parameter(param)
-            self.append_child(f, "functions")
+            self.link(f, "functions")
             return f
         else:
             raise ValueError(f"Cannot define function in {self.node_type}")
@@ -210,7 +201,7 @@ class Block(Node):
             s = Struct(name)
             for field in fields:
                 s.field(*field)
-            self.append_child(s, "types")
+            self.link(s, "types")
             return s
         else:
             raise ValueError(f"Cannot define struct in {self.node_type}")
@@ -218,15 +209,15 @@ class Block(Node):
         if self.can_define_types:
             from typs import Array
             a = Array(element_type, length)
-            self.append_child(a, "types")
+            self.link(a, "types")
             return a
         else:
             raise ValueError(f"Cannot define array in {self.node_type}")
 
 class Variable(Node):
     name = NodeAttr()
-    variable_type = NodeChild()
-    initial_value = NodeChild()
+    variable_type = NodeRel()
+    initial_value = NodeRel()
 
     def __init__(self, name: str, variable_type: Optional["Type"] = None, initial_value: Expression = None):
         super().__init__(NodeType.VARIABLE)

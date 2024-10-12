@@ -1,5 +1,5 @@
 from typing import Optional
-from nodes import Block, Node, NodeAttr, NodeChild, NodeChildren, NodeType
+from nodes import Block, Node, NodeAttr, NodeRel, NodeRels, NodeType
 from funcs import Function
 
 class Module(Block):
