@@ -12,7 +12,7 @@ class Function(Block):
     returnType = NodeLink()
 
     def __init__(self, name: str = None):
-        super().__init__(NodeType.FUNCTION, can_define_types=False, can_define_functions=False, can_define_variables=True)
+        super().__init__(NodeType.FUNCTION, can_define_types=False, can_define_functions=False, can_define_variables=True, can_define_statements=True)
         if name is not None:
             self.name = name
 

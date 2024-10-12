@@ -1,26 +1,17 @@
 from typing import Optional, TextIO, Union
+from nodes import Expression, NodeType, Statement
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
 import modules
 
 import typs
 import funcs
+import stmts
+import exprs
 
 class JSWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
-
-    def write_module(self, s: modules.Module):
-        for type in s.types:
-            self.write_type(type)
-        for func in s.functions:
-            self.write_function(func)
-
-    def write_type(self, t: typs.Type):
-        if isinstance(t, typs.Struct):
-            self.write_struct(t)
-        else:
-            self.write(f"    // {t.name}\n")
 
     def write_struct(self, s: typs.Struct):
         fs: list[typs.Field] = s.fields
@@ -101,10 +92,22 @@ class JSWriter(CodeWriter):
         for i, param in enumerate(f.parameters):
             if i > 0:
                 self.write(", ")
-            self.write(f"{param.name}/*: {self.get_js_name(param.parameter_type)}*/")
+            self.write(f"{param.name}/*: {self.get_typed_name(param.parameter_type)}*/")
         self.write(") {\n")
-        self.write(f"    // {f.name}\n")
+        for s in f.statements:
+            self.write_statement(s)
         self.write("}\n")
+
+    def write_return(self, s: stmts.Return):
+        self.write(f"    return")
+        rv = s.value
+        if rv is not None:
+            self.write(" ")
+            self.write_expr(rv)
+        self.write(";\n")
+
+    def write_name(self, s: exprs.Name):
+        self.write(s.name)
 
     def get_typed_name(self, t: typs.Type) -> str:
         if isinstance(t, typs.Integer):

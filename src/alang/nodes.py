@@ -162,7 +162,8 @@ class Block(Node):
     types = NodeLinks()
     variables = NodeLinks()
     functions = NodeLinks()
-    def __init__(self, type: NodeType, can_define_types: bool, can_define_functions: bool, can_define_variables: bool):
+    statements = NodeLinks()
+    def __init__(self, type: NodeType, can_define_types: bool, can_define_functions: bool, can_define_variables: bool, can_define_statements: bool):
         super().__init__(type)
         self.can_define_types = can_define_types
         self.can_define_functions = can_define_functions

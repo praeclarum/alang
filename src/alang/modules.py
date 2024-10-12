@@ -6,7 +6,7 @@ class Module(Block):
     name = NodeAttr()
 
     def __init__(self, name: str = None):
-        super().__init__(NodeType.MODULE, can_define_types=True, can_define_functions=True, can_define_variables=True)
+        super().__init__(NodeType.MODULE, can_define_types=True, can_define_functions=True, can_define_variables=True, can_define_statements=False)
         if name is not None:
             self.name = name
 
