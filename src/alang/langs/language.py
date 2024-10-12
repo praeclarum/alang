@@ -4,7 +4,7 @@ from langs.writer import CodeWriter
 class Language:
     def __init__(self, name: str):
         self.name = name
-    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> CodeWriter:
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> CodeWriter: # type: ignore
         return CodeWriter(out, options)
     def parse_expr(self, code: str):
         raise NotImplementedError()

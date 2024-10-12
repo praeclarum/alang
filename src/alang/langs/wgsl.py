@@ -6,7 +6,7 @@ import typs
 import modules
 
 class WGSLWriter(CodeWriter):
-    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]):
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
     def write_module(self, s: modules.Module):
@@ -96,7 +96,7 @@ class WGSLLanguage(Language):
     def __init__(self):
         super().__init__("wgsl")
 
-    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> WGSLWriter:
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> WGSLWriter: # type: ignore
         return WGSLWriter(out, options)
 
 wgsl_lang = WGSLLanguage()

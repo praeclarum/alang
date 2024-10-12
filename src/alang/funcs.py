@@ -35,7 +35,7 @@ class Parameter(Node):
     name = NodeAttr()
     parameter_type = NodeRel()
 
-    def __init__(self, name: str, parameter_type: "Type" = None):
+    def __init__(self, name: str, parameter_type: "Type" = None): # type: ignore
         super().__init__(NodeType.PARAMETER)
         self.name = name
         self.parameter_type = typs.try_resolve_type(parameter_type, None)

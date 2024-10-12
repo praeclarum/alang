@@ -1,7 +1,7 @@
 from typing import Optional, TextIO, Union
 
 class CodeWriter:
-    def __init__(self, path_or_io: Union[str, TextIO], options: Optional["CodeOptions"]):
+    def __init__(self, path_or_io: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         self.options = options
         if self.options is None:
             from nodes import CodeOptions

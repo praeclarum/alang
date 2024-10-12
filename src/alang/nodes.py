@@ -193,7 +193,7 @@ class Block(Node):
         else:
             raise ValueError(f"Variable {lhs} already defined")
         return self
-    def define(self, name: str, *parameters: list) -> "Function":
+    def define(self, name: str, *parameters: list) -> "Function": # type: ignore
         if self.can_define_functions:
             from funcs import Function
             f = Function(name)
@@ -203,7 +203,7 @@ class Block(Node):
             return f
         else:
             raise ValueError(f"Cannot define function in {self.node_type}")
-    def struct(self, name: str, *fields: list) -> "Struct":
+    def struct(self, name: str, *fields: list) -> "Struct": # type: ignore
         if self.can_define_types:
             from typs import Struct
             s = Struct(name)
@@ -213,7 +213,7 @@ class Block(Node):
             return s
         else:
             raise ValueError(f"Cannot define struct in {self.node_type}")
-    def array(self, element_type: str, length: Optional[int] = None) -> "Array":
+    def array(self, element_type: str, length: Optional[int] = None) -> "Array": # type: ignore
         if self.can_define_types:
             from typs import Array
             a = Array(element_type, length)
@@ -227,7 +227,7 @@ class Variable(Node):
     variable_type = NodeRel()
     initial_value = NodeRel()
 
-    def __init__(self, name: str, variable_type: Optional["Type"] = None, initial_value: Expression = None):
+    def __init__(self, name: str, variable_type: Optional["Type"] = None, initial_value: Expression = None): # type: ignore
         super().__init__(NodeType.VARIABLE)
         self.name = name
         self.variable_type = variable_type
