@@ -18,6 +18,8 @@ class Type(TypeRef):
         self.is_vector = False
         self.is_struct = False
         self.is_tensor = False
+    def resolve_type(self, resolver):
+        return self
     @property
     def layout(self) -> "TypeLayout":
         return self.get_layout(None)
