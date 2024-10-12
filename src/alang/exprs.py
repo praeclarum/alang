@@ -10,6 +10,11 @@ class Name(Expression):
     def __init__(self, name: str):
         super().__init__(NodeType.NAME)
         self.name = name
+        self.resolved_node = None
+    def resolve_type(self, resolver: compiler.TypeResolver):
+        if self.resolved_node is None:
+            return None
+        raise Exception("Name resolution not implemented")
 
 class BinopOp:
     def __init__(self, name: str, op: str, precedence: int = 0, left_assoc: bool = True):
