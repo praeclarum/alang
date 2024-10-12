@@ -62,8 +62,13 @@ class CodeWriter:
     def write_expr(self, e: "Expression"): # type: ignore
         if e.node_type == nodes.NodeType.NAME:
             self.write_name(e)
+        elif e.node_type == nodes.NodeType.BINOP:
+            self.write_binop(e)
         else:
             raise ValueError(f"Cannot write expression of type {e.node_type}")
     
     def write_name(self, n: "Name"): # type: ignore
+        raise NotImplementedError
+    
+    def write_binop(self, b: "Binop"): # type: ignore
         raise NotImplementedError

@@ -10,6 +10,15 @@ class CWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
+    def write_binop(self, b: "Binop"):
+        self.write("(")
+        self.write_expr(b.left)
+        self.write(" ")
+        self.write(b.operator)
+        self.write(" ")
+        self.write_expr(b.right)
+        self.write(")")
+
     def write_function(self, f: funcs.Function):
         self.write_type_ref(f.return_type)
         self.write(f" {f.name}(")
