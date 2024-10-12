@@ -16,9 +16,6 @@ class Function(Block):
         if name is not None:
             self.name = name
 
-    def write_code(self, writer: CodeWriter):
-        writer.write_function(self)
-
     def param(self, name: str, param_type: str = None) -> "Function":
         if type(name) == tuple:
             name, param_type = name

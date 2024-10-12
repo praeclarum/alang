@@ -52,7 +52,7 @@ class Node:
         self.links.append((rel, child))
         child.append_backlink(self, rel)
         return self
-    def write(self, out, depth, rel):
+    def write_node(self, out, depth, rel):
         if depth > 5:
             out.write("...")
             return
@@ -65,13 +65,13 @@ class Node:
         if len(self.links) > 0:
             out.write(")\n")
             for crel, child in self.links:
-                child.write(out, depth + 1, crel)
+                child.write_node(out, depth + 1, crel)
             out.write(f"{indent})\n")
         else:
             out.write("))\n")
     def __str__(self):
         out = io.StringIO()
-        self.write(out, 0, None)
+        self.write_node(out, 0, None)
         return out.getvalue()
     def lookup_variable(self, name: str) -> Optional["Variable"]:
         p = self.last_backlink
@@ -82,17 +82,18 @@ class Node:
         return None
     def resolve_type(self, resolver: "TypeResolver") -> Optional["Type"]: # type: ignore
         return None
-    def write_code(self, writer):
-        raise NotImplementedError(f"Cannot write code for {self.node_type}")
-    def get_code(self, language: Optional[Any] = None, options: Optional[CodeOptions] = None) -> str:
+    def write_code(self, out, language: Optional[Any] = None, options: Optional[CodeOptions] = None):
         from compiler import Compiler
         language = langs.get_language(language)
-        out = io.StringIO()
         compiler = Compiler(self)
         compiler.compile()
         with language.open_writer(out, options) as writer:
-            self.write_code(writer)
-        return out.getvalue()
+            writer.write_node(self)
+    def get_code(self, language: Optional[Any] = None, options: Optional[CodeOptions] = None) -> str:
+        out = io.StringIO()
+        self.write_code(out, language, options)
+        code = out.getvalue()
+        return code
     @property
     def code(self) -> str:
         return self.get_code("a")
@@ -162,14 +163,10 @@ class NodeLink:
 class Expression(Node):
     def __init__(self, node_type: NodeType):
         super().__init__(node_type)
-    def write_code(self, writer):
-        writer.write_expr(self)
 
 class Statement(Node):
     def __init__(self, node_type: NodeType):
         super().__init__(node_type)
-    def write_code(self, writer):
-        writer.write_stmt(self)
 
 class Block(Node):
     types = NodeLinks()
@@ -246,6 +243,3 @@ class Variable(Node):
         self.name = name
         self.variable_type = variable_type
         self.initial_value = initial_value
-
-    def write_code(self, writer):
-        writer.write_variable(self)

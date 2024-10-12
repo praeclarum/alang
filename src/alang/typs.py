@@ -19,9 +19,6 @@ class Type(Node):
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> "TypeLayout":
         raise NotImplementedError(f"Type {self.name} does not have a layout")
 
-    def write_code(self, writer):
-        writer.write_type(self)
-
     def get_type_suffix(self) -> str:
         raise NotImplementedError()
     
@@ -258,9 +255,6 @@ class Struct(Type):
         self.nobuffer_layout = None
         return self
 
-    def write_code(self, writer):
-        writer.write_struct(self)
-
 def get_tensor_name(shape: tuple, element_type: Type):
     sn = "x".join([str(s) for s in shape])
     return f"{element_type.name}{sn}"
@@ -292,8 +286,6 @@ class Tensor(Type):
         self.is_tensor = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> ArrayLayout:
         return self.nobuffer_layout
-    def write_code(self, writer):
-        writer.write_tensor(self)
     def __matmul__(self, other: "Tensor") -> "Tensor":
         if not other.is_tensor:
             raise ValueError("Cannot multiply tensor by non-tensor")
@@ -351,8 +343,6 @@ class Void(Type):
         super().__init__("void", NodeType.VOID)
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return TypeLayout()
-    def write_code(self, writer):
-        writer.write_void(self)
 
 void_type = Void()
 

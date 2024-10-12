@@ -9,6 +9,3 @@ class Module(Block):
         super().__init__(NodeType.MODULE, can_define_types=True, can_define_functions=True, can_define_variables=True, can_define_statements=False)
         if name is not None:
             self.name = name
-
-    def write_code(self, writer):
-        writer.write_module(self)

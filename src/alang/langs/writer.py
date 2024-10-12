@@ -32,6 +32,16 @@ class CodeWriter:
     def warning(self, message: str):
         print(f"WARNING: {message}")
 
+    def write_node(self, n: "Node"): # type: ignore
+        if n.node_type == nodes.NodeType.MODULE:
+            self.write_module(n)
+        elif n.node_type == nodes.NodeType.FUNCTION:
+            self.write_function(n)
+        elif n.node_type == nodes.NodeType.STRUCT:
+            self.write_struct(n)
+        else:
+            raise ValueError(f"Cannot write node of type {n.node_type}")
+
     def write_module(self, m: "modules.Module"): # type: ignore
         for type in m.types:
             self.write_type(type)

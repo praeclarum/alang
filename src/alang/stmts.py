@@ -6,5 +6,3 @@ class Return(Statement):
     def __init__(self, value: Optional[Expression]):
         super().__init__(NodeType.RETURN)
         self.value = value
-    def write_code(self, writer):
-        writer.write_return(self)
