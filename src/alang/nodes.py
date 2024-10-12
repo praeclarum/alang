@@ -110,7 +110,7 @@ class NodeAttr:
         obj.attributes[self.name] = self
         setattr(obj, self.private_name, value)
 
-class NodeRels:
+class NodeLinks:
     def __init__(self):
         self.rel = None
     def __set_name__(self, owner: Node, name: str):
@@ -128,7 +128,7 @@ class NodeRels:
         for child in value:
             obj.link(child, self.rel)
 
-class NodeRel:
+class NodeLink:
     def __init__(self):
         self.rel = None
     def __set_name__(self, owner: Node, name: str):
@@ -159,9 +159,9 @@ class Statement(Node):
         writer.write_stmt(self)
 
 class Block(Node):
-    types = NodeRels()
-    variables = NodeRels()
-    functions = NodeRels()
+    types = NodeLinks()
+    variables = NodeLinks()
+    functions = NodeLinks()
     def __init__(self, type: NodeType, can_define_types: bool, can_define_functions: bool, can_define_variables: bool):
         super().__init__(type)
         self.can_define_types = can_define_types
@@ -224,8 +224,8 @@ class Block(Node):
 
 class Variable(Node):
     name = NodeAttr()
-    variable_type = NodeRel()
-    initial_value = NodeRel()
+    variable_type = NodeLink()
+    initial_value = NodeLink()
 
     def __init__(self, name: str, variable_type: Optional["Type"] = None, initial_value: Expression = None): # type: ignore
         super().__init__(NodeType.VARIABLE)

@@ -1,6 +1,6 @@
 from typing import Optional
 from alang.langs.writer import CodeWriter
-from nodes import Block, Node, NodeAttr, NodeRel, NodeRels, NodeType
+from nodes import Block, Node, NodeAttr, NodeLink, NodeLinks, NodeType
 from stmts import Return
 import typs
 
@@ -8,8 +8,8 @@ Code = str
 
 class Function(Block):
     name = NodeAttr()
-    parameters = NodeRels()
-    returnType = NodeRel()
+    parameters = NodeLinks()
+    returnType = NodeLink()
 
     def __init__(self, name: str = None):
         super().__init__(NodeType.FUNCTION, can_define_types=False, can_define_functions=False, can_define_variables=True)
@@ -33,7 +33,7 @@ class Function(Block):
 
 class Parameter(Node):
     name = NodeAttr()
-    parameter_type = NodeRel()
+    parameter_type = NodeLink()
 
     def __init__(self, name: str, parameter_type: "Type" = None): # type: ignore
         super().__init__(NodeType.PARAMETER)

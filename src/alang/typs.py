@@ -1,5 +1,5 @@
 from typing import Optional
-from nodes import Node, Node, NodeRel, NodeRels, NodeType, NodeAttr
+from nodes import Node, Node, NodeLink, NodeLinks, NodeType, NodeAttr
 
 class Type(Node):
     name = NodeAttr()
@@ -60,7 +60,7 @@ def get_array_layout(element_type: Type, length: Optional[int], buffer_byte_size
     return layout
 
 class Array(Type):
-    element_type = NodeRel()
+    element_type = NodeLink()
     length = NodeAttr()
     def __init__(self, element_type: Type, length: Optional[int]):
         element_type = try_resolve_type(element_type, self)
@@ -176,7 +176,7 @@ double_type = Float(64)
 
 class Field(Node):
     name = NodeAttr()
-    field_type = NodeRel()
+    field_type = NodeLink()
     def __init__(self, name: str, field_type: Type):
         super().__init__(NodeType.FIELD)
         self.name = name
@@ -233,7 +233,7 @@ def round_up(k: int, n: int) -> int:
     return ((n + k - 1) // k) * k
 
 class Struct(Type):
-    fields = NodeRels()
+    fields = NodeLinks()
     def __init__(self, name, fields: Optional[list[Field]] = None):
         super().__init__(name, NodeType.STRUCT)
         if fields is not None:
@@ -283,7 +283,7 @@ def get_vector_layout(element_type: Type, size: int) -> TypeLayout:
     return layout
 
 class Vector(Type):
-    element_type = NodeRel()
+    element_type = NodeLink()
     size = NodeAttr()
     def __init__(self, element_type: Type, size: int):
         super().__init__(get_vector_name(element_type, size), NodeType.VECTOR)
