@@ -4,6 +4,7 @@ from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
 import typs
+import funcs
 
 def encode(str):
     return str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
@@ -20,6 +21,8 @@ class HTMLWriter(CodeWriter):
         self.write(f"<body>\n")
         for type in s.types:
             self.write_type_ui(type)
+        for func in s.functions:
+            self.write_function_ui(func)
         self.write(f"<script type='module'>\n")
         self.write(s.get_code("js", self.options))
         self.write(f"async function main() {{\n")
@@ -27,6 +30,8 @@ class HTMLWriter(CodeWriter):
         self.write(f"const device = await adapter.requestDevice();\n")
         for type in s.types:
             self.write_type_ui_code(type)
+        for func in s.functions:
+            self.write_function_ui_code(func)
         self.write(f"}}\n")
         self.write(f"main();\n")
         self.write(f"</script>\n")
@@ -54,12 +59,6 @@ class HTMLWriter(CodeWriter):
         self.write_struct_ui(s)
         self.write_struct_ui_code(s)
 
-    def write_struct_ui_code(self, s: typs.Struct):
-        self.write(f"let test{s.name} = new {s.name}();\n")
-        self.write(f"console.log(test{s.name});\n")
-        self.write(f"let test{s.name}GPUBuffer = test{s.name}.createGPUBuffer(device);\n")
-        self.write(f"console.log(test{s.name}GPUBuffer);\n")
-
     def write_struct_ui(self, s: typs.Struct):
         fs: list[typs.Field] = s.fields
         sl = s.layout
@@ -68,6 +67,24 @@ class HTMLWriter(CodeWriter):
         enc_name = encode(s.name)
         self.write(f"<h2>{enc_name}</h2>\n")
         self.write(f"<code><pre>{encode(str(s))}</pre></code>\n")
+
+    def write_struct_ui_code(self, s: typs.Struct):
+        self.write(f"let test{s.name} = new {s.name}();\n")
+        self.write(f"console.log(test{s.name});\n")
+        self.write(f"let test{s.name}GPUBuffer = test{s.name}.createGPUBuffer(device);\n")
+        self.write(f"console.log(test{s.name}GPUBuffer);\n")
+
+    def write_function(self, f: funcs.Function):
+        self.write_function_ui(f)
+        self.write_function_ui_code(f)
+
+    def write_function_ui(self, s: funcs.Function):
+        enc_name = encode(s.name)
+        self.write(f"<h2>{enc_name}</h2>\n")
+        self.write(f"<code><pre>{encode(str(s))}</pre></code>\n")
+
+    def write_function_ui_code(self, s: funcs.Function):
+        pass
 
     def get_typed_name(self, t: typs.Type) -> str:
         if isinstance(t, typs.Integer):

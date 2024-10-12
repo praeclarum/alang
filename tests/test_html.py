@@ -1,5 +1,5 @@
 import os
-from alang import array, struct, CodeOptions, get_language
+from alang import define, struct, CodeOptions, get_language
 from alang.modules import Module
 
 html_lang = get_language("html")
@@ -40,3 +40,8 @@ def test_standalone_struct():
     )
     html = write_standalone_html("test_standalone_struct", s_a)
     assert html.index("<h2>TestStruct</h2>") > 0
+
+def test_standalone_function():
+    f = define("f", ("x", "int")).ret("x")
+    html = write_standalone_html("test_standalone_function", f)
+    assert html.index("<h2>f</h2>") > 0

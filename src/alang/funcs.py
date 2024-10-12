@@ -2,6 +2,7 @@ from typing import Optional
 from alang.langs.writer import CodeWriter
 from nodes import Block, Node, NodeAttr, NodeChild, NodeChildren, NodeType
 from stmts import Return
+import typs
 
 Code = str
 
@@ -21,12 +22,13 @@ class Function(Block):
     def parameter(self, name: str, param_type: str = None) -> "Function":
         if type(name) == tuple:
             name, param_type = name
-        p = Parameter(name, param_type)
+        p = Parameter(name, typs.try_resolve_type(param_type, self))
         self.append_child(p)
         return self
     
     def ret(self, value: Optional[Code]) -> "Function":
         r = Return(self.parse_expr(value))
+        self.append_child(r)
         return self
 
 class Parameter(Node):
@@ -36,4 +38,4 @@ class Parameter(Node):
     def __init__(self, name: str, parameter_type: "Type" = None):
         super().__init__(NodeType.PARAMETER)
         self.name = name
-        self.parameter_type = parameter_type
+        self.parameter_type = typs.try_resolve_type(parameter_type, None)
