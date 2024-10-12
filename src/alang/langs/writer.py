@@ -27,10 +27,20 @@ class CodeWriter:
             self.owner = False
 
     def error(self, message: str):
-        print(f"WARNING: {message}")
+        self.write_line_comment(f"ERROR! {message}")
 
     def warning(self, message: str):
-        print(f"WARNING: {message}")
+        self.write_line_comment(f"WARNING: {message}")
+
+    def write_line_comment(self, comment: str):
+        raise NotImplementedError
+
+    def write_diags(self, diags: list["DiagnosticMessage"]): # type: ignore
+        for d in diags:
+            if d.kind == "error":
+                self.error(d.message)
+            elif d.kind == "warning":
+                self.warning(d.message)
 
     def write_node(self, n: "Node"): # type: ignore
         if n.node_type == nodes.NodeType.MODULE:

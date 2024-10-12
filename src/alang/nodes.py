@@ -1,5 +1,5 @@
 import io
-from typing import Any, Callable, Optional, TypeVar, Union
+from typing import Any, Callable, Optional, TextIO, TypeVar, Union
 
 import langs
 
@@ -82,13 +82,14 @@ class Node:
         return None
     def resolve_type(self, resolver: "TypeResolver") -> Optional["Type"]: # type: ignore
         return None
-    def write_code(self, out, language: Optional[Any] = None, options: Optional[CodeOptions] = None):
+    def write_code(self, out: Union[str, TextIO], language: Optional[Any] = None, options: Optional[CodeOptions] = None):
         from compiler import Compiler
         language = langs.get_language(language)
         compiler = Compiler(self)
         compiler.compile()
         with language.open_writer(out, options) as writer:
             writer.write_node(self)
+            writer.write_diags(compiler.diags.messages)
     def get_code(self, language: Optional[Any] = None, options: Optional[CodeOptions] = None) -> str:
         out = io.StringIO()
         self.write_code(out, language, options)

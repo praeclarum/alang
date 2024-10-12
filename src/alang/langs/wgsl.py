@@ -37,6 +37,11 @@ class WGSLWriter(CodeWriter):
             self.write_statement(s)
         self.write("}\n")
 
+    def write_line_comment(self, comment: str):
+        self.write("// ")
+        self.write(comment)
+        self.write("\n")
+
     def write_name(self, n: exprs.Name):
         self.write(n.name)
 

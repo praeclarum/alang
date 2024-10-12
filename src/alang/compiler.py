@@ -21,9 +21,12 @@ class DiagnosticMessage:
 class Diagnostics:
     def __init__(self):
         self.messages: list[DiagnosticMessage] = []
+        self.num_errors = 0
     def message(self, kind: str, message: str, node: Optional[Node] = None):
         m = DiagnosticMessage(kind, message, node)
         self.messages.append(m)
+        if kind == DiagnosticKind.ERROR:
+            self.num_errors += 1
         m.print()
     def error(self, message: str, node: Optional[Node] = None):
         self.message(DiagnosticKind.ERROR, message, node)

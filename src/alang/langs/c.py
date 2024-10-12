@@ -34,6 +34,11 @@ class CWriter(CodeWriter):
             self.write_statement(s)
         self.write("}\n")
 
+    def write_line_comment(self, comment: str):
+        self.write("// ")
+        self.write(comment)
+        self.write("\n")
+
     def write_return(self, r: stmts.Return):
         self.write("    return")
         if r.value is not None:

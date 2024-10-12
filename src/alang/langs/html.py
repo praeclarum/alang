@@ -16,6 +16,11 @@ class HTMLWriter(CodeWriter):
         super().__init__(out, options)
         self.out_langs = ["a", "c", "glsl", "metal", "wgsl"]
 
+    def write_line_comment(self, comment: str):
+        self.write("<p>")
+        self.write(encode(comment))
+        self.write("</p>\n")
+
     def write_module(self, s: modules.Module):
         self.write(f"<html>\n")
         self.write(f"<head>\n")

@@ -24,6 +24,11 @@ class AWriter(CodeWriter):
         self.write_expr(b.right)
         self.write(")")
 
+    def write_line_comment(self, comment: str):
+        self.write("// ")
+        self.write(comment)
+        self.write("\n")
+
     def write_struct(self, s: typs.Struct):
         self.write(f"struct {s.name}:\n")
         for field in s.fields:
