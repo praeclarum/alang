@@ -82,7 +82,7 @@ class HTMLWriter(CodeWriter):
         enc_name = encode(s.name)
         self.write(f"<h2>{enc_name}</h2>\n")
         self.write(f"<code><pre>{encode(str(s))}</pre></code>\n")
-        out_langs = ["a", "wgsl"]
+        out_langs = ["a", "c", "glsl", "wgsl"]
         for lang in out_langs:
             self.write(f"<h3>{lang}</h3>\n")
             self.write(f"<code><pre>{encode(s.get_code(lang))}</pre></code>\n")

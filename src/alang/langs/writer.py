@@ -26,6 +26,12 @@ class CodeWriter:
             self.out = None
             self.owner = False
 
+    def error(self, message: str):
+        print(f"WARNING: {message}")
+
+    def warning(self, message: str):
+        print(f"WARNING: {message}")
+
     def write_module(self, m: "modules.Module"): # type: ignore
         for type in m.types:
             self.write_type(type)

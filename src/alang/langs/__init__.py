@@ -3,6 +3,7 @@ from langs.language import Language, get_language as get_language_x
 def get_language(lang_name: str) -> Language:
     import langs.a
     import langs.c
+    import langs.glsl
     import langs.html
     import langs.js
     import langs.wgsl
