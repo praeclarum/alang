@@ -17,10 +17,10 @@ class AWriter(CodeWriter):
         self.write(f"struct {s.name}:\n")
         for field in s.fields:
             self.write(f"    {field.name}: ")
-            self.write_type(field.field_type)
+            self.write_type_ref(field.field_type)
             self.write("\n")
 
-    def write_type(self, t: typs.Type):
+    def write_type_ref(self, t: typs.Type):
         self.write(t.name)
 
 class ALanguage(Language):
