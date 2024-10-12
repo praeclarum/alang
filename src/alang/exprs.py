@@ -20,7 +20,7 @@ class BinopOp:
     def __str__(self):
         return self.op
     def __repr__(self):
-        return self.op
+        return repr(self.op)
 
 bops = [
     BinopOp("add", "+"),

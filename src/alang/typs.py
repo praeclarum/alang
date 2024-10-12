@@ -2,32 +2,30 @@ import re
 from typing import Optional
 from nodes import Node, Node, NodeLink, NodeLinks, NodeType, NodeAttr
 
-class Type(Node):
+class TypeRef(Node):
     name = NodeAttr()
     def __init__(self, name: str, node_type: NodeType):
         super().__init__(node_type)
         self.name = name
+
+class Type(TypeRef):
+    def __init__(self, name: str, node_type: NodeType):
+        super().__init__(name, node_type)
+        self.is_primitive = False
+        self.is_algebraic = False
         self.is_scalar = False
         self.is_array = False
         self.is_vector = False
         self.is_struct = False
         self.is_tensor = False
-
     @property
     def layout(self) -> "TypeLayout":
         return self.get_layout(None)
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> "TypeLayout":
         raise NotImplementedError(f"Type {self.name} does not have a layout")
-
     def get_type_suffix(self) -> str:
         raise NotImplementedError()
     
-class UnresolvedType(Type):
-    def __init__(self, name: str):
-        super().__init__(name, NodeType.UNRESOLVED_TYPE)
-    def get_type_suffix(self) -> str:
-        return "X"
-
 class TypeLayout:
     def __init__(self):
         self.byte_size = 0
@@ -114,17 +112,31 @@ def get_int_layout(bits: int) -> TypeLayout:
     layout.align = layout.byte_size
     return layout
 
-class Integer(Type):
+class Primitive(Type):
+    def __init__(self, name: str, node_type: NodeType):
+        super().__init__(name, node_type)
+        self.is_primitive = True
+
+class Algebraic(Primitive):
+    def __init__(self, name: str, node_type: NodeType):
+        super().__init__(name, node_type)
+        self.is_algebraic = True
+
+class Scalar(Algebraic):
+    def __init__(self, name: str, node_type: NodeType):
+        super().__init__(name, node_type)
+        self.is_scalar = True
+
+class Integer(Scalar):
     bits = NodeAttr()
     signed = NodeAttr()
     def __init__(self, bits: int, signed: bool):
         super().__init__(get_int_name(bits, signed), NodeType.INTEGER)
         self.bits = bits
         self.signed = signed
-        self.cached_layout = get_int_layout(bits)
-        self.is_scalar = True
+        self.nobuffer_layout = get_int_layout(bits)
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
-        return self.cached_layout
+        return self.nobuffer_layout
     def get_type_suffix(self) -> str:
         return self.name[0]
 
@@ -153,13 +165,12 @@ def get_float_layout(bits: int) -> TypeLayout:
     layout.align = layout.byte_size
     return layout
 
-class Float(Type):
+class Float(Scalar):
     bits = NodeAttr()
     def __init__(self, bits: int):
         super().__init__(get_float_name(bits), NodeType.FLOAT)
         self.bits = bits
         self.cached_layout = get_float_layout(bits)
-        self.is_scalar = True
     def get_type_suffix(self) -> str:
         return self.name[0]
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
@@ -168,6 +179,10 @@ class Float(Type):
 half_type = Float(16)
 float_type = Float(32)
 double_type = Float(64)
+
+class TypeName(TypeRef):
+    def __init__(self, name: str):
+        super().__init__(name, NodeType.TYPE_NAME)
 
 class Field(Node):
     name = NodeAttr()
@@ -266,7 +281,7 @@ def get_tensor_mm_shape(a_shape: tuple, b_shape: tuple) -> tuple:
         raise ValueError("Cannot multiply tensors with incompatible shapes")
     return (a_shape[0], b_shape[1])
 
-class Tensor(Type):
+class Tensor(Algebraic):
     element_type = NodeLink()
     shape = NodeAttr()
     def __init__(self, shape: tuple, element_type: Type):
@@ -311,7 +326,7 @@ def get_vector_layout(element_type: Type, size: int) -> TypeLayout:
         raise ValueError(f"Invalid vector size: {size}")
     return layout
 
-class Vector(Type):
+class Vector(Algebraic):
     element_type = NodeLink()
     size = NodeAttr()
     def __init__(self, element_type: Type, size: int):
@@ -414,8 +429,7 @@ def try_resolve_type(type, context: Optional[Node]) -> Type:
         if tt is not None:
             return tt
         # TODO: Implement lookup in context
-    return UnresolvedType(type)
+    return TypeName(str(type))
 
 def tensor_type(shape: tuple, element_type: str) -> Tensor:
     return Tensor(shape, try_resolve_type(element_type, None))
-

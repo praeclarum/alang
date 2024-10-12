@@ -27,7 +27,7 @@ class NodeType:
     RETURN = 'return'
     STRUCT = 'struct'
     TENSOR = 'tensor'
-    UNRESOLVED_TYPE = 'unresolved_type'
+    TYPE_NAME = 'type_name'
     VARIABLE = 'variable'
     VOID = 'void'
     VECTOR = 'vector'
