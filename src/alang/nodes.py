@@ -85,8 +85,11 @@ class Node:
     def write_code(self, writer):
         raise NotImplementedError(f"Cannot write code for {self.node_type}")
     def get_code(self, language: Optional[Any] = None, options: Optional[CodeOptions] = None) -> str:
+        from compiler import Compiler
         language = langs.get_language(language)
         out = io.StringIO()
+        compiler = Compiler(self)
+        compiler.compile()
         with language.open_writer(out, options) as writer:
             self.write_code(writer)
         return out.getvalue()

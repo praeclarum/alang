@@ -118,3 +118,6 @@ class Compiler:
         """
         visitor = InferFunctionReturnType(self.diags, self.type_resolver)
         return visitor.visit(self.ast, None, None)
+    
+    def compile(self):
+        self.infer_types()
