@@ -1,4 +1,4 @@
-from alang import array, struct, tensor_type, Tensor, CodeOptions, float_type, int_type
+from alang import define, struct, tensor_type, Tensor, CodeOptions, float_type, int_type
 
 import test_html
 
@@ -29,6 +29,16 @@ def test_3x5_times_5x7_type():
     t2 = tensor_type((5, 7), int_type)
     t3 = t1 @ t2
     assert t3.shape == (3, 7)
+
+def test_3x5_times_5x7():
+    t1 = tensor_type((3, 5), int_type)
+    t2 = tensor_type((5, 7), int_type)
+    t3 = t1 @ t2
+    f = define("f").param("a", t1).param("b", t2).ret("a @ b")
+    assert f.wgsl_code.strip() == """
+fn f(a: int3x5, b: int5x7) -> int3x7 {
+    return mul_int3x5_int5x7(a, b);
+}""".strip()
 
 def test_standalone_tensor():
     t = tensor_type((3, 5, 7, 11), float_type)

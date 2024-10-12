@@ -209,7 +209,7 @@ class Block(Node):
             from funcs import Function
             f = Function(name)
             for param in parameters:
-                f.parameter(param)
+                f.param(param)
             self.link(f, "functions")
             return f
         else:

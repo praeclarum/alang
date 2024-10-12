@@ -19,7 +19,7 @@ class Function(Block):
     def write_code(self, writer: CodeWriter):
         writer.write_function(self)
 
-    def parameter(self, name: str, param_type: str = None) -> "Function":
+    def param(self, name: str, param_type: str = None) -> "Function":
         if type(name) == tuple:
             name, param_type = name
         p = Parameter(name, typs.try_resolve_type(param_type, self))
