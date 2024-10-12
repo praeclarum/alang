@@ -264,12 +264,18 @@ def get_tensor_name(shape: tuple, element_type: Type):
     sn = "x".join([str(s) for s in shape])
     return f"{element_type.name}{sn}{element_type.get_type_suffix()}"
 
-def tensor(shape: tuple, element_type: Type):
-    return Tensor(shape, element_type)
+def tensor(shape: tuple, element_type: str):
+    return Tensor(shape, try_resolve_type(element_type, None))
 
 class Tensor(Type):
     element_type = NodeLink()
+    shape = NodeAttr()
     def __init__(self, shape: tuple, element_type: Type):
+        element_type = try_resolve_type(element_type, None)
+        if element_type is None:
+            raise ValueError(f"Cannot create tensor with unresolved element type: {element_type}")
+        elif not element_type.is_scalar:
+            raise ValueError(f"Cannot create tensor with non-scalar element type: {element_type}")
         super().__init__(get_tensor_name(shape, element_type), NodeType.TENSOR)
         self.element_type = element_type
         self.shape = shape

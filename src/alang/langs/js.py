@@ -54,6 +54,9 @@ class JSWriter(CodeWriter):
             if field_type.is_array:
                 is_scalar_array[i] = field_type.element_type.is_scalar
                 scalar_array_num_elements[i] = field_type.num_elements
+            elif field_type.is_tensor:
+                is_scalar_array[i] = field_type.element_type.is_scalar
+                scalar_array_num_elements[i] = field_type.num_elements
             elif field_type.is_vector:
                 is_scalar_array[i] = True
                 scalar_array_num_elements[i] = field_type.size
