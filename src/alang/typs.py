@@ -3,8 +3,8 @@ from nodes import Node, Node, NodeRel, NodeRels, NodeType, NodeAttr
 
 class Type(Node):
     name = NodeAttr()
-    def __init__(self, name: str):
-        super().__init__(NodeType.TYPE)
+    def __init__(self, name: str, node_type: NodeType):
+        super().__init__(node_type)
         self.name = name
         self.is_scalar = False
         self.is_array = False
@@ -64,7 +64,7 @@ class Array(Type):
     length = NodeAttr()
     def __init__(self, element_type: Type, length: Optional[int]):
         element_type = try_resolve_type(element_type, self)
-        super().__init__(f"{element_type.name}[{length}]")
+        super().__init__(f"{element_type.name}[{length}]", NodeType.ARRAY)
         self.element_type = element_type
         self.length = length
         self.nobuffer_layout = get_array_layout(element_type, length)
@@ -86,8 +86,8 @@ class Array(Type):
         return "A"    
 
 class Primitive(Type):
-    def __init__(self, name):
-        super().__init__(name)
+    def __init__(self, name: str, node_type: NodeType):
+        super().__init__(name, node_type)
 
 def get_int_name(bits: int, signed: bool) -> str:
     if bits == 8:
@@ -123,7 +123,7 @@ class Integer(Primitive):
     bits = NodeAttr()
     signed = NodeAttr()
     def __init__(self, bits: int, signed: bool):
-        super().__init__(get_int_name(bits, signed))
+        super().__init__(get_int_name(bits, signed), NodeType.INTEGER)
         self.bits = bits
         self.signed = signed
         self.cached_layout = get_int_layout(bits)
@@ -161,7 +161,7 @@ def get_float_layout(bits: int) -> TypeLayout:
 class Float(Primitive):
     bits = NodeAttr()
     def __init__(self, bits: int):
-        super().__init__(get_float_name(bits))
+        super().__init__(get_float_name(bits), NodeType.FLOAT)
         self.bits = bits
         self.cached_layout = get_float_layout(bits)
         self.is_scalar = True
@@ -235,7 +235,7 @@ def round_up(k: int, n: int) -> int:
 class Struct(Type):
     fields = NodeRels()
     def __init__(self, name, fields: Optional[list[Field]] = None):
-        super().__init__(name)
+        super().__init__(name, NodeType.STRUCT)
         if fields is not None:
             for field in fields:
                 self.link(field, "fields")
@@ -286,7 +286,7 @@ class Vector(Type):
     element_type = NodeRel()
     size = NodeAttr()
     def __init__(self, element_type: Type, size: int):
-        super().__init__(get_vector_name(element_type, size))
+        super().__init__(get_vector_name(element_type, size), NodeType.VECTOR)
         if size < 2 or size > 4:
             raise ValueError(f"Invalid vector size: {size}. Size must be 2, 3, or 4")
         self.element_type = element_type

@@ -12,14 +12,20 @@ class CodeOptions:
         self.struct_annotations = struct_annotations
 
 class NodeType:
-    EXPRESSION = 'expression'
+    ARRAY = 'array'
+    BINOP = 'binop'
+    CONSTANT = 'constant'
     FIELD = 'field'
+    FLOAT = 'float'
     FUNCTION = 'function'
+    INTEGER = 'integer'
     MODULE = 'module'
+    NAME = 'name'
     PARAMETER = 'parameter'
-    STATEMENT = 'statement'
-    TYPE = 'type'
+    RETURN = 'return'
+    STRUCT = 'struct'
     VARIABLE = 'variable'
+    VECTOR = 'vector'
 
 class Node:
     def __init__(self, type: NodeType):
@@ -141,14 +147,14 @@ class NodeRel:
             obj.link(value, self.rel)
 
 class Expression(Node):
-    def __init__(self):
-        super().__init__(NodeType.EXPRESSION)
+    def __init__(self, node_type: NodeType):
+        super().__init__(node_type)
     def write_code(self, writer):
         writer.write_expr(self)
 
 class Statement(Node):
-    def __init__(self):
-        super().__init__(NodeType.STATEMENT)
+    def __init__(self, node_type: NodeType):
+        super().__init__(node_type)
     def write_code(self, writer):
         writer.write_stmt(self)
 
@@ -164,7 +170,9 @@ class Block(Node):
     def parse_expr(self, expr: Optional[Code]) -> Optional["Expression"]:
         return langs.get_language("a").parse_expr(expr)
     def append_any(self, child: Node):
-        if child.node_type == NodeType.TYPE:
+        if child.node_type == NodeType.ARRAY:
+            self.link(child, "types")
+        elif child.node_type == NodeType.STRUCT:
             self.link(child, "types")
         elif child.node_type == NodeType.VARIABLE:
             self.link(child, "variables")
