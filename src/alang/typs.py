@@ -333,6 +333,15 @@ vec2i_type = Vector(int_type, 2)
 vec3i_type = Vector(int_type, 3)
 vec4i_type = Vector(int_type, 4)
 
+class Void(Type):
+    """The void type used only for function return types"""
+    def __init__(self):
+        super().__init__("void", NodeType.VOID)
+    def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
+        return TypeLayout()
+    def write_code(self, writer):
+        writer.write_void(self)
+
 scalar_types = {
     sbyte_type.name: sbyte_type,
     byte_type.name: byte_type,

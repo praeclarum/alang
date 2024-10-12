@@ -14,6 +14,7 @@ class MetalWriter(CWriter):
 
     def get_type_name(self, t: typs.Type) -> str:
         if t is None:
+            self.error(f"Unresolved type in output")
             return "void"
         elif isinstance(t, typs.Integer):
             if t.bits == 8:

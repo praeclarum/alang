@@ -7,6 +7,8 @@ from typs import Array, Struct, Vector, Tensor, int_type, float_type, tensor
 
 from langs import get_language
 
+from compiler import Compiler
+
 global_module = Module("global")
 
 def define(name: str, *parameters: list) -> Function:
