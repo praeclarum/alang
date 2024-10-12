@@ -24,6 +24,7 @@ class NodeType:
     PARAMETER = 'parameter'
     RETURN = 'return'
     STRUCT = 'struct'
+    TENSOR = 'tensor'
     VARIABLE = 'variable'
     VECTOR = 'vector'
 

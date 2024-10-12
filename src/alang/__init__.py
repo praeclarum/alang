@@ -1,8 +1,9 @@
 from typing import Optional
 from modules import Module
 from funcs import Function
-from typs import Array, Struct
 from nodes import CodeOptions
+
+from typs import Array, Struct, Vector, Tensor, int_type, float_type, tensor
 
 from langs import get_language
 

@@ -10,6 +10,7 @@ class Type(Node):
         self.is_array = False
         self.is_vector = False
         self.is_struct = False
+        self.is_tensor = False
 
     @property
     def layout(self) -> "TypeLayout":
@@ -85,10 +86,6 @@ class Array(Type):
     def get_type_suffix(self) -> str:
         return "A"    
 
-class Primitive(Type):
-    def __init__(self, name: str, node_type: NodeType):
-        super().__init__(name, node_type)
-
 def get_int_name(bits: int, signed: bool) -> str:
     if bits == 8:
         if signed:
@@ -119,7 +116,7 @@ def get_int_layout(bits: int) -> TypeLayout:
     layout.align = layout.byte_size
     return layout
 
-class Integer(Primitive):
+class Integer(Type):
     bits = NodeAttr()
     signed = NodeAttr()
     def __init__(self, bits: int, signed: bool):
@@ -158,7 +155,7 @@ def get_float_layout(bits: int) -> TypeLayout:
     layout.align = layout.byte_size
     return layout
 
-class Float(Primitive):
+class Float(Type):
     bits = NodeAttr()
     def __init__(self, bits: int):
         super().__init__(get_float_name(bits), NodeType.FLOAT)
@@ -262,6 +259,30 @@ class Struct(Type):
 
     def write_code(self, writer):
         writer.write_struct(self)
+
+def get_tensor_name(shape: tuple, element_type: Type):
+    sn = "x".join([str(s) for s in shape])
+    return f"{element_type.name}{sn}{element_type.get_type_suffix()}"
+
+def tensor(shape: tuple, element_type: Type):
+    return Tensor(shape, element_type)
+
+class Tensor(Type):
+    element_type = NodeLink()
+    def __init__(self, shape: tuple, element_type: Type):
+        super().__init__(get_tensor_name(shape, element_type), NodeType.TENSOR)
+        self.element_type = element_type
+        self.shape = shape
+        num_elements = 1
+        for s in shape:
+            num_elements *= s
+        self.num_elements = num_elements
+        self.nobuffer_layout = get_array_layout(element_type, num_elements)
+        self.is_tensor = True
+    def get_layout(self, buffer_byte_size: Optional[int] = None) -> ArrayLayout:
+        return self.nobuffer_layout
+    def write_code(self, writer):
+        writer.write_tensor(self)
 
 def get_vector_name(element_type: Type, size: int) -> str:
     return f"vec{size}{element_type.get_type_suffix()}"
