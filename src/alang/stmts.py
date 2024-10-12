@@ -1,11 +1,12 @@
 from typing import Optional
-from alang.langs.writer import CodeWriter
-from nodes import Expression, NodeAttr, Statement
+from nodes import Expression, NodeAttr, NodeChild, NodeType, Statement
+
+import langs
 
 class Return(Statement):
-    value = NodeAttr()
+    value = NodeChild(NodeType.EXPRESSION)
     def __init__(self, value: Optional[Expression]):
         super().__init__()
         self.value = value
-    def write_code(self, writer: CodeWriter):
+    def write_code(self, writer):
         writer.write_return(self)

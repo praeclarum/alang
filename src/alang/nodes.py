@@ -147,6 +147,8 @@ class Expression(Node):
 class Statement(Node):
     def __init__(self):
         super().__init__(NodeType.STATEMENT)
+    def write_code(self, writer):
+        writer.write_stmt(self)
 
 class Block(Node):
     variables = NodeChildren(NodeType.VARIABLE)
