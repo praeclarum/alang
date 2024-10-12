@@ -4,6 +4,7 @@ from langs.writer import CodeWriter
 import modules
 
 import typs
+import funcs
 
 class JSWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
@@ -12,6 +13,8 @@ class JSWriter(CodeWriter):
     def write_module(self, s: modules.Module):
         for type in s.types:
             self.write_type(type)
+        for func in s.functions:
+            self.write_function(func)
 
     def write_type(self, t: typs.Type):
         if isinstance(t, typs.Struct):
@@ -91,6 +94,16 @@ class JSWriter(CodeWriter):
                 self.write(f"    set {field.name}(value) {{ this.{field.name}Array.set(value); this.dirty({sl.fields[i].offset}, {sl.fields[i].offset + sl.fields[i].byte_size}); }}\n")
             else:
                 raise NotImplementedError(f"Field type {field_type} not implemented")
+        self.write("}\n")
+
+    def write_function(self, f: funcs.Function):
+        self.write(f"function {f.name}(")
+        for i, param in enumerate(f.parameters):
+            if i > 0:
+                self.write(", ")
+            self.write(f"{param.name}/*: {self.get_js_name(param.parameter_type)}*/")
+        self.write(") {\n")
+        self.write(f"    // {f.name}\n")
         self.write("}\n")
 
     def get_typed_name(self, t: typs.Type) -> str:
