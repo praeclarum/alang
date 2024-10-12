@@ -265,6 +265,13 @@ def get_tensor_name(shape: tuple, element_type: Type):
     sn = "x".join([str(s) for s in shape])
     return f"{element_type.name}{sn}"
 
+def get_tensor_mm_shape(a_shape: tuple, b_shape: tuple) -> tuple:
+    if len(a_shape) != 2 or len(b_shape) != 2:
+        raise ValueError("Can only multiply 2D tensors")
+    if a_shape[1] != b_shape[0]:
+        raise ValueError("Cannot multiply tensors with incompatible shapes")
+    return (a_shape[0], b_shape[1])
+
 class Tensor(Type):
     element_type = NodeLink()
     shape = NodeAttr()
@@ -287,6 +294,11 @@ class Tensor(Type):
         return self.nobuffer_layout
     def write_code(self, writer):
         writer.write_tensor(self)
+    def __matmul__(self, other: "Tensor") -> "Tensor":
+        if not other.is_tensor:
+            raise ValueError("Cannot multiply tensor by non-tensor")
+        out_shape = get_tensor_mm_shape(self.shape, other.shape)
+        return Tensor(out_shape, self.element_type)
 
 def get_vector_name(element_type: Type, size: int) -> str:
     return f"vec{size}{element_type.get_type_suffix()}"
@@ -414,6 +426,6 @@ def try_resolve_type(type, context: Optional[Node]) -> Type:
         # TODO: Implement lookup in context
     return UnresolvedType(type)
 
-def tensor(shape: tuple, element_type: str):
+def tensor_type(shape: tuple, element_type: str) -> Tensor:
     return Tensor(shape, try_resolve_type(element_type, None))
 
