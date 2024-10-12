@@ -1,12 +1,13 @@
 from typing import Optional, TextIO, Union
+import ast
+
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
-
-import ast
 import nodes
 import exprs
 import typs
 import funcs
+import stmts
 
 Code = str
 
@@ -14,7 +15,7 @@ class AWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
-    def write_binop(self, b: "Binop"):
+    def write_binop(self, b: exprs.Binop):
         self.write("(")
         self.write_expr(b.left)
         self.write(" ")
@@ -43,7 +44,7 @@ class AWriter(CodeWriter):
         for s in f.statements:
             self.write_statement(s)
 
-    def write_return(self, r: "Return"):
+    def write_return(self, r: stmts.Return):
         self.write("    return")
         if r.value is not None:
             self.write(" ")

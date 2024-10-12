@@ -13,7 +13,7 @@ class JSWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
-    def write_binop(self, b: "Binop"):
+    def write_binop(self, b: exprs.Binop):
         self.write("(")
         self.write_expr(b.left)
         self.write(" ")

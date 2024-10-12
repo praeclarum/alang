@@ -1,18 +1,19 @@
 """WGSL https://www.w3.org/TR/WGSL/"""
 
 from typing import Optional, TextIO, Union
+
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
-
-import typs
-import funcs
 import exprs
+import funcs
+import stmts
+import typs
 
 class WGSLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
-    def write_binop(self, b: "Binop"):
+    def write_binop(self, b: exprs.Binop):
         self.write("(")
         self.write_expr(b.left)
         self.write(" ")
@@ -39,7 +40,7 @@ class WGSLWriter(CodeWriter):
     def write_name(self, n: exprs.Name):
         self.write(n.name)
 
-    def write_return(self, r: "Return"):
+    def write_return(self, r: stmts.Return):
         self.write("    return")
         if r.value is not None:
             self.write(" ")
