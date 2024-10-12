@@ -19,7 +19,7 @@ class AWriter(CodeWriter):
         self.write("(")
         self.write_expr(b.left)
         self.write(" ")
-        self.write(b.operator)
+        self.write(b.operator.op)
         self.write(" ")
         self.write_expr(b.right)
         self.write(")")
@@ -82,10 +82,14 @@ def python_expr_to_alang_expr(expr: ast.expr):
     if isinstance(expr, ast.Name):
         return exprs.Name(expr.id)
     elif isinstance(expr, ast.BinOp):
-        op_class_name = expr.op.__class__.__name__
+        op_name = expr.op.__class__.__name__.lower()
+        if op_name == "mult":
+            op_name = "mul"
+        elif op_name == "matmult":
+            op_name = "matmul"
         return exprs.Binop(
             python_expr_to_alang_expr(expr.left),
-            op_class_name,
+            op_name,
             python_expr_to_alang_expr(expr.right)
         )
     elif isinstance(expr, ast.Constant):

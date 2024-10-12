@@ -75,6 +75,8 @@ class Node:
         out = io.StringIO()
         self.write_node(out, 0, None)
         return out.getvalue()
+    def __repr__(self):
+        return str(self)
     def lookup_variable(self, name: str) -> Optional["Variable"]:
         p = self.last_backlink
         while p is not None:

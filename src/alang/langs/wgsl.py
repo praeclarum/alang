@@ -18,7 +18,7 @@ class WGSLWriter(CodeWriter):
         self.write("(")
         self.write_expr(b.left)
         self.write(" ")
-        self.write(b.operator)
+        self.write(b.operator.op)
         self.write(" ")
         self.write_expr(b.right)
         self.write(")")

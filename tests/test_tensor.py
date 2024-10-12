@@ -36,10 +36,10 @@ def test_3x5_times_5x7():
     t3 = t1 @ t2
     f = define("f").param("a", t1).param("b", t2).ret("a @ b")
     code = f.wgsl_code
-#     assert code.strip() == """
-# fn f(a: int3x5, b: int5x7) -> int3x7 {
-#     return mul_int3x5_int5x7(a, b);
-# }""".strip()
+    assert code.strip() == """
+fn f(a: int3x5, b: int5x7) -> int3x7 {
+    return mul_int3x5_int5x7(a, b);
+}""".strip()
 
 def test_standalone_tensor():
     t = tensor_type((3, 5, 7, 11), float_type)

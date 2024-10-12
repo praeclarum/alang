@@ -69,7 +69,6 @@ class TypeResolver:
             self.diags.error("Circular reference detected", node)
             return None
         self.pending_nodes.add(node.id)
-        print(f"Resolving {node}")
         t = node.resolve_type(self)
         self.pending_nodes.remove(node.id)
         if t is None:

@@ -27,10 +27,10 @@ class CodeWriter:
             self.owner = False
 
     def error(self, message: str):
-        self.write_line_comment(f"ERROR! {message}")
+        self.write_multiline_comment(f"ERROR! {message}")
 
     def warning(self, message: str):
-        self.write_line_comment(f"WARNING: {message}")
+        self.write_multiline_comment(f"WARNING: {message}")
 
     def write_error_value(self, message: str, type: Optional["Type"] = None):
         self.write_zero_value_for_type(type)
@@ -44,10 +44,14 @@ class CodeWriter:
 
     def write_diags(self, diags: list["DiagnosticMessage"]): # type: ignore
         for d in diags:
+            m = d.message
+            if d.node is not None:
+                m += f" {d.node}"
+            m = m.strip()
             if d.kind == "error":
-                self.error(d.message)
+                self.error(m)
             elif d.kind == "warning":
-                self.warning(d.message)
+                self.warning(m)
 
     def write_node(self, n: "Node"): # type: ignore
         if n.node_type == nodes.NodeType.MODULE:
@@ -64,6 +68,11 @@ class CodeWriter:
             self.write_type(type)
         for func in m.functions:
             self.write_function(func)
+
+    def write_multiline_comment(self, comment: str):
+        lines = comment.split("\n")
+        for line in lines:
+            self.write_line_comment(line)
 
     def write_type(self, t: "typs.Type"): # type: ignore
         if t.node_type == nodes.NodeType.STRUCT:

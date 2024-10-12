@@ -1,31 +1,68 @@
 from alang.langs.writer import CodeWriter
 from nodes import Expression, NodeAttr, NodeLink, NodeLinks, NodeType
 
-import typs
+import compiler
 import funcs
+import typs
 
 class Name(Expression):
     name = NodeAttr()
     def __init__(self, name: str):
         super().__init__(NodeType.NAME)
         self.name = name
+
+class BinopOp:
+    def __init__(self, name: str, op: str, precedence: int = 0, left_assoc: bool = True):
+        self.name = name
+        self.op = op
+        self.precedence = precedence
+        self.left_assoc = left_assoc
+    def __str__(self):
+        return self.op
+    def __repr__(self):
+        return self.op
+
+bops = [
+    BinopOp("add", "+"),
+    BinopOp("sub", "-"),
+    BinopOp("mul", "*"),
+    BinopOp("matmul", "@"),
+    BinopOp("div", "/"),
+    BinopOp("mod", "%"),
+    BinopOp("eq", "=="),
+    BinopOp("ne", "!="),
+    BinopOp("lt", "<"),
+    BinopOp("le", "<="),
+    BinopOp("gt", ">"),
+    BinopOp("ge", ">="),
+    BinopOp("and", "&&"),
+    BinopOp("or", "||"),
+    BinopOp("xor", "^"),
+    BinopOp("shl", "<<"),
+    BinopOp("shr", ">>"),
+    BinopOp("band", "&"),
+    BinopOp("bor", "|"),    
+]
+bop_from_name = {bop.name: bop for bop in bops}
+bop_from_op = {bop.op: bop for bop in bops}
     
 class Binop(Expression):
-    left = NodeAttr()
-    right = NodeAttr()
+    left = NodeLink()
+    right = NodeLink()
     operator = NodeAttr()
     def __init__(self, left: Expression, operator: str, right: Expression):
         super().__init__(NodeType.BINOP)
+        if operator in bop_from_name:
+            self.operator = bop_from_name[operator]
+        elif operator in bop_from_op:
+            self.operator = bop_from_op[operator]
+        else:
+            raise Exception(f"Unknown operator: {operator}")
         self.left = left
-        self.operator = operator
         self.right = right
-    @staticmethod
-    def get_binop(left: Expression, operator: str, right: Expression):
-        if operator == "MatMul":
-            f = funcs.get_matmul(left, right)
-            if f is not None:
-                return Funcall(f, [left, right])
-        return Binop(left, operator, right)
+    def resolve_type(self, resolver: compiler.TypeResolver):
+        lt = resolver.resolve(self.left)
+        rt = resolver.resolve(self.right)
     
 class Funcall(Expression):
     func = NodeLink()
@@ -35,7 +72,7 @@ class Funcall(Expression):
         self.func = func
         for a in args:
             self.link(a, "args")
-    def resolve_type(self, resolver):
+    def resolve_type(self, resolver: compiler.TypeResolver):
         f = self.func
         if f is None:
             return None
