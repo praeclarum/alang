@@ -1,5 +1,5 @@
 from typing import Optional
-from nodes import Expression, NodeAttr, NodeLink, NodeType, Statement
+from nodes import Block, Expression, NodeAttr, NodeLink, NodeType, Statement
 
 import typs
 
@@ -10,6 +10,18 @@ class ExprStmt(Statement):
         self.expression = expression
     def resolve_type(self, diags: "compiler.Diagnostics") -> typs.Type: # type: ignore
         return self.expression.resolved_type
+    
+class For(Block):
+    init = NodeLink()
+    condition = NodeLink()
+    update = NodeLink()
+    def __init__(self, init: Optional[Statement], condition: Optional[Expression], update: Optional[Statement]):
+        super().__init__(NodeType.FOR, can_define_types=False, can_define_functions=False, can_define_variables=False, can_define_statements=True)
+        self.init = init
+        self.condition = condition
+        self.update = update
+    def resolve_type(self, diags: "compiler.Diagnostics") -> typs.Type: # type: ignore
+        return typs.void_type
 
 class Return(Statement):
     value = NodeLink()

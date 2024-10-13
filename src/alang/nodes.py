@@ -18,6 +18,7 @@ class NodeType:
     EXPR_STMT = 'expr_stmt'
     FIELD = 'field'
     FLOAT = 'float'
+    FOR = 'for'
     FUNCALL = 'funcall'
     FUNCTION = 'function'
     FUNCTION_TYPE = 'function_type'
@@ -192,6 +193,8 @@ class Visitor:
             return self.visit_expr_stmt(node, parent, rel, acc)
         elif node.node_type == NodeType.FIELD:
             return self.visit_field(node, parent, rel, acc)
+        elif node.node_type == NodeType.FOR:
+            return self.visit_for(node, parent, rel, acc)
         elif node.node_type == NodeType.FLOAT:
             return self.visit_float(node, parent, rel, acc)
         elif node.node_type == NodeType.FUNCALL:
@@ -226,11 +229,13 @@ class Visitor:
         return acc
     def visit_expr_stmt(self, node: "ExprStmt", parent: Node, rel: str, acc): # type: ignore
         return acc
-    def visit_funcall(self, node: "Funcall", parent: Node, rel: str, acc): # type: ignore
-        return acc
     def visit_field(self, node: "Field", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_float(self, node: "Float", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_for(self, node: "For", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_funcall(self, node: "Funcall", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_function(self, node: "Function", parent: Node, rel: str, acc): # type: ignore
         return acc
@@ -284,6 +289,7 @@ class Block(Node):
         self.can_define_types = can_define_types
         self.can_define_functions = can_define_functions
         self.can_define_variables = can_define_variables
+        self.can_define_statements = can_define_statements
     def parse_expr(self, expr: Optional[Code]) -> Optional["Expression"]:
         return langs.get_language("a").parse_expr(expr)
     def append_any(self, child: Node):
@@ -345,7 +351,22 @@ class Block(Node):
         stmt = ExprStmt(funcall)
         self.append_stmt(stmt)
         return self
+    def forloop(self, init: str, cond: str, update: str) -> "For": # type: ignore
+        from stmts import For
+        init = self.parse_expr(init)
+        cond = self.parse_expr(cond)
+        update = self.parse_expr(update)
+        f = For(init, cond, update)
+        self.append_stmt(f)
+        return self
+    def ret(self, value: Optional[Code]) -> "Block":
+        from stmts import Return
+        r = Return(self.parse_expr(value))
+        self.append_stmt(r)
+        return self    
     def append_stmt(self, stmt):
+        if not self.can_define_statements:
+            raise ValueError(f"Cannot define return statements in {self.node_type}")
         self.link(stmt, "statements")
 
 class Variable(Node):

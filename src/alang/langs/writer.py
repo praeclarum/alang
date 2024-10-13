@@ -60,23 +60,17 @@ class CodeWriter:
         raise NotImplementedError
 
     def write_expr(self, e: "Expression"): # type: ignore
-        if e.node_type == nodes.NodeType.NAME:
-            self.write_name(e)
-        elif e.node_type == nodes.NodeType.BINOP:
-            self.write_binop(e)
-        elif e.node_type == nodes.NodeType.FUNCALL:
-            self.write_funcall(e)
-        elif e.node_type == nodes.NodeType.CONSTANT:
-            self.write_constant(e)
-        else:
-            raise ValueError(f"Cannot write expression of type {e.node_type}")
-    
+        return self.write_node(e)
+
     def write_expr_stmt(self, e: "ExprStmt"): # type: ignore
         raise NotImplementedError
-        
+
+    def write_for(self, f: "For"): # type: ignore
+        raise NotImplementedError
+
     def write_funcall(self, f: "Funcall"): # type: ignore
         raise NotImplementedError
-    
+
     def write_function(self, f):
         raise NotImplementedError
 
@@ -95,21 +89,34 @@ class CodeWriter:
         raise NotImplementedError
     
     def write_node(self, n: "Node"): # type: ignore
-        if n.node_type == nodes.NodeType.MODULE:
-            self.write_module(n)
-        elif n.node_type == nodes.NodeType.FUNCTION:
-            self.write_function(n)
-        elif n.node_type == nodes.NodeType.STRUCT:
-            self.write_struct(n)
-        elif n.node_type == nodes.NodeType.RETURN:
-            self.write_return(n)
+        if n.node_type == nodes.NodeType.NAME:
+            self.write_name(n)
+        elif n.node_type == nodes.NodeType.BINOP:
+            self.write_binop(n)
         elif n.node_type == nodes.NodeType.EXPR_STMT:
             self.write_expr_stmt(n)
+        elif n.node_type == nodes.NodeType.CONSTANT:
+            self.write_constant(n)
+        elif n.node_type == nodes.NodeType.FOR:
+            self.write_for(n)
+        elif n.node_type == nodes.NodeType.FUNCALL:
+            self.write_funcall(n)
+        elif n.node_type == nodes.NodeType.FUNCTION:
+            self.write_function(n)
+        elif n.node_type == nodes.NodeType.MODULE:
+            self.write_module(n)
+        elif n.node_type == nodes.NodeType.RETURN:
+            self.write_return(n)
+        elif n.node_type == nodes.NodeType.STRUCT:
+            self.write_struct(n)
         else:
-            raise ValueError(f"Cannot write node of type {n.node_type}")
+            raise ValueError(f"Cannot write node of type \"{n.node_type}\"")
 
     def write_return(self, r: "Return"): # type: ignore
         raise NotImplementedError
+    
+    def write_stmt(self, s: "Statement"): # type: ignore
+        return self.write_node(s)
     
     def write_struct(self, s):
         raise NotImplementedError

@@ -110,6 +110,30 @@ def python_expr_to_alang_expr(expr: ast.expr):
             op_name,
             python_expr_to_alang_expr(expr.right)
         )
+    elif isinstance(expr, ast.Compare):
+        if len(expr.ops) != 1:
+            raise NotImplementedError(f"Unsupported number of comparison operators: {len(expr.ops)}")
+        if len(expr.comparators) != 1:
+            raise NotImplementedError(f"Unsupported number of comparators: {len(expr.comparators)}")
+        op = expr.ops[0]
+        if isinstance(op, ast.Eq):
+            op_name = "=="
+        elif isinstance(op, ast.NotEq):
+            op_name = "!="
+        elif isinstance(op, ast.Lt):
+            op_name = "<"
+        elif isinstance(op, ast.LtE):
+            op_name = "<="
+        elif isinstance(op, ast.Gt):
+            op_name = ">"
+        elif isinstance(op, ast.GtE):
+            op_name = ">="
+        else:
+            raise NotImplementedError(f"Unsupported comparison operator: {type(op)}")
+        return exprs.Binop(
+            python_expr_to_alang_expr(expr.left),
+            op_name,
+            python_expr_to_alang_expr(expr.comparators[0]))
     elif isinstance(expr, ast.Constant):
         return exprs.Constant(expr.value)
     else:

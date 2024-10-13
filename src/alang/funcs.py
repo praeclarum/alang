@@ -28,11 +28,6 @@ class Function(Block):
         self.link(p, "parameters")
         return self
     
-    def ret(self, value: Optional[Code]) -> "Function":
-        r = Return(self.parse_expr(value))
-        self.link(r, "statements")
-        return self
-    
     def resolve_type(self, diags: "compiler.Diagnostics") -> typs.Type: # type: ignore
         if self.return_type is None:
             return None
