@@ -110,8 +110,8 @@ class Binop(Expression):
                 name = self.get_support_lib_function_name()
                 if name is not None and name not in grouped_support_definitions:
                     f = funcs.Function(name, lt @ rt, ("a", lt), ("b", rt))
-                    out_c_loop = stmts.Loop("out_c", rt.shape[1])
-                    f.loop("out_r", lt.shape[0], out_c_loop)
+                    out_r_loop = stmts.Loop("out_r", lt.shape[0])
+                    f.loop("out_c", rt.shape[1], out_r_loop)
                     grouped_support_definitions[name] = [f]
         return None
     
