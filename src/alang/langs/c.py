@@ -104,6 +104,12 @@ class CWriter(CodeWriter):
     def write_name(self, n: exprs.Name):
         self.write(n.name)
 
+    def write_set(self, s: stmts.Set):
+        self.write_expr(s.target)
+        self.write(" = ")
+        self.write_expr(s.value)
+        self.write(";\n")
+
     def write_type_ref(self, t: typs.Type):
         self.write(self.get_type_name(t))
 

@@ -79,6 +79,11 @@ class HTMLWriter(CodeWriter):
         else:
             pass
 
+    def write_set(self, s: stmts.Set):
+        self.write_expr(s.target)
+        self.write(" = ")
+        self.write_expr(s.value)
+
     def write_struct(self, s: typs.Struct):
         self.write_struct_ui(s)
         self.write_struct_ui_code(s)

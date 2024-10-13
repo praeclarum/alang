@@ -110,15 +110,21 @@ class Binop(Expression):
             if lt is not None and rt is not None and lt.is_tensor and rt.is_tensor:
                 name = self.get_support_lib_function_name()
                 if name is not None and name not in grouped_support_definitions:
-                    from stmts import ExprStmt
+                    from stmts import Set
+                    from exprs import parse_expr
                     f = funcs.Function(name, lt @ rt, ("a", lt), ("b", rt))
                     inner_count = rt.shape[0]
-                    inner_stmts = []
+                    inner_add = None
+                    o_index_expr = Index("o", parse_expr(f"out_r*{rt.shape[1]} + out_c"))
                     for inner_i in range(inner_count):
                         l_index = lt.get_flat_index((0, inner_i))
                         # r_index = rt.get_flat_index((inner_i, "out_c"))
-                        inner_stmts.append(ExprStmt(Index("a", l_index)))
-                    out_r_loop = stmts.Loop("out_r", lt.shape[0], *inner_stmts)
+                        a_index_expr = Index("a", l_index)
+                        if inner_add is None:
+                            inner_add = a_index_expr
+                        else:
+                            inner_add = Binop(inner_add, "add", a_index_expr)
+                    out_r_loop = stmts.Loop("out_r", lt.shape[0], Set(o_index_expr, inner_add))
                     f.loop("out_c", rt.shape[1], out_r_loop)
                     grouped_support_definitions[name] = [f]
         return None

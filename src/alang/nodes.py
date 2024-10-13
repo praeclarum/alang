@@ -30,6 +30,7 @@ class NodeType:
     NAME = 'name'
     PARAMETER = 'parameter'
     RETURN = 'return'
+    SET = 'set'
     STRUCT = 'struct'
     SWIZZLE = 'swizzle'
     TENSOR = 'tensor'
@@ -220,6 +221,8 @@ class Visitor:
             return self.visit_parameter(node, parent, rel, acc)
         elif node.node_type == NodeType.RETURN:
             return self.visit_return(node, parent, rel, acc)
+        elif node.node_type == NodeType.SET:
+            return self.visit_set(node, parent, rel, acc)
         elif node.node_type == NodeType.STRUCT:
             return self.visit_struct(node, parent, rel, acc)
         elif node.node_type == NodeType.SWIZZLE:
@@ -263,6 +266,8 @@ class Visitor:
     def visit_parameter(self, node: "Parameter", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_return(self, node: "Return", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_set(self, node: "Set", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_swizzle(self, node: "Swizzle", parent: Node, rel: str, acc): # type: ignore
         return acc

@@ -34,3 +34,19 @@ class Return(Statement):
         if self.value is None:
             return typs.void_type
         return self.value.resolved_type
+
+class Set(Statement):
+    target = NodeLink()
+    value = NodeLink()
+    def __init__(self, target: Expression, value: Expression):
+        super().__init__(NodeType.SET)
+        self.target = target
+        self.value = value
+    def resolve_type(self, diags: "compiler.Diagnostics") -> typs.Type: # type: ignore
+        if self.target.resolved_type is None:
+            if self.value.resolved_type is None:
+                return None
+            else:
+                return self.value.resolved_type
+        else:
+            return self.target.resolved_type

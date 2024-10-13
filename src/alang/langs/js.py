@@ -64,6 +64,12 @@ class JSWriter(CodeWriter):
         self.write(comment)
         self.write("\n")
 
+    def write_set(self, s: stmts.Set):
+        self.write_expr(s.target)
+        self.write(" = ")
+        self.write_expr(s.value)
+        self.write(";\n")
+
     def write_struct(self, s: typs.Struct):
         fs: list[typs.Field] = s.fields
         sl = s.layout

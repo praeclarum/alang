@@ -112,6 +112,8 @@ class CodeWriter:
             self.write_module(n)
         elif n.node_type == nodes.NodeType.RETURN:
             self.write_return(n)
+        elif n.node_type == nodes.NodeType.SET:
+            self.write_set(n)
         elif n.node_type == nodes.NodeType.STRUCT:
             self.write_struct(n)
         else:
@@ -119,10 +121,13 @@ class CodeWriter:
 
     def write_return(self, r: "Return"): # type: ignore
         raise NotImplementedError
-    
+
+    def write_set(self, r: "Set"): # type: ignore
+        raise NotImplementedError
+
     def write_stmt(self, s: "Statement"): # type: ignore
         return self.write_node(s)
-    
+
     def write_struct(self, s):
         raise NotImplementedError
 
