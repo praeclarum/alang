@@ -1,6 +1,4 @@
 %{
-    int yylex(void);
-    void yyerror(char const *);
 %}
 
 %union {
