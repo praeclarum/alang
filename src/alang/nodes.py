@@ -21,14 +21,17 @@ class NodeType:
     FUNCALL = 'funcall'
     FUNCTION = 'function'
     FUNCTION_TYPE = 'function_type'
+    INDEX = 'index'
     INTEGER = 'integer'
     LOOP = 'loop'
+    MEMBER = 'member'
     MODULE = 'module'
     MODULE_TYPE = 'module_type'
     NAME = 'name'
     PARAMETER = 'parameter'
     RETURN = 'return'
     STRUCT = 'struct'
+    SWIZZLE = 'swizzle'
     TENSOR = 'tensor'
     TYPE_NAME = 'type_name'
     VARIABLE = 'variable'
@@ -201,10 +204,14 @@ class Visitor:
             return self.visit_funcall(node, parent, rel, acc)
         elif node.node_type == NodeType.FUNCTION:
             return self.visit_function(node, parent, rel, acc)
+        elif node.node_type == NodeType.INDEX:
+            return self.visit_index(node, parent, rel, acc)
         elif node.node_type == NodeType.INTEGER:
             return self.visit_integer(node, parent, rel, acc)
         elif node.node_type == NodeType.LOOP:
             return self.visit_loop(node, parent, rel, acc)
+        elif node.node_type == NodeType.MEMBER:
+            return self.visit_member(node, parent, rel, acc)
         elif node.node_type == NodeType.MODULE:
             return self.visit_module(node, parent, rel, acc)
         elif node.node_type == NodeType.NAME:
@@ -215,6 +222,8 @@ class Visitor:
             return self.visit_return(node, parent, rel, acc)
         elif node.node_type == NodeType.STRUCT:
             return self.visit_struct(node, parent, rel, acc)
+        elif node.node_type == NodeType.SWIZZLE:
+            return self.visit_swizzle(node, parent, rel, acc)
         elif node.node_type == NodeType.TENSOR:
             return self.visit_tensor(node, parent, rel, acc)
         elif node.node_type == NodeType.VECTOR:
@@ -241,7 +250,11 @@ class Visitor:
         return acc
     def visit_function(self, node: "Function", parent: Node, rel: str, acc): # type: ignore
         return acc
+    def visit_index(self, node: "Index", parent: Node, rel: str, acc): # type: ignore
+        return acc
     def visit_integer(self, node: "Integer", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_member(self, node: "Member", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_module(self, node: "Module", parent: Node, rel: str, acc): # type: ignore
         return acc
@@ -250,6 +263,8 @@ class Visitor:
     def visit_parameter(self, node: "Parameter", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_return(self, node: "Return", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_swizzle(self, node: "Swizzle", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_struct(self, node: "Struct", parent: Node, rel: str, acc): # type: ignore
         return acc
@@ -293,15 +308,8 @@ class Block(Node):
         self.can_define_variables = can_define_variables
         self.can_define_statements = can_define_statements
     def parse_expr(self, expr: Optional[Code]) -> Optional["Expression"]:
-        if isinstance(expr, Node):
-            return expr
-        elif isinstance(expr, int):
-            from exprs import Constant
-            return Constant(expr)
-        elif isinstance(expr, float):
-            from exprs import Constant
-            return Constant(expr)
-        return langs.get_language("a").parse_expr(expr)
+        from exprs import parse_expr
+        return parse_expr(expr, self)
     def parse_stmt(self, stmt: Optional[Code]) -> Optional["Expression"]:
         return self.parse_expr(stmt)
     def append_any(self, child: Node):

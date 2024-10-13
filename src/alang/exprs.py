@@ -1,4 +1,5 @@
-from alang.langs.writer import CodeWriter
+from typing import Optional
+from langs.writer import CodeWriter
 from nodes import Expression, Node, NodeAttr, NodeLink, NodeLinks, NodeType
 
 import compiler
@@ -143,6 +144,23 @@ class Funcall(Expression):
             arg.write(writer)
         writer.write(")")
 
+class Index(Expression):
+    base = NodeLink()
+    ranges = NodeLinks()
+    def __init__(self, base: Expression, *ranges: list[Expression]):
+        super().__init__(NodeType.INDEX)
+        self.base = parse_expr(base)
+        for r in ranges:
+            self.link(parse_expr(r), "ranges")
+    def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
+        bt: typs.Type = self.base.resolved_type
+        if bt is None:
+            return None
+        if not bt.is_indexable:
+            diags.error(f"Indexing not supported for type {bt}")
+            return None
+        return bt.element_type
+
 class Constant(Expression):
     value = NodeAttr()
     def __init__(self, value: object):
@@ -157,3 +175,16 @@ class Constant(Expression):
         if isinstance(v, float):
             return typs.float_type
         return None
+
+def parse_expr(expr: object, context: Optional[Node] = None) -> Node:
+    if expr is None:
+        return None
+    elif isinstance(expr, Node):
+        return expr
+    elif isinstance(expr, int):
+        return Constant(expr)
+    elif isinstance(expr, float):
+        return Constant(expr)
+    else:
+        from langs.a import a_lang
+        return a_lang.parse_expr(expr)
