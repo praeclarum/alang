@@ -145,6 +145,7 @@ class TypeResolutionPass(DepthFirstVisitor):
         if t is None:
             self.num_need_info += 1
         else:
+            node.resolved_type = t
             self.num_changes += 1
         return super().visit_node(node, parent, rel, acc)
     

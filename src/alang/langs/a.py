@@ -25,7 +25,7 @@ class AWriter(CodeWriter):
         self.write(")")
 
     def write_line_comment(self, comment: str):
-        self.write("// ")
+        self.write("# ")
         self.write(comment)
         self.write("\n")
 
