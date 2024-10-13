@@ -39,9 +39,9 @@ def test_3x5_times_5x7():
     code = f.wgsl_code
     assert code.strip() == """
 fn mul_int3x5_int5x7(a: int3x5, b: int5x7) -> int3x7 {
-for (var out_c: i32 = 0; out_c < 7; ++out_c) {
 for (var out_r: i32 = 0; out_r < 3; ++out_r) {
-o[((out_r * 7) + out_c)] = ((((a[0] + a[1]) + a[2]) + a[3]) + a[4]);
+for (var out_c: i32 = 0; out_c < 7; ++out_c) {
+o[((out_r * 7) + out_c)] = (((((a[(out_r * 5)] * b[out_c]) + (a[((out_r * 5) + 1)] * b[(7 + out_c)])) + (a[((out_r * 5) + 2)] * b[(14 + out_c)])) + (a[((out_r * 5) + 3)] * b[(21 + out_c)])) + (a[((out_r * 5) + 4)] * b[(28 + out_c)]));
 }
 }
 }
