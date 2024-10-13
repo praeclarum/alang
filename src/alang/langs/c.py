@@ -13,13 +13,22 @@ class CWriter(CodeWriter):
         super().__init__(out, options)
 
     def write_binop(self, b: exprs.Binop):
-        self.write("(")
-        self.write_expr(b.left)
-        self.write(" ")
-        self.write(b.operator.op)
-        self.write(" ")
-        self.write_expr(b.right)
-        self.write(")")
+        support_name = b.get_support_lib_function_name()
+        if support_name is not None:
+            self.write(support_name)
+            self.write("(")
+            self.write_expr(b.left)
+            self.write(", ")
+            self.write_expr(b.right)
+            self.write(")")
+        else:
+            self.write("(")
+            self.write_expr(b.left)
+            self.write(" ")
+            self.write(b.operator.op)
+            self.write(" ")
+            self.write_expr(b.right)
+            self.write(")")
 
     def write_expr_stmt(self, e: stmts.ExprStmt):
         self.write_expr(e.expression)

@@ -1,6 +1,6 @@
 from alang import define, struct, tensor_type, Tensor, CodeOptions, float_type, int_type
 
-import test_html
+from test_html import write_standalone_html
 
 def test_tensor_from_element_type():
     t = tensor_type((3, 5, 7, 11), int_type)
@@ -40,9 +40,10 @@ def test_3x5_times_5x7():
 fn f(a: int3x5, b: int5x7) -> int3x7 {
     return mul_int3x5_int5x7(a, b);
 }""".strip()
+    write_standalone_html("test_3x5_times_5x7", f)
 
 def test_standalone_tensor():
     t = tensor_type((3, 5, 7, 11), float_type)
     s = struct("StructWithTensor", ("t", t))
-    html = test_html.write_standalone_html("test_standalone_tensor", s)
+    html = write_standalone_html("test_standalone_tensor", s)
     assert html.index("Float32Array") > 0

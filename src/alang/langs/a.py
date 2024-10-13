@@ -37,7 +37,7 @@ class AWriter(CodeWriter):
             self.write("\n")
 
     def write_function(self, f: funcs.Function):
-        self.write(f"def {f.name}(")
+        self.write(f"{f.name}(")
         ps = f.parameters
         for i, param in enumerate(ps):
             self.write(param.name)
@@ -45,9 +45,21 @@ class AWriter(CodeWriter):
             self.write_type_ref(param.parameter_type)
             if i < len(ps) - 1:
                 self.write(", ")
-        self.write("):\n")
-        for s in f.statements:
-            self.write_statement(s)
+        self.write(") =")
+        ss = f.statements
+        if len(ss) == 0:
+            self.write(" ...\n")
+        elif len(ss) == 1 and ss[0].node_type == nodes.NodeType.RETURN:
+            ret_val = ss[0].value
+            if ret_val is None:
+                self.write(" ()\n")
+            else:
+                self.write(" ")
+                self.write_expr(ret_val)
+                self.write("\n")
+        else:
+            for s in f.statements:
+                self.write_statement(s)
 
     def write_return(self, r: stmts.Return):
         self.write("    return")
