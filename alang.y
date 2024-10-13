@@ -36,7 +36,7 @@ stmt
 set
     : NAME '=' expr
     | NAME '_' '=' expr
-    | NAME parameters '=' expr
+    | NAME '(' arguments ')' '=' expr
     ;
 
 expr
@@ -59,20 +59,6 @@ arguments
 
 argument
     : expr
-    ;
-
-parameters
-    : parameter
-    | parameters ',' parameter
-    ;
-
-parameter
-    : NAME ':' type
-    | NAME
-    ;
-
-type
-    : NAME
     ;
 
 %%
