@@ -45,7 +45,9 @@ class AWriter(CodeWriter):
             self.write_type_ref(param.parameter_type)
             if i < len(ps) - 1:
                 self.write(", ")
-        self.write(") =")
+        self.write("): ")
+        self.write_type_ref(f.return_type)
+        self.write(" =")
         ss = f.statements
         if len(ss) == 0:
             self.write(" ...\n")
