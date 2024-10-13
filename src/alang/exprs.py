@@ -94,6 +94,13 @@ class Binop(Expression):
         else:
             diags.error(f"Binary operator {self.operator.op} type resolution not supported")
             return lt
+    def get_support_lib_function_name(self) -> str:
+        if self.operator.name == "matmul":
+            lt: typs.Tensor = self.left.resolved_type
+            rt: typs.Tensor = self.right.resolved_type
+            if lt is not None and rt is not None and lt.is_tensor and rt.is_tensor:
+                return f"mul_{lt.name}_{rt.name}"
+        return None
     
 class Funcall(Expression):
     func = NodeLink()

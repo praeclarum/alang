@@ -292,8 +292,12 @@ class Struct(Type):
         self.nobuffer_layout = None
         return self
 
-def get_tensor_name(shape: tuple, element_type: Type):
+def get_tensor_shape_name(shape: tuple):
     sn = "x".join([str(s) for s in shape])
+    return sn
+
+def get_tensor_name(shape: tuple, element_type: Type):
+    sn = get_tensor_shape_name(shape)
     return f"{element_type.name}{sn}"
 
 def get_tensor_mm_shape(a_shape: tuple, b_shape: tuple) -> tuple:
