@@ -96,6 +96,24 @@ class Binop(Expression):
         else:
             diags.error(f"Binary operator {self.operator.op} type resolution not supported")
             return lt
+    def add(self, other: Expression) -> Expression:
+        other = parse_expr(other)
+        if other.node_type == NodeType.CONSTANT:
+            if other.is_zero:
+                return self
+            if self.operator.name == "add" and self.right.node_type == NodeType.CONSTANT:
+                return Binop(self.left, "add", self.right + other)
+        return Binop(self, "add", other)
+    def mul(self, other: Expression) -> Expression:
+        other = parse_expr(other)
+        if other.node_type == NodeType.CONSTANT:
+            if other.is_zero:
+                return other
+            if other.is_one:
+                return self
+            if self.operator.name == "mul" and self.right.node_type == NodeType.CONSTANT:
+                return Binop(self.left, "mul", self.right * other)
+        return Binop(self, "mul", other)
     def get_support_lib_function_name(self) -> str:
         if self.operator.name == "matmul":
             lt: typs.Tensor = self.left.resolved_type
@@ -137,6 +155,9 @@ class Constant(Expression):
     @property
     def is_zero(self) -> bool:
         return (self.value == 0)
+    @property
+    def is_one(self) -> bool:
+        return (self.value == 1)
     def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
         v = self.value
         if v is None:

@@ -30,7 +30,7 @@ class Diagnostics:
         self.messages.append(m)
         if kind == DiagnosticKind.ERROR:
             self.num_errors += 1
-        m.print()
+        # m.print()
     def error(self, message: str, node: Optional[Node] = None):
         self.message(DiagnosticKind.ERROR, message, node)
     def warning(self, message: str, node: Optional[Node] = None):
