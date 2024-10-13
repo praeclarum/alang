@@ -130,20 +130,21 @@ class Binop(Expression):
                 if name is not None and name not in grouped_support_definitions:
                     from stmts import Set
                     from exprs import parse_expr
-                    f = funcs.Function(name, lt @ rt, ("a", lt), ("b", rt))
+                    ot = lt @ rt
+                    f = funcs.Function(name, ot, ("a", lt), ("b", rt))
                     inner_count = rt.shape[0]
                     inner_add = None
-                    o_index_expr = Index("o", parse_expr(f"out_r*{rt.shape[1]} + out_c"))
+                    o_index_expr = Index("o", ot.get_flat_index(["out_r", "out_c"]))
                     for inner_i in range(inner_count):
-                        l_index = lt.get_flat_index((0, inner_i))
-                        # r_index = rt.get_flat_index((inner_i, "out_c"))
-                        a_index_expr = Index("a", l_index)
+                        a_index = Index("a", lt.get_flat_index(("out_r", inner_i)))
+                        b_index = Index("b", rt.get_flat_index((inner_i, "out_c")))
+                        mul = a_index * b_index
                         if inner_add is None:
-                            inner_add = a_index_expr
+                            inner_add = mul
                         else:
-                            inner_add = Binop(inner_add, "add", a_index_expr)
-                    out_r_loop = stmts.Loop("out_r", lt.shape[0], Set(o_index_expr, inner_add))
-                    f.loop("out_c", rt.shape[1], out_r_loop)
+                            inner_add = inner_add + mul
+                    c_loop = stmts.Loop("out_c", ot.shape[1], Set(o_index_expr, inner_add))
+                    f.loop("out_r", ot.shape[0], c_loop)
                     grouped_support_definitions[name] = [f]
         return None
     

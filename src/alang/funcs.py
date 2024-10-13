@@ -1,5 +1,5 @@
 from typing import Optional
-from alang.langs.writer import CodeWriter
+from langs.writer import CodeWriter
 from nodes import Block, Node, NodeAttr, NodeLink, NodeLinks, NodeType
 from stmts import Return
 import typs
