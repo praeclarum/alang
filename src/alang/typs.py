@@ -21,6 +21,7 @@ class Type(TypeRef):
         self.is_floatish = False
         self.is_intish = False
         self.is_boolish = False
+        self.is_indexable = False
         self.resolved_type = self
     def resolve_type(self, diags: "compiler.Diagnostics") -> "Type": # type: ignore
         return self
@@ -31,6 +32,8 @@ class Type(TypeRef):
         raise NotImplementedError(f"Type {self.name} does not have a layout")
     def get_type_suffix(self) -> str:
         raise NotImplementedError()
+    def get_flat_index(self, indices: list[int]) -> Optional[int]:
+        return None
     
 class TypeLayout:
     def __init__(self):
@@ -64,29 +67,36 @@ def get_array_layout(element_type: Type, length: Optional[int], buffer_byte_size
 
 class Array(Type):
     element_type = NodeLink()
-    length = NodeAttr()
+    num_elements = NodeAttr()
     def __init__(self, element_type: Type, length: Optional[int]):
         element_type = try_resolve_type(element_type, self)
         super().__init__(f"{element_type.name}[{length}]", NodeType.ARRAY)
         self.element_type = element_type
-        self.length = length
+        self.num_elements = length
         self.nobuffer_layout = get_array_layout(element_type, length)
         self.is_array = True
+        self.is_indexable = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> ArrayLayout:
         if buffer_byte_size is not None:
-            return get_array_layout(self.element_type, self.length, buffer_byte_size)
+            return get_array_layout(self.element_type, self.num_elements, buffer_byte_size)
         return self.nobuffer_layout
     @property
     def layout(self) -> ArrayLayout:
         return self.get_layout(None)
     @property
     def is_fixed_size(self) -> bool:
-        return self.length is not None
+        return self.num_elements is not None
     @property
     def is_runtime_sized(self) -> bool:
-        return self.length is None
+        return self.num_elements is None
     def get_type_suffix(self) -> str:
         return "A"    
+    def get_flat_index(self, indices: list[int]) -> Optional[int]:
+        if len(indices) != 1:
+            return None
+        if not all(isinstance(i, int) for i in indices):
+            return None
+        return indices[0]
 
 def get_int_name(bits: int, signed: bool) -> str:
     if bits == 8:
@@ -328,6 +338,7 @@ class Tensor(Algebraic):
         self.is_floatish = element_type.is_floatish
         self.is_intish = element_type.is_intish
         self.is_boolish = element_type.is_boolish
+        self.is_indexable = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> ArrayLayout:
         return self.nobuffer_layout
     def __matmul__(self, other: "Tensor") -> "Tensor":
@@ -335,6 +346,19 @@ class Tensor(Algebraic):
             raise ValueError("Cannot multiply tensor by non-tensor")
         out_shape = get_tensor_mm_shape(self.shape, other.shape)
         return Tensor(out_shape, self.element_type)
+    def get_flat_index(self, indices: list[int]) -> Optional[int]:
+        if len(indices) < 1:
+            return None
+        if not all(isinstance(i, int) for i in indices):
+            return None
+        if len(indices) != len(self.shape):
+            return None
+        flat_index = 0
+        for i, s in enumerate(self.shape):
+            if indices[i] < 0 or indices[i] >= s:
+                return None
+            flat_index = flat_index * s + indices[i]
+        return flat_index
 
 class TypeName(TypeRef):
     def __init__(self, name: str):

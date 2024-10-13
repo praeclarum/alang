@@ -4,13 +4,13 @@ def test_is_fixed():
     a = array("int", 10)
     assert a.is_fixed_size
     assert not a.is_runtime_sized
-    assert a.length == 10
+    assert a.num_elements == 10
 
 def test_is_runtime():
     a = array("int")
     assert not a.is_fixed_size
     assert a.is_runtime_sized
-    assert a.length is None
+    assert a.num_elements is None
 
 # https://www.w3.org/TR/WGSL/#array-layout-examples
 

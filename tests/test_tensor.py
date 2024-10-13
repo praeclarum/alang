@@ -53,3 +53,11 @@ def test_standalone_tensor():
     s = struct("StructWithTensor", ("t", t))
     html = write_standalone_html("test_standalone_tensor", s)
     assert html.index("Float32Array") > 0
+
+def test_flat_index():
+    t = tensor_type((3, 5, 7, 11), float_type)
+    assert t.get_flat_index((0, 0, 0, 0)) == 0
+    assert t.get_flat_index((0, 0, 0, 1)) == 1
+    assert t.get_flat_index((1, 0, 0, 0)) == 1 * 5 * 7 * 11
+    assert t.get_flat_index((1, 2, 3, 4)) == 1 * 5 * 7 * 11 + 2 * 7 * 11 + 3 * 11 + 4
+    assert t.get_flat_index((2, 4, 6, 10)) == 2 * 5 * 7 * 11 + 4 * 7 * 11 + 6 * 11 + 10
