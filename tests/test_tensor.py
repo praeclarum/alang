@@ -41,6 +41,7 @@ def test_3x5_times_5x7():
 fn mul_int3x5_int5x7(a: int3x5, b: int5x7) -> int3x7 {
 for (var out_c: i32 = 0; out_c < 7; ++out_c) {
 for (var out_r: i32 = 0; out_r < 3; ++out_r) {
+o[((out_r * 7) + out_c)] = ((((a[0] + a[1]) + a[2]) + a[3]) + a[4]);
 }
 }
 }
