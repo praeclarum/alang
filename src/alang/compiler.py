@@ -37,13 +37,37 @@ class Visitor:
     def visit(self, node: Node, parent: Node, rel: str, acc):
         raise NotImplementedError()
     def visit_node(self, node: Node, parent: Node, rel: str, acc):
-        if node.node_type == NodeType.FUNCTION:
+        if node.node_type == NodeType.BINOP:
+            return self.visit_binop(node, parent, rel, acc)
+        elif node.node_type == NodeType.FUNCTION:
             return self.visit_function(node, parent, rel, acc)
+        elif node.node_type == NodeType.INTEGER:
+            return self.visit_integer(node, parent, rel, acc)
+        elif node.node_type == NodeType.NAME:
+            return self.visit_name(node, parent, rel, acc)
+        elif node.node_type == NodeType.PARAMETER:
+            return self.visit_parameter(node, parent, rel, acc)
+        elif node.node_type == NodeType.RETURN:
+            return self.visit_return(node, parent, rel, acc)
+        elif node.node_type == NodeType.TENSOR:
+            return self.visit_tensor(node, parent, rel, acc)
         else:
-            return self.visit_generic(node, parent, rel, acc)
-    def visit_generic(self, node: Node, parent: Node, rel: str, acc):
+            missing_code = f"elif node.node_type == NodeType.{node.node_type.upper()}:\n    return self.visit_{node.node_type.lower()}(node, parent, rel, acc)"
+            print(missing_code)
+            return None
+    def visit_binop(self, node: Function, parent: Node, rel: str, acc):
         return None
     def visit_function(self, node: Function, parent: Node, rel: str, acc):
+        return None
+    def visit_integer(self, node: Function, parent: Node, rel: str, acc):
+        return None
+    def visit_name(self, node: Function, parent: Node, rel: str, acc):
+        return None
+    def visit_parameter(self, node: Function, parent: Node, rel: str, acc):
+        return None
+    def visit_return(self, node: Function, parent: Node, rel: str, acc):
+        return None
+    def visit_tensor(self, node: Function, parent: Node, rel: str, acc):
         return None
     
 class DepthFirstVisitor(Visitor):
@@ -94,32 +118,18 @@ class TypeResolver:
         self.resolved_nodes[node.id] = t
         return t
     
-class NameResolver:
+class NameResolver(BreadthFirstVisitor):
     def __init__(self, diags: Diagnostics):
         self.diags = diags
-        self.resolved_nodes: dict[int, Node] = dict()
-        self.pending_nodes: set[int] = set() # prevent infinite recursion
         self.num_changes = 0
         self.num_need_info = 0
         self.num_errors = 0
-    def resolve(self, node: Node) -> Node:
-        if node.id in self.resolved_nodes:
-            return self.resolved_nodes[node.id]
-        if node.resolved_node is not None:
-            self.resolved_nodes[node.id] = node.resolved_node
-        if node.id in self.pending_nodes:
-            self.diags.error("Circular name reference detected", node)
-            self.num_errors += 1
-            return None
-        self.pending_nodes.add(node.id)
-        t = node.resolve_name(self)
-        self.pending_nodes.remove(node.id)
-        if t is None:
-            self.num_need_info += 1
-            return None
-        self.num_changes += 1
-        self.resolved_nodes[node.id] = t
-        return t
+        self.env_stack: list[dict] = [{}]
+    def run(self, node: Node):
+        self.env_stack = [{}]
+        self.visit(node, None, None, None)
+    def visit_function(self, node: Function, parent: Node, rel: str, acc):
+        return super().visit_function(node, parent, rel, acc)
 
 class InferFunctionReturnType(DepthFirstVisitor):
     def __init__(self, diags: Diagnostics, type_resolver: TypeResolver):

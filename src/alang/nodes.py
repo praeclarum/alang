@@ -35,7 +35,7 @@ class NodeType:
 next_node_id = 1
 
 class Node:
-    def __init__(self, type: NodeType):
+    def __init__(self, type: str):
         global next_node_id
         self.id = next_node_id
         next_node_id += 1
