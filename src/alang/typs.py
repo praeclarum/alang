@@ -18,6 +18,9 @@ class Type(TypeRef):
         self.is_vector = False
         self.is_struct = False
         self.is_tensor = False
+        self.is_floatish = False
+        self.is_intish = False
+        self.is_boolish = False
         self.resolved_type = self
     def resolve_type(self):
         return self
@@ -138,6 +141,7 @@ class Integer(Scalar):
         self.bits = bits
         self.signed = signed
         self.nobuffer_layout = get_int_layout(bits)
+        self.is_intish = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.nobuffer_layout
     def get_type_suffix(self) -> str:
@@ -174,6 +178,7 @@ class Float(Scalar):
         super().__init__(get_float_name(bits), NodeType.FLOAT)
         self.bits = bits
         self.cached_layout = get_float_layout(bits)
+        self.is_floatish = True
     def get_type_suffix(self) -> str:
         return self.name[0]
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
@@ -316,6 +321,9 @@ class Tensor(Algebraic):
         self.num_elements = num_elements
         self.nobuffer_layout = get_array_layout(element_type, num_elements)
         self.is_tensor = True
+        self.is_floatish = element_type.is_floatish
+        self.is_intish = element_type.is_intish
+        self.is_boolish = element_type.is_boolish
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> ArrayLayout:
         return self.nobuffer_layout
     def __matmul__(self, other: "Tensor") -> "Tensor":
@@ -358,6 +366,9 @@ class Vector(Algebraic):
         self.size = size
         self.nobuffer_layout = get_vector_layout(element_type, size)
         self.is_vector = True
+        self.is_floatish = element_type.is_floatish
+        self.is_intish = element_type.is_intish
+        self.is_boolish = element_type.is_boolish
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.nobuffer_layout
 
