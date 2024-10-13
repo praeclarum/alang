@@ -11,53 +11,69 @@
 %token <int_val> INT_LITERAL
 %token <name> NAME
 
+
 %left '='
 %left '-' '+'
 %left '*' '@' '/'
 %right NEGATE
 %right '^'
 
+%left INDENT
+%left DEDENT
+
 %token EOL
 
-%start stmt_list
+%start stmts
 
 %%
 
-stmt_list
+stmts
     : stmt
-    | stmt_list EOL stmt
+    | stmts EOL stmt
     ;
 
 stmt
-    : expr
-    | set
+    : define
+    | expr
     ;
 
-set
+define
     : NAME '=' expr
     | NAME '_' '=' expr
-    | NAME '(' arguments ')' '=' expr
+    | NAME '(' ')' '='
+    | NAME '(' ')' '=' stmt
+    | NAME '(' ')' '=' stmt INDENT stmts DEDENT
+    | NAME '(' named_exprs ')' '='
+    | NAME '(' named_exprs ')' '=' stmt
+    | NAME '(' named_exprs ')' '=' stmt INDENT stmts DEDENT
     ;
 
 expr
     : INT_LITERAL
     | NAME
-    | NAME '(' arguments ')'
+    | NAME '(' named_exprs ')'
+    | NAME '[' named_exprs ']'
     | expr '+' expr
     | expr '-' expr
     | expr '*' expr
     | expr '/' expr
     | '-' expr  %prec NEGATE
     | expr '^' expr
-    | '(' expr ')'
+    | '(' named_exprs ')'
+    | '{' named_exprs '}'
     ;
 
-arguments
-    : argument
-    | arguments ',' argument
+named_exprs
+    : named_expr_i
+    | named_expr_i ','
     ;
 
-argument
+named_expr_i
+    : named_expr
+    | named_expr_i ',' named_expr
+    ;
+
+named_expr
     : expr
     ;
 
