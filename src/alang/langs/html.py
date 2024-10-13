@@ -110,17 +110,16 @@ class HTMLWriter(CodeWriter):
     def write_function_ui(self, f: funcs.Function):
         enc_name = encode(f.name)
         self.write(f"<h2>{enc_name}</h2>\n")
-        self.write(f"<div style='display: flex'>\n")
+        self.write(f"<div style='display: block'>\n")
         for p in f.parameters:
-            self.write_param_ui(f, p)
+            self.write_input_ui_for_type(p.name, f.name + "_" + p.name, p.resolved_type or p.parameter_type)
+        if f.resolved_type is not None and not f.resolved_type.return_type.is_void:
+            self.write_input_ui_for_type("RETURN", f.name + "_return", f.resolved_type.return_type)
         self.write(f"</div>\n")
         self.write(f"<code><pre>{encode(str(f))}</pre></code>\n")
         for lang in self.out_langs:
             self.write(f"<h3>{lang}</h3>\n")
             self.write(f"<code><pre>{encode(f.get_code(lang))}</pre></code>\n")
-
-    def write_param_ui(self, f: funcs.Function, p: funcs.Parameter):
-        self.write_input_ui_for_type(p.name, f.name + "_" + p.name, p.parameter_type)
 
     def write_input_ui_for_type(self, name: str, id: str, t: "Type"): # type: ignore
         enc_name = encode(name)
@@ -148,6 +147,9 @@ class HTMLWriter(CodeWriter):
         self.write(f"</div>\n")
 
     def write_function_ui_code(self, s: funcs.Function):
+        pass
+
+    def write_support_node(self, n: "Node"): # type: ignore
         pass
 
     def get_typed_name(self, t: typs.Type) -> str:

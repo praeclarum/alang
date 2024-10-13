@@ -22,6 +22,7 @@ class Type(TypeRef):
         self.is_intish = False
         self.is_boolish = False
         self.is_indexable = False
+        self.is_void = False
         self.resolved_type = self
     def resolve_type(self, diags: "compiler.Diagnostics") -> "Type": # type: ignore
         return self
@@ -413,6 +414,7 @@ class Void(Type):
     """The void type used only for function return types"""
     def __init__(self):
         super().__init__("void", NodeType.VOID)
+        self.is_void = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return TypeLayout()
 

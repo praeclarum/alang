@@ -94,6 +94,12 @@ class AWriter(CodeWriter):
             self.write(" ")
             self.write_expr(r.value)
 
+    def write_set(self, s: stmts.Set):
+        self.write_expr(s.target)
+        self.write(" = ")
+        self.write_expr(s.value)
+        self.write("\n")
+
     def write_support_node(self, n: "Node"): # type: ignore
         # Support not needed for A
         pass
