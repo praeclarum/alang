@@ -14,7 +14,7 @@ class Name(Expression):
     def resolve_type(self, resolver: compiler.TypeResolver):
         if self.resolved_node is None:
             return None
-        raise Exception("Name resolution not implemented")
+        return resolver.resolve(self.resolved_node)
 
 class BinopOp:
     def __init__(self, name: str, op: str, precedence: int = 0, left_assoc: bool = True):

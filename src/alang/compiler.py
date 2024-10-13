@@ -22,6 +22,9 @@ class Diagnostics:
     def __init__(self):
         self.messages: list[DiagnosticMessage] = []
         self.num_errors = 0
+    def reset(self):
+        self.messages = []
+        self.num_errors = 0
     def message(self, kind: str, message: str, node: Optional[Node] = None):
         m = DiagnosticMessage(kind, message, node)
         self.messages.append(m)
@@ -39,6 +42,10 @@ class Visitor:
     def visit_node(self, node: Node, parent: Node, rel: str, acc):
         if node.node_type == NodeType.BINOP:
             return self.visit_binop(node, parent, rel, acc)
+        elif node.node_type == NodeType.EXPR_STMT:
+            return self.visit_expr_stmt(node, parent, rel, acc)
+        elif node.node_type == NodeType.FUNCALL:
+            return self.visit_funcall(node, parent, rel, acc)
         elif node.node_type == NodeType.FUNCTION:
             return self.visit_function(node, parent, rel, acc)
         elif node.node_type == NodeType.INTEGER:
@@ -53,26 +60,34 @@ class Visitor:
             return self.visit_return(node, parent, rel, acc)
         elif node.node_type == NodeType.TENSOR:
             return self.visit_tensor(node, parent, rel, acc)
+        elif node.node_type == NodeType.VOID:
+            return self.visit_void(node, parent, rel, acc)
         else:
             missing_code = f"elif node.node_type == NodeType.{node.node_type.upper()}:\n    return self.visit_{node.node_type.lower()}(node, parent, rel, acc)"
             print(missing_code)
-            return None
+            return acc
     def visit_binop(self, node: "Binop", parent: Node, rel: str, acc): # type: ignore
-        return None
+        return acc
+    def visit_expr_stmt(self, node: "ExprStmt", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_funcall(self, node: "Funcall", parent: Node, rel: str, acc): # type: ignore
+        return acc
     def visit_function(self, node: Function, parent: Node, rel: str, acc):
-        return None
+        return acc
     def visit_integer(self, node: Integer, parent: Node, rel: str, acc):
-        return None
+        return acc
     def visit_module(self, node: "Module", parent: Node, rel: str, acc): # type: ignore
-        return None
+        return acc
     def visit_name(self, node: "Name", parent: Node, rel: str, acc): # type: ignore
-        return None
+        return acc
     def visit_parameter(self, node: Parameter, parent: Node, rel: str, acc):
-        return None
+        return acc
     def visit_return(self, node: Node, parent: Node, rel: str, acc):
-        return None
+        return acc
     def visit_tensor(self, node: Tensor, parent: Node, rel: str, acc):
-        return None
+        return acc
+    def visit_void(self, node: Node, parent: Node, rel: str, acc):
+        return acc
     
 class DepthFirstVisitor(Visitor):
     def visit(self, node: Node, parent: Node, rel: str, acc):
@@ -129,11 +144,23 @@ class NameResolver(BreadthFirstVisitor):
         self.num_need_info = 0
         self.num_errors = 0
     def run(self, node: Node):
-        self.visit(node, None, None, [dict()])
-    def visit_name(self, node: "Name", parent: Node, rel: str, acc): # type: ignore
-        return super().visit_name(node, parent, rel, acc)
-    def visit_function(self, node: Function, parent: Node, rel: str, acc):
-        return super().visit_function(node, parent, rel, acc)
+        self.visit(node, None, None, dict())
+    def visit_name(self, node: Node, parent: Node, rel: str, env: dict): # type: ignore
+        if node.resolved_node is not None:
+            return env
+        elif node.name in env:
+            node.resolved_node = env[node.name]
+            self.num_changes += 1
+            return env
+        else:
+            self.diags.error(f"Name {node.name} not found", node)
+            self.num_errors += 1
+            return env
+    def visit_function(self, node: Function, parent: Node, rel: str, env: dict):
+        new_env = dict(env)
+        for p in node.parameters:
+            new_env[p.name] = p
+        return new_env
 
 class InferFunctionReturnType(DepthFirstVisitor):
     def __init__(self, diags: Diagnostics, type_resolver: TypeResolver):
@@ -194,6 +221,7 @@ class Compiler:
         max_iterations = 1_000
         iteration = 0
         while should_iter and iteration < max_iterations:
+            self.diags.reset()
             should_iter = False
             if should_infer_types:
                 infer_types_num_changes, infer_types_num_need_info, infer_types_num_errors = self.infer_types()

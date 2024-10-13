@@ -8,4 +8,5 @@ def test_call():
     assert code.strip() == """
 fn f(x: i32) -> void {
 do_something(x);
-}""".strip()
+}
+// ERROR! Name do_something not found (name (name='do_something'))""".strip()
