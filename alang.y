@@ -13,26 +13,66 @@
 
 %left '='
 %left '-' '+'
-%left '*' '/'
-%left NEG
+%left '*' '@' '/'
+%right NEGATE
 %right '^'
 
-%start expr
+%token EOL
+
+%start stmt_list
 
 %%
+
+stmt_list
+    : stmt
+    | stmt_list EOL stmt
+    ;
+
+stmt
+    : expr
+    | set
+    ;
+
+set
+    : NAME '=' expr
+    | NAME '_' '=' expr
+    | NAME parameters '=' expr
+    ;
 
 expr
     : INT_LITERAL
     | NAME
-    | NAME '=' expr
-    | NAME '(' expr ')'
+    | NAME '(' arguments ')'
     | expr '+' expr
     | expr '-' expr
     | expr '*' expr
     | expr '/' expr
-    | '-' expr  %prec NEG
+    | '-' expr  %prec NEGATE
     | expr '^' expr
     | '(' expr ')'
+    ;
+
+arguments
+    : argument
+    | arguments ',' argument
+    ;
+
+argument
+    : expr
+    ;
+
+parameters
+    : parameter
+    | parameters ',' parameter
+    ;
+
+parameter
+    : NAME ':' type
+    | NAME
+    ;
+
+type
+    : NAME
     ;
 
 %%
