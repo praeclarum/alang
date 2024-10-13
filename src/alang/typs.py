@@ -455,9 +455,9 @@ def try_resolve_tensor_type(name: str) -> Optional[Type]:
 def try_resolve_type(type, context: Optional[Node]) -> Type:
     if type is None:
         return None
-    if isinstance(type, Type):
+    elif isinstance(type, Type):
         return type
-    if isinstance(type, str):
+    elif isinstance(type, str):
         bt = try_resolve_builtin_type(type)
         if bt is not None:
             return bt
@@ -465,7 +465,9 @@ def try_resolve_type(type, context: Optional[Node]) -> Type:
         if tt is not None:
             return tt
         # TODO: Implement lookup in context
-    return TypeName(str(type))
+        return TypeName(str(type))
+    else:
+        raise ValueError(f"Invalid type: {type}")
 
 def tensor_type(shape: tuple, element_type: str) -> Tensor:
     return Tensor(shape, try_resolve_type(element_type, None))
