@@ -74,6 +74,9 @@ class CodeWriter:
     def write_function(self, f):
         raise NotImplementedError
 
+    def write_index(self, i: "Index"): # type: ignore
+        raise NotImplementedError
+
     def write_module(self, m: "modules.Module"): # type: ignore
         for type in m.types:
             self.write_type(type)
@@ -101,6 +104,8 @@ class CodeWriter:
             self.write_funcall(n)
         elif n.node_type == nodes.NodeType.FUNCTION:
             self.write_function(n)
+        elif n.node_type == nodes.NodeType.INDEX:
+            self.write_index(n)
         elif n.node_type == nodes.NodeType.LOOP:
             self.write_loop(n)
         elif n.node_type == nodes.NodeType.MODULE:

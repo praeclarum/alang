@@ -38,6 +38,18 @@ class JSWriter(CodeWriter):
         self.write_expr(e.expression)
         self.write(";\n")
 
+    def write_index(self, i: "Index"): # type: ignore
+        self.write_expr(i.base)
+        self.write("[")
+        for ri, r in enumerate(i.ranges):
+            if ri > 0:
+                self.write(", ")
+            if r is None:
+                self.write(":")
+            else:
+                self.write_expr(r)
+        self.write("]")
+
     def write_loop(self, f: stmts.Loop):
         self.write("for (let")
         self.write(f" {f.var} = 0; {f.var} < ")

@@ -20,6 +20,18 @@ class HTMLWriter(CodeWriter):
     def write_expr_stmt(self, e: stmts.ExprStmt):
         self.write_expr(e.expression)
 
+    def write_index(self, i: "Index"): # type: ignore
+        self.write_expr(i.base)
+        self.write("[")
+        for ri, r in enumerate(i.ranges):
+            if ri > 0:
+                self.write(", ")
+            if r is None:
+                self.write(":")
+            else:
+                self.write_expr(r)
+        self.write("]")
+
     def write_line_comment(self, comment: str):
         self.write("<p>")
         self.write(encode(comment))

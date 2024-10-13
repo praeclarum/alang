@@ -35,6 +35,7 @@ def test_3x5_times_5x7():
     t2 = tensor_type((5, 7), int_type)
     t3 = t1 @ t2
     f = define("f").param("a", t1).param("b", t2).ret("a @ b")
+    write_standalone_html("test_3x5_times_5x7", f)
     code = f.wgsl_code
     assert code.strip() == """
 fn mul_int3x5_int5x7(a: int3x5, b: int5x7) -> int3x7 {
@@ -46,7 +47,6 @@ for (var out_r: i32 = 0; out_r < 3; ++out_r) {
 fn f(a: int3x5, b: int5x7) -> int3x7 {
     return mul_int3x5_int5x7(a, b);
 }""".strip()
-    write_standalone_html("test_3x5_times_5x7", f)
 
 def test_standalone_tensor():
     t = tensor_type((3, 5, 7, 11), float_type)

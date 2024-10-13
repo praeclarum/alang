@@ -67,6 +67,18 @@ class CWriter(CodeWriter):
             self.write_node(s)
         self.write("}\n")
 
+    def write_index(self, i: "Index"): # type: ignore
+        self.write_expr(i.base)
+        self.write("[")
+        for ri, r in enumerate(i.ranges):
+            if ri > 0:
+                self.write(", ")
+            if r is None:
+                self.write(":")
+            else:
+                self.write_expr(r)
+        self.write("]")
+
     def write_line_comment(self, comment: str):
         self.write("// ")
         self.write(comment)

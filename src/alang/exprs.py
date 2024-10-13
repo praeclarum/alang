@@ -110,12 +110,34 @@ class Binop(Expression):
             if lt is not None and rt is not None and lt.is_tensor and rt.is_tensor:
                 name = self.get_support_lib_function_name()
                 if name is not None and name not in grouped_support_definitions:
+                    from stmts import ExprStmt
                     f = funcs.Function(name, lt @ rt, ("a", lt), ("b", rt))
-                    out_r_loop = stmts.Loop("out_r", lt.shape[0])
+                    inner_count = rt.shape[0]
+                    inner_stmts = []
+                    for inner_i in range(inner_count):
+                        l_index = lt.get_flat_index((0, inner_i))
+                        # r_index = rt.get_flat_index((inner_i, "out_c"))
+                        inner_stmts.append(ExprStmt(Index("a", l_index)))
+                    out_r_loop = stmts.Loop("out_r", lt.shape[0], *inner_stmts)
                     f.loop("out_c", rt.shape[1], out_r_loop)
                     grouped_support_definitions[name] = [f]
         return None
     
+class Constant(Expression):
+    value = NodeAttr()
+    def __init__(self, value: object):
+        super().__init__(NodeType.CONSTANT)
+        self.value = value
+    def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
+        v = self.value
+        if v is None:
+            return None
+        if isinstance(v, int):
+            return typs.int_type
+        if isinstance(v, float):
+            return typs.float_type
+        return None
+
 class Funcall(Expression):
     func = NodeLink()
     args = NodeLinks()
@@ -160,21 +182,6 @@ class Index(Expression):
             diags.error(f"Indexing not supported for type {bt}")
             return None
         return bt.element_type
-
-class Constant(Expression):
-    value = NodeAttr()
-    def __init__(self, value: object):
-        super().__init__(NodeType.CONSTANT)
-        self.value = value
-    def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
-        v = self.value
-        if v is None:
-            return None
-        if isinstance(v, int):
-            return typs.int_type
-        if isinstance(v, float):
-            return typs.float_type
-        return None
 
 def parse_expr(expr: object, context: Optional[Node] = None) -> Node:
     if expr is None:
