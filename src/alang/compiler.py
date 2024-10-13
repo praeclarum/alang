@@ -33,22 +33,32 @@ class Diagnostics:
     def warning(self, message: str, node: Optional[Node] = None):
         self.message(DiagnosticKind.WARNING, message, node)
 
-class DepthFirstVisitor:
-    def visit(self, node: Node, parent: Node, rel: str):
-        cvals = []
-        for crel, child in node.links:
-            cvals.append(self.visit(child, node, crel))
+class Visitor:
+    def visit(self, node: Node, parent: Node, rel: str, acc):
+        raise NotImplementedError()
+    def visit_node(self, node: Node, parent: Node, rel: str, acc):
         if node.node_type == NodeType.FUNCTION:
-            return self.visit_function(node, parent, rel, cvals)
+            return self.visit_function(node, parent, rel, acc)
         else:
-            return self.visit_generic(node, parent, rel, cvals)
-
-    def visit_generic(self, node: Node, parent: Node, rel: str, cvals: list):
+            return self.visit_generic(node, parent, rel, acc)
+    def visit_generic(self, node: Node, parent: Node, rel: str, acc):
         return None
-
-    def visit_function(self, node: Function, parent: Node, rel: str, cvals: list):
+    def visit_function(self, node: Function, parent: Node, rel: str, acc):
         return None
     
+class DepthFirstVisitor(Visitor):
+    def visit(self, node: Node, parent: Node, rel: str, acc):
+        sacc = []
+        for crel, child in node.links:
+            sacc.append(self.visit(child, node, crel, acc))
+        return self.visit_node(node, parent, rel, sacc)
+
+class BreadthFirstVisitor(Visitor):
+    def visit(self, node: Node, parent: Node, rel: str, acc):
+        cacc = self.visit_node(node, parent, rel, acc)
+        for crel, child in node.links:
+            self.visit(child, node, crel, cacc)
+
 def find_descendants_with_type(node: Node, node_type: NodeType) -> list[Node]:
     descendants = []
     for rel, child in node.links:
@@ -71,11 +81,38 @@ class TypeResolver:
         if node.resolved_type is not None:
             self.resolved_nodes[node.id] = node.resolved_type
         if node.id in self.pending_nodes:
-            self.diags.error("Circular reference detected", node)
+            self.diags.error("Circular type reference detected", node)
             self.num_errors += 1
             return None
         self.pending_nodes.add(node.id)
         t = node.resolve_type(self)
+        self.pending_nodes.remove(node.id)
+        if t is None:
+            self.num_need_info += 1
+            return None
+        self.num_changes += 1
+        self.resolved_nodes[node.id] = t
+        return t
+    
+class NameResolver:
+    def __init__(self, diags: Diagnostics):
+        self.diags = diags
+        self.resolved_nodes: dict[int, Node] = dict()
+        self.pending_nodes: set[int] = set() # prevent infinite recursion
+        self.num_changes = 0
+        self.num_need_info = 0
+        self.num_errors = 0
+    def resolve(self, node: Node) -> Node:
+        if node.id in self.resolved_nodes:
+            return self.resolved_nodes[node.id]
+        if node.resolved_node is not None:
+            self.resolved_nodes[node.id] = node.resolved_node
+        if node.id in self.pending_nodes:
+            self.diags.error("Circular name reference detected", node)
+            self.num_errors += 1
+            return None
+        self.pending_nodes.add(node.id)
+        t = node.resolve_name(self)
         self.pending_nodes.remove(node.id)
         if t is None:
             self.num_need_info += 1
@@ -91,8 +128,8 @@ class InferFunctionReturnType(DepthFirstVisitor):
         self.num_changes = 0
         self.num_need_info = 0
         self.num_errors = 0
-    def visit_generic(self, node: Node, parent: Node, rel: str, cvals: list):
-        return any(cvals)
+    def run(self, node: Node):
+        self.visit(node, None, None, None)
     def set_return_type(self, node: Function, return_type: str):
         node.return_type = return_type
         self.num_changes += 1
@@ -127,17 +164,21 @@ class Compiler:
         self.type_resolver = TypeResolver(self.diags)
 
     def infer_types(self) -> tuple[int, int, int]:
-        visitor = InferFunctionReturnType(self.diags, self.type_resolver)
-        visitor.visit(self.ast, None, None)
-        return (visitor.num_changes, visitor.num_need_info, visitor.num_errors)
+        infer_return_type = InferFunctionReturnType(self.diags, self.type_resolver)
+        infer_return_type.run(self.ast)
+        return (infer_return_type.num_changes, infer_return_type.num_need_info, infer_return_type.num_errors)
     
     def compile(self):
         should_iter = True
+        should_infer_types = True
         max_iterations = 1_000
         iteration = 0
         while should_iter and iteration < max_iterations:
-            infer_types_num_changes, infer_types_num_need_info, infer_types_num_errors = self.infer_types()
-            should_iter = infer_types_num_changes > 0 #or infer_types_num_need_info > 0
+            should_iter = False
+            if should_infer_types:
+                infer_types_num_changes, infer_types_num_need_info, infer_types_num_errors = self.infer_types()
+                should_infer_types = infer_types_num_changes > 0 #or infer_types_num_need_info > 0
+                should_iter = should_iter or should_infer_types
             iteration += 1
         if iteration == max_iterations:
             self.diags.error("Max iterations reached")

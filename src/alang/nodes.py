@@ -43,7 +43,8 @@ class Node:
         self.attributes: dict[str, "NodeAttr"] = {}
         self.links: list[tuple[str, "Node"]] = []
         self.last_backlink: Optional["Node"] = None
-        self.resolved_type = None
+        self.resolved_type = None # all nodes get typed
+        self.resolved_node = None # some nodes (name, type_name) get resolved to a node
     def append_backlink(self, backlink: "Node", rel: str):
         self.last_backlink = backlink
     def get_rels(self, rel: str) -> list["Node"]:
