@@ -26,27 +26,6 @@ class BinopOp:
         return self.op
     def __repr__(self):
         return repr(self.op)
-    def resolve_type(self, lt: typs.Type, rt: typs.Type):
-        if lt is None or rt is None:
-            return None
-        elif not lt.is_algebraic or not rt.is_algebraic:
-            return None
-        elif self.name == "matmul":
-            if lt.is_tensor and rt.is_tensor:
-                return lt @ rt
-            else:
-                return None
-        elif self.name in ["add", "sub", "mul", "div", "mod"]:
-            if lt.is_floatish:
-                return lt
-            elif rt.is_floatish:
-                return rt
-            else:
-                return lt
-        elif self.name in ["shl", "shr", "band", "bor"]:
-            return lt
-        else:
-            raise NotImplementedError(f"resolve_type for op '{self.name}' {self.op} not implemented")
 
 bops = [
     BinopOp("add", "+"),
@@ -87,11 +66,29 @@ class Binop(Expression):
         self.left = left
         self.right = right
     def resolve_type(self):
-        lt = self.left.resolved_type
-        rt = self.right.resolved_type
+        lt: typs.Type = self.left.resolved_type
+        rt: typs.Type = self.right.resolved_type
         if lt is None or rt is None:
             return None
-        return self.operator.resolve_type(lt, rt)
+        if not lt.is_algebraic or not rt.is_algebraic:
+            return None
+        opn = self.operator.name
+        if opn == "matmul":
+            if lt.is_tensor and rt.is_tensor:
+                return lt @ rt
+            else:
+                return None
+        elif opn in ["add", "sub", "mul", "div", "mod"]:
+            if lt.is_floatish:
+                return lt
+            elif rt.is_floatish:
+                return rt
+            else:
+                return lt
+        elif opn in ["shl", "shr", "band", "bor"]:
+            return lt
+        else:
+            raise NotImplementedError(f"resolve_type for op '{opn}' {self.operator.op} not implemented")
     
 class Funcall(Expression):
     func = NodeLink()
