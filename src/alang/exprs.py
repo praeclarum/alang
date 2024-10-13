@@ -143,6 +143,26 @@ class Constant(Expression):
         if isinstance(v, float):
             return typs.float_type
         return None
+    def mul(self, other: Expression) -> Expression:
+        other = parse_expr(other)
+        if other.node_type == NodeType.CONSTANT:
+            return Constant(self.value * other.value)
+        return Binop(self, "mul", other)
+    def add(self, other: Expression) -> Expression:
+        other = parse_expr(other)
+        if other.node_type == NodeType.CONSTANT:
+            return Constant(self.value + other.value)
+        return Binop(self, "add", other)
+    def sub(self, other: Expression) -> Expression:
+        other = parse_expr(other)
+        if other.node_type == NodeType.CONSTANT:
+            return Constant(self.value - other.value)
+        return Binop(self, "sub", other)
+    def div(self, other: Expression) -> Expression:
+        other = parse_expr(other)
+        if other.node_type == NodeType.CONSTANT:
+            return Constant(self.value / other.value)
+        return Binop(self, "div", other)
 
 class Funcall(Expression):
     func = NodeLink()

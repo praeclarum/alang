@@ -94,7 +94,7 @@ class AWriter(CodeWriter):
             self.write(" ")
             self.write_expr(r.value)
 
-    def write_support_node(self, n: "Node"):
+    def write_support_node(self, n: "Node"): # type: ignore
         # Support not needed for A
         pass
 
@@ -126,15 +126,19 @@ def python_expr_to_alang_expr(expr: ast.expr):
         return exprs.Name(expr.id)
     elif isinstance(expr, ast.BinOp):
         op_name = expr.op.__class__.__name__.lower()
-        if op_name == "mult":
-            op_name = "mul"
+        left = python_expr_to_alang_expr(expr.left)
+        right = python_expr_to_alang_expr(expr.right)
+        if op_name == "add":
+            return left + right
+        elif op_name == "sub":
+            return left - right
+        elif op_name == "mult":
+            return left * right
+        elif op_name == "div":
+            return left / right
         elif op_name == "matmult":
             op_name = "matmul"
-        return exprs.Binop(
-            python_expr_to_alang_expr(expr.left),
-            op_name,
-            python_expr_to_alang_expr(expr.right)
-        )
+        return exprs.Binop(left, op_name, right)
     elif isinstance(expr, ast.Compare):
         if len(expr.ops) != 1:
             raise NotImplementedError(f"Unsupported number of comparison operators: {len(expr.ops)}")
@@ -155,10 +159,10 @@ def python_expr_to_alang_expr(expr: ast.expr):
             op_name = ">="
         else:
             raise NotImplementedError(f"Unsupported comparison operator: {type(op)}")
-        return exprs.Binop(
-            python_expr_to_alang_expr(expr.left),
-            op_name,
-            python_expr_to_alang_expr(expr.comparators[0]))
+        left = python_expr_to_alang_expr(expr.left)
+        right = python_expr_to_alang_expr(expr.comparators[0])
+        return exprs.Binop(left, op_name, right)
+            
     elif isinstance(expr, ast.Constant):
         return exprs.Constant(expr.value)
     else:

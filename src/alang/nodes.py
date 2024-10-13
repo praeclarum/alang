@@ -296,6 +296,26 @@ class BreadthFirstVisitor(Visitor):
 class Expression(Node):
     def __init__(self, node_type: NodeType):
         super().__init__(node_type)
+    def __add__(self, other: "Expression") -> "Expression":
+        return self.add(other)
+    def add(self, other: "Expression") -> "Expression":
+        from exprs import Binop
+        return Binop(self, "+", other)
+    def __sub__(self, other: "Expression") -> "Expression":
+        return self.sub(other)
+    def sub(self, other: "Expression") -> "Expression":
+        from exprs import Binop
+        return Binop(self, "-", other)
+    def __mul__(self, other: "Expression") -> "Expression":
+        return self.mul(other)
+    def mul(self, other: "Expression") -> "Expression":
+        from exprs import Binop
+        return Binop(self, "*", other)
+    def __truediv__(self, other: "Expression") -> "Expression":
+        return self.div(other)
+    def div(self, other: "Expression") -> "Expression":
+        from exprs import Binop
+        return Binop(self, "/", other)
 
 class Statement(Node):
     def __init__(self, node_type: NodeType):
