@@ -346,14 +346,13 @@ class Tensor(Algebraic):
             raise ValueError("Cannot multiply tensor by non-tensor")
         out_shape = get_tensor_mm_shape(self.shape, other.shape)
         return Tensor(out_shape, self.element_type)
-    def get_flat_index(self, indices: list[int]) -> Optional[int]:
+    def get_flat_index(self, indices: list["Expression"]) -> Optional["Expression"]: # type: ignore
         if len(indices) < 1:
-            return None
-        if not all(isinstance(i, int) for i in indices):
             return None
         if len(indices) != len(self.shape):
             return None
-        flat_index = 0
+        from exprs import Constant
+        flat_index = Constant(0)
         for i, s in enumerate(self.shape):
             if indices[i] < 0 or indices[i] >= s:
                 return None

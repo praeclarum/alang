@@ -55,10 +55,14 @@ def test_standalone_tensor():
     html = write_standalone_html("test_standalone_tensor", s)
     assert html.index("Float32Array") > 0
 
-def test_flat_index():
+def test_const_flat_index():
     t = tensor_type((3, 5, 7, 11), float_type)
-    assert t.get_flat_index((0, 0, 0, 0)) == 0
-    assert t.get_flat_index((0, 0, 0, 1)) == 1
-    assert t.get_flat_index((1, 0, 0, 0)) == 1 * 5 * 7 * 11
-    assert t.get_flat_index((1, 2, 3, 4)) == 1 * 5 * 7 * 11 + 2 * 7 * 11 + 3 * 11 + 4
-    assert t.get_flat_index((2, 4, 6, 10)) == 2 * 5 * 7 * 11 + 4 * 7 * 11 + 6 * 11 + 10
+    def tt(index, expected):
+        fi = t.get_flat_index(index)
+        assert fi.node_type == "constant"
+        assert fi.value == expected
+    tt((0, 0, 0, 0), 0)
+    tt((0, 0, 0, 1), 1)
+    tt((1, 0, 0, 0), 1 * 5 * 7 * 11)
+    tt((1, 2, 3, 4), 1 * 5 * 7 * 11 + 2 * 7 * 11 + 3 * 11 + 4)
+    tt((2, 4, 6, 10),  2 * 5 * 7 * 11 + 4 * 7 * 11 + 6 * 11 + 10)
