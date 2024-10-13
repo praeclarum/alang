@@ -141,7 +141,7 @@ class TypeResolutionPass(DepthFirstVisitor):
     def visit_node(self, node: Node, parent: Node, rel: str, acc):
         if node.resolved_type is not None:
             return
-        t = node.resolve_type()
+        t = node.resolve_type(self.diags)
         if t is None:
             self.num_need_info += 1
         else:

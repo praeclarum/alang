@@ -22,7 +22,7 @@ class Type(TypeRef):
         self.is_intish = False
         self.is_boolish = False
         self.resolved_type = self
-    def resolve_type(self):
+    def resolve_type(self, diags: "compiler.Diagnostics") -> "Type": # type: ignore
         return self
     @property
     def layout(self) -> "TypeLayout":
@@ -208,7 +208,7 @@ class Field(Node):
         super().__init__(NodeType.FIELD)
         self.name = name
         self.field_type = field_type
-    def resolve_type(self) -> Optional[Type]:
+    def resolve_type(self, diags: "compiler.Diagnostics") -> Optional[Type]: # type: ignore
         ft = self.field_type
         if ft is not None:
             return ft.resolved_type

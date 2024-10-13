@@ -88,7 +88,7 @@ class Node:
                 return p.lookup_variable(name)
             p = p.parent
         return None
-    def resolve_type(self) -> Optional["Type"]: # type: ignore
+    def resolve_type(self, diags) -> Optional["Type"]: # type: ignore
         raise NotImplementedError(f"resolve_type not implemented for {self.node_type}")
     def write_code(self, out: Union[str, TextIO], language: Optional[Any] = None, options: Optional[CodeOptions] = None):
         from compiler import Compiler

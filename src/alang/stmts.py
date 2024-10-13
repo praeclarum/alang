@@ -8,7 +8,7 @@ class ExprStmt(Statement):
     def __init__(self, expression: Expression):
         super().__init__(NodeType.EXPR_STMT)
         self.expression = expression
-    def resolve_type(self):
+    def resolve_type(self, diags: "compiler.Diagnostics") -> typs.Type: # type: ignore
         return self.expression.resolved_type
 
 class Return(Statement):
@@ -16,7 +16,7 @@ class Return(Statement):
     def __init__(self, value: Optional[Expression]):
         super().__init__(NodeType.RETURN)
         self.value = value
-    def resolve_type(self):
+    def resolve_type(self, diags: "compiler.Diagnostics") -> typs.Type: # type: ignore
         if self.value is None:
             return typs.void_type
         return self.value.resolved_type

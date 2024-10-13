@@ -28,7 +28,7 @@ class Function(Block):
         self.link(r, "statements")
         return self
     
-    def resolve_type(self) -> typs.Type:
+    def resolve_type(self, diags: "compiler.Diagnostics") -> typs.Type: # type: ignore
         if self.return_type is None:
             return None
         return_type = self.return_type.resolved_type
@@ -51,7 +51,7 @@ class Parameter(Node):
         self.name = name
         self.parameter_type = typs.try_resolve_type(parameter_type, None)
 
-    def resolve_type(self):
+    def resolve_type(self, diags: "compiler.Diagnostics") -> typs.Type: # type: ignore
         pt = self.parameter_type
         if pt is not None:
             return pt.resolved_type

@@ -11,7 +11,7 @@ class Name(Expression):
         super().__init__(NodeType.NAME)
         self.name = name
         self.resolved_node: Node = None
-    def resolve_type(self):
+    def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
         if self.resolved_node is None:
             return None
         return self.resolved_node.resolved_type
@@ -65,12 +65,16 @@ class Binop(Expression):
             raise Exception(f"Unknown operator: {operator}")
         self.left = left
         self.right = right
-    def resolve_type(self):
+    def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
         lt: typs.Type = self.left.resolved_type
         rt: typs.Type = self.right.resolved_type
         if lt is None or rt is None:
             return None
-        if not lt.is_algebraic or not rt.is_algebraic:
+        if not lt.is_algebraic:
+            diags.error(f"Not an algebraic type", self.left)
+            return None
+        if not rt.is_algebraic:
+            diags.error(f"Not an algebraic type", self.right)
             return None
         opn = self.operator.name
         if opn == "matmul":
@@ -88,7 +92,8 @@ class Binop(Expression):
         elif opn in ["shl", "shr", "band", "bor"]:
             return lt
         else:
-            raise NotImplementedError(f"resolve_type for op '{opn}' {self.operator.op} not implemented")
+            diags.error(f"Binary operator {self.operator.op} type resolution not supported")
+            return lt
     
 class Funcall(Expression):
     func = NodeLink()
@@ -98,7 +103,7 @@ class Funcall(Expression):
         self.func = func
         for a in args:
             self.link(a, "args")
-    def resolve_type(self):
+    def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
         f = self.func
         if f is None:
             return None
@@ -123,7 +128,7 @@ class Constant(Expression):
     def __init__(self, value: object):
         super().__init__(NodeType.CONSTANT)
         self.value = value
-    def resolve_type(self):
+    def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
         v = self.value
         if v is None:
             return None

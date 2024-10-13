@@ -12,5 +12,5 @@ class Module(Block):
         if name is not None:
             self.name = name
 
-    def resolve_type(self):
+    def resolve_type(self, diags: "compiler.Diagnostics") -> typs.Type: # type: ignore
         return typs.ModuleType(self.name)
