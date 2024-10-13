@@ -1,7 +1,7 @@
 from typing import Optional
 from nodes import Node, NodeType
-from funcs import Function
-from typs import void_type, Type
+from typs import Integer, Tensor, void_type, Type
+from funcs import Function, Parameter
 
 class DiagnosticKind:
     ERROR = "error"
@@ -43,6 +43,8 @@ class Visitor:
             return self.visit_function(node, parent, rel, acc)
         elif node.node_type == NodeType.INTEGER:
             return self.visit_integer(node, parent, rel, acc)
+        elif node.node_type == NodeType.MODULE:
+            return self.visit_module(node, parent, rel, acc)
         elif node.node_type == NodeType.NAME:
             return self.visit_name(node, parent, rel, acc)
         elif node.node_type == NodeType.PARAMETER:
@@ -55,19 +57,21 @@ class Visitor:
             missing_code = f"elif node.node_type == NodeType.{node.node_type.upper()}:\n    return self.visit_{node.node_type.lower()}(node, parent, rel, acc)"
             print(missing_code)
             return None
-    def visit_binop(self, node: Function, parent: Node, rel: str, acc):
+    def visit_binop(self, node: "Binop", parent: Node, rel: str, acc): # type: ignore
         return None
     def visit_function(self, node: Function, parent: Node, rel: str, acc):
         return None
-    def visit_integer(self, node: Function, parent: Node, rel: str, acc):
+    def visit_integer(self, node: Integer, parent: Node, rel: str, acc):
         return None
-    def visit_name(self, node: Function, parent: Node, rel: str, acc):
+    def visit_module(self, node: "Module", parent: Node, rel: str, acc): # type: ignore
         return None
-    def visit_parameter(self, node: Function, parent: Node, rel: str, acc):
+    def visit_name(self, node: "Name", parent: Node, rel: str, acc): # type: ignore
         return None
-    def visit_return(self, node: Function, parent: Node, rel: str, acc):
+    def visit_parameter(self, node: Parameter, parent: Node, rel: str, acc):
         return None
-    def visit_tensor(self, node: Function, parent: Node, rel: str, acc):
+    def visit_return(self, node: Node, parent: Node, rel: str, acc):
+        return None
+    def visit_tensor(self, node: Tensor, parent: Node, rel: str, acc):
         return None
     
 class DepthFirstVisitor(Visitor):
@@ -124,10 +128,10 @@ class NameResolver(BreadthFirstVisitor):
         self.num_changes = 0
         self.num_need_info = 0
         self.num_errors = 0
-        self.env_stack: list[dict] = [{}]
     def run(self, node: Node):
-        self.env_stack = [{}]
-        self.visit(node, None, None, None)
+        self.visit(node, None, None, [dict()])
+    def visit_name(self, node: "Name", parent: Node, rel: str, acc): # type: ignore
+        return super().visit_name(node, parent, rel, acc)
     def visit_function(self, node: Function, parent: Node, rel: str, acc):
         return super().visit_function(node, parent, rel, acc)
 
@@ -178,17 +182,27 @@ class Compiler:
         infer_return_type.run(self.ast)
         return (infer_return_type.num_changes, infer_return_type.num_need_info, infer_return_type.num_errors)
     
+    def resolve_names(self) -> tuple[int, int, int]:
+        name_resolver = NameResolver(self.diags)
+        name_resolver.run(self.ast)
+        return (name_resolver.num_changes, name_resolver.num_need_info, name_resolver.num_errors)
+    
     def compile(self):
         should_iter = True
         should_infer_types = True
+        should_resolve_names = True
         max_iterations = 1_000
         iteration = 0
         while should_iter and iteration < max_iterations:
             should_iter = False
             if should_infer_types:
                 infer_types_num_changes, infer_types_num_need_info, infer_types_num_errors = self.infer_types()
-                should_infer_types = infer_types_num_changes > 0 #or infer_types_num_need_info > 0
+                should_infer_types = infer_types_num_changes > 0
                 should_iter = should_iter or should_infer_types
+            if should_resolve_names:
+                resolve_names_num_changes, resolve_names_num_need_info, resolve_names_num_errors = self.resolve_names()
+                should_resolve_names = resolve_names_num_changes > 0
+                should_iter = should_iter or should_resolve_names
             iteration += 1
         if iteration == max_iterations:
             self.diags.error("Max iterations reached")
