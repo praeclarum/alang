@@ -41,17 +41,39 @@ class HTMLWriter(CodeWriter):
         self.write(f"<html>\n")
         self.write(f"<head>\n")
         self.write(f"<title>{encode(s.name)}</title>\n")
+        self.write(f"<style>\n")
+        # Enable automatic dark mode
+        self.write(f"html {{ color-scheme: light dark; font-family:Helvetica }}\n")
+        self.write(f"#errors {{ color: #F88; }}\n")
+        self.write(f"pre {{ overflow-x: auto; }}\n")
+        self.write(f".code {{ background-color:rgba(128,128,128,0.333); margin:1em; padding: 1em; }}\n")
+        self.write(f"</style>\n")
         self.write(f"</head>\n")
         self.write(f"<body>\n")
+        self.write(f"<h1>{encode(s.name)}</h1>\n")
+        self.write(f"<ul id='errors'></ul>\n")
         for type in s.types:
             self.write_type_ui(type)
         for func in s.functions:
             self.write_function_ui(func)
         self.write(f"<script type='module'>\n")
         self.write(s.get_code("js", self.options))
+        self.write("const wgslCode = `\n")
+        self.write(s.get_code("wgsl", self.options))
+        self.write("`;\n")
+        self.write("const wgslLines = wgslCode.split('\\n');\n")
         self.write(f"async function main() {{\n")
+        self.write(f"const $errors = document.getElementById('errors');\n")
+        self.write(f"const error = (m) => {{ $errors.appendChild(document.createElement('li')).textContent = m; }};\n")
         self.write(f"const adapter = await navigator.gpu.requestAdapter();\n")
         self.write(f"const device = await adapter.requestDevice();\n")
+        self.write(f"const wgslModule = device.createShaderModule({{code: wgslCode}});\n")
+        self.write(f"const wgslModuleInfo = await wgslModule.getCompilationInfo();\n")
+        self.write("for (let m of wgslModuleInfo.messages) {\n")
+        self.write("    console.log(m);\n")
+        self.write("    const line = wgslLines[m.lineNum - 1];\n")
+        self.write("    error(`WGSL: ${m.message} \"${line}\"`);\n")
+        self.write("}\n")
         for type in s.types:
             self.write_type_ui_code(type)
         for func in s.functions:
@@ -109,17 +131,19 @@ class HTMLWriter(CodeWriter):
 
     def write_function_ui(self, f: funcs.Function):
         enc_name = encode(f.name)
+        self.write(f"<div style='display: block;'>\n")
         self.write(f"<h2>{enc_name}</h2>\n")
-        self.write(f"<div style='display: block'>\n")
         for p in f.parameters:
             self.write_input_ui_for_type(p.name, f.name + "_" + p.name, p.resolved_type or p.parameter_type)
         if f.resolved_type is not None and not f.resolved_type.return_type.is_void:
             self.write_input_ui_for_type("RETURN", f.name + "_return", f.resolved_type.return_type)
-        self.write(f"</div>\n")
-        self.write(f"<code><pre>{encode(str(f))}</pre></code>\n")
+        self.write(f"<code style='max-width:30%;display:inline-block;'><pre>{encode(str(f))}</pre></code>\n")
         for lang in self.out_langs:
+            self.write(f"<div class='code' style='max-width:30%;display:inline-block;vertical-align: top;'>\n")
             self.write(f"<h3>{lang}</h3>\n")
             self.write(f"<code><pre>{encode(f.get_code(lang))}</pre></code>\n")
+            self.write(f"</div>\n")
+        self.write(f"</div>\n")
 
     def write_input_ui_for_type(self, name: str, id: str, t: "Type"): # type: ignore
         enc_name = encode(name)
