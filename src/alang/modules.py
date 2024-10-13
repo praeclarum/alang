@@ -7,8 +7,8 @@ import typs
 class Module(Block):
     name = NodeAttr()
 
-    def __init__(self, name: str = None):
-        super().__init__(NodeType.MODULE, can_define_types=True, can_define_functions=True, can_define_variables=True, can_define_statements=False)
+    def __init__(self, name: str, can_define_statements: bool = False):
+        super().__init__(NodeType.MODULE, can_define_types=True, can_define_functions=True, can_define_variables=True, can_define_statements=can_define_statements)
         if name is not None:
             self.name = name
 

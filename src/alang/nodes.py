@@ -18,11 +18,11 @@ class NodeType:
     EXPR_STMT = 'expr_stmt'
     FIELD = 'field'
     FLOAT = 'float'
-    FOR = 'for'
     FUNCALL = 'funcall'
     FUNCTION = 'function'
     FUNCTION_TYPE = 'function_type'
     INTEGER = 'integer'
+    LOOP = 'loop'
     MODULE = 'module'
     MODULE_TYPE = 'module_type'
     NAME = 'name'
@@ -56,6 +56,8 @@ class Node:
         cs = self.get_rels(rel)
         return cs[0] if len(cs) > 0 else None
     def link(self, child: "Node", rel: str) -> "Node":
+        if child is None:
+            raise ValueError(f"Cannot link {self.node_type} to None (rel={rel})")
         self.links.append((rel, child))
         child.append_backlink(self, rel)
         return self
@@ -193,8 +195,6 @@ class Visitor:
             return self.visit_expr_stmt(node, parent, rel, acc)
         elif node.node_type == NodeType.FIELD:
             return self.visit_field(node, parent, rel, acc)
-        elif node.node_type == NodeType.FOR:
-            return self.visit_for(node, parent, rel, acc)
         elif node.node_type == NodeType.FLOAT:
             return self.visit_float(node, parent, rel, acc)
         elif node.node_type == NodeType.FUNCALL:
@@ -203,6 +203,8 @@ class Visitor:
             return self.visit_function(node, parent, rel, acc)
         elif node.node_type == NodeType.INTEGER:
             return self.visit_integer(node, parent, rel, acc)
+        elif node.node_type == NodeType.LOOP:
+            return self.visit_loop(node, parent, rel, acc)
         elif node.node_type == NodeType.MODULE:
             return self.visit_module(node, parent, rel, acc)
         elif node.node_type == NodeType.NAME:
@@ -233,7 +235,7 @@ class Visitor:
         return acc
     def visit_float(self, node: "Float", parent: Node, rel: str, acc): # type: ignore
         return acc
-    def visit_for(self, node: "For", parent: Node, rel: str, acc): # type: ignore
+    def visit_loop(self, node: "Loop", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_funcall(self, node: "Funcall", parent: Node, rel: str, acc): # type: ignore
         return acc
@@ -291,7 +293,17 @@ class Block(Node):
         self.can_define_variables = can_define_variables
         self.can_define_statements = can_define_statements
     def parse_expr(self, expr: Optional[Code]) -> Optional["Expression"]:
+        if isinstance(expr, Node):
+            return expr
+        elif isinstance(expr, int):
+            from exprs import Constant
+            return Constant(expr)
+        elif isinstance(expr, float):
+            from exprs import Constant
+            return Constant(expr)
         return langs.get_language("a").parse_expr(expr)
+    def parse_stmt(self, stmt: Optional[Code]) -> Optional["Expression"]:
+        return self.parse_expr(stmt)
     def append_any(self, child: Node):
         if child.node_type == NodeType.ARRAY:
             self.link(child, "types")
@@ -301,7 +313,9 @@ class Block(Node):
             self.link(child, "variables")
         elif child.node_type == NodeType.FUNCTION:
             self.link(child, "functions")
-        else:
+        elif isinstance(child, Statement):
+            self.link(child, "statements")
+        else:            
             raise ValueError(f"Cannot append {child.node_type} to {self.node_type}")
     def set(self, lhs: Code, rhs: Code) -> "Block":
         lhs = self.parse_expr(lhs)
@@ -351,13 +365,11 @@ class Block(Node):
         stmt = ExprStmt(funcall)
         self.append_stmt(stmt)
         return self
-    def forloop(self, init: str, cond: str, update: str) -> "For": # type: ignore
-        from stmts import For
-        init = self.parse_expr(init)
-        cond = self.parse_expr(cond)
-        update = self.parse_expr(update)
-        f = For(init, cond, update)
-        self.append_stmt(f)
+    def loop(self, var: str, count: Code, *statements: list[Code]) -> "For": # type: ignore
+        from stmts import Loop
+        count = self.parse_expr(count)
+        l = Loop(var, count, *statements)
+        self.append_stmt(l)
         return self
     def ret(self, value: Optional[Code]) -> "Block":
         from stmts import Return

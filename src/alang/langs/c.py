@@ -30,6 +30,9 @@ class CWriter(CodeWriter):
             self.write_expr(b.right)
             self.write(")")
 
+    def write_constant(self, c: "Constant"): # type: ignore
+        self.write(repr(c.value))
+
     def write_expr_stmt(self, e: stmts.ExprStmt):
         self.write_expr(e.expression)
         self.write(";\n")
@@ -68,6 +71,16 @@ class CWriter(CodeWriter):
         self.write("// ")
         self.write(comment)
         self.write("\n")
+
+    def write_loop(self, f: stmts.Loop):
+        self.write("for (")
+        self.write_type_ref(typs.int_type)
+        self.write(f" {f.var} = 0; {f.var} < ")
+        self.write_expr(f.count)
+        self.write(f"; ++{f.var}) {{\n")
+        for s in f.statements:
+            self.write_node(s)
+        self.write("}\n")
 
     def write_return(self, r: stmts.Return):
         self.write("    return")

@@ -31,9 +31,21 @@ class JSWriter(CodeWriter):
             self.write_expr(b.right)
             self.write(")")
 
+    def write_constant(self, c: "Constant"): # type: ignore
+        self.write(repr(c.value))
+
     def write_expr_stmt(self, e: stmts.ExprStmt):
         self.write_expr(e.expression)
         self.write(";\n")
+
+    def write_loop(self, f: stmts.Loop):
+        self.write("for (let")
+        self.write(f" {f.var} = 0; {f.var} < ")
+        self.write_expr(f.count)
+        self.write(f"; ++{f.var}) {{\n")
+        for s in f.statements:
+            self.write_node(s)
+        self.write("}\n")
 
     def write_line_comment(self, comment: str):
         self.write("// ")

@@ -32,25 +32,19 @@ class WGSLWriter(CodeWriter):
             self.write_expr(b.right)
             self.write(")")
 
-    def write_constant(self, c: "Constant"):
-        t = c.resolved_type
-        if t is not None and t.is_floatish:
-            self.write(f"{c.value:.12f}")
-        else:
-            self.write(str(c.value))
+    def write_constant(self, c: "Constant"): # type: ignore
+        self.write(repr(c.value))
 
     def write_expr_stmt(self, e: stmts.ExprStmt):
         self.write_expr(e.expression)
         self.write(";\n")
 
-    def write_for(self, f: stmts.For):
-        self.write("for (")
-        self.write_expr(f.init)
-        self.write("; ")
-        self.write_expr(f.condition)
-        self.write("; ")
-        self.write_expr(f.update)
-        self.write(") {\n")
+    def write_loop(self, f: stmts.Loop):
+        self.write(f"for (var {f.var}: ")
+        self.write_type_ref(typs.int_type)
+        self.write(f" = 0; {f.var} < ")
+        self.write_expr(f.count)
+        self.write(f"; ++{f.var}) {{\n")
         for s in f.statements:
             self.write_node(s)
         self.write("}\n")

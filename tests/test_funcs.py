@@ -1,6 +1,6 @@
 from alang import define, struct, tensor_type, Tensor, CodeOptions, float_type, int_type
 
-import test_html
+from test_html import write_standalone_html
 
 def test_call():
     f = define("f").param("x", int_type).call("do_something", "x")
@@ -11,13 +11,13 @@ do_something(x);
 }
 // ERROR! Name do_something not found (name (name='do_something'))""".strip()
 
-def test_forloop():
-    f = define("f").forloop("i=0", "i < 10", "i+=1")
+def test_loop():
+    f = define("f").loop("i", 10)
     code = f.wgsl_code
     assert code.strip() == """
 fn f() -> void {
-for (0; (i < 10); 1) {
+for (var i: i32 = 0; i < 10; ++i) {
 }
 }
-// ERROR! Name i not found (name (name='i'))
 """.strip()
+    write_standalone_html("test_loop", f)

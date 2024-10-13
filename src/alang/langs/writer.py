@@ -65,7 +65,7 @@ class CodeWriter:
     def write_expr_stmt(self, e: "ExprStmt"): # type: ignore
         raise NotImplementedError
 
-    def write_for(self, f: "For"): # type: ignore
+    def write_loop(self, f: "Loop"): # type: ignore
         raise NotImplementedError
 
     def write_funcall(self, f: "Funcall"): # type: ignore
@@ -97,12 +97,12 @@ class CodeWriter:
             self.write_expr_stmt(n)
         elif n.node_type == nodes.NodeType.CONSTANT:
             self.write_constant(n)
-        elif n.node_type == nodes.NodeType.FOR:
-            self.write_for(n)
         elif n.node_type == nodes.NodeType.FUNCALL:
             self.write_funcall(n)
         elif n.node_type == nodes.NodeType.FUNCTION:
             self.write_function(n)
+        elif n.node_type == nodes.NodeType.LOOP:
+            self.write_loop(n)
         elif n.node_type == nodes.NodeType.MODULE:
             self.write_module(n)
         elif n.node_type == nodes.NodeType.RETURN:

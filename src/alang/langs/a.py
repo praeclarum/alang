@@ -24,10 +24,23 @@ class AWriter(CodeWriter):
         self.write_expr(b.right)
         self.write(")")
 
+    def write_constant(self, c: "Constant"): # type: ignore
+        self.write(repr(c.value))
+
     def write_line_comment(self, comment: str):
         self.write("# ")
         self.write(comment)
         self.write("\n")
+
+    def write_loop(self, f: stmts.Loop):
+        self.write(f"for (var {f.var}: ")
+        self.write_type_ref(typs.int_type)
+        self.write(f" = 0; {f.var} < ")
+        self.write_expr(f.count)
+        self.write(f"; ++{f.var}) {{\n")
+        for s in f.statements:
+            self.write_node(s)
+        self.write("}\n")
 
     def write_struct(self, s: typs.Struct):
         self.write(f"struct {s.name}:\n")
