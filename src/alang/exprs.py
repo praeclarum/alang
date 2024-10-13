@@ -134,6 +134,9 @@ class Constant(Expression):
     def __init__(self, value: object):
         super().__init__(NodeType.CONSTANT)
         self.value = value
+    @property
+    def is_zero(self) -> bool:
+        return (self.value == 0)
     def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
         v = self.value
         if v is None:
@@ -144,21 +147,33 @@ class Constant(Expression):
             return typs.float_type
         return None
     def mul(self, other: Expression) -> Expression:
+        if self.is_zero:
+            return self
         other = parse_expr(other)
         if other.node_type == NodeType.CONSTANT:
+            if other.is_zero:
+                return other
             return Constant(self.value * other.value)
         return Binop(self, "mul", other)
     def add(self, other: Expression) -> Expression:
         other = parse_expr(other)
+        if self.is_zero:
+            return other
         if other.node_type == NodeType.CONSTANT:
+            if other.is_zero:
+                return self
             return Constant(self.value + other.value)
         return Binop(self, "add", other)
     def sub(self, other: Expression) -> Expression:
         other = parse_expr(other)
         if other.node_type == NodeType.CONSTANT:
+            if other.is_zero:
+                return self
             return Constant(self.value - other.value)
         return Binop(self, "sub", other)
     def div(self, other: Expression) -> Expression:
+        if self.is_zero:
+            return self
         other = parse_expr(other)
         if other.node_type == NodeType.CONSTANT:
             return Constant(self.value / other.value)
