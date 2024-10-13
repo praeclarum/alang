@@ -101,6 +101,16 @@ class Binop(Expression):
             if lt is not None and rt is not None and lt.is_tensor and rt.is_tensor:
                 return f"mul_{lt.name}_{rt.name}"
         return None
+    def collect_support_definitions(self, grouped_support_definitions: dict[str, list["Node"]]):
+        if self.operator.name == "matmul":
+            lt: typs.Tensor = self.left.resolved_type
+            rt: typs.Tensor = self.right.resolved_type
+            if lt is not None and rt is not None and lt.is_tensor and rt.is_tensor:
+                name = self.get_support_lib_function_name()
+                if name is not None and name not in grouped_support_definitions:
+                    f = funcs.Function(name, lt @ rt, ("a", lt), ("b", rt))
+                    grouped_support_definitions[name] = [f]
+        return None
     
 class Funcall(Expression):
     func = NodeLink()

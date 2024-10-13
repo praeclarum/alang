@@ -64,7 +64,7 @@ class WGSLWriter(CodeWriter):
         self.write_type_ref(f.return_type)
         self.write(" {\n")
         for s in f.statements:
-            self.write_statement(s)
+            self.write_node(s)
         self.write("}\n")
 
     def write_line_comment(self, comment: str):

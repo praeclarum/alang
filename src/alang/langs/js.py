@@ -125,7 +125,7 @@ class JSWriter(CodeWriter):
             self.write(f"{param.name}/*: {self.get_typed_name(param.parameter_type)}*/")
         self.write(") {\n")
         for s in f.statements:
-            self.write_statement(s)
+            self.write_node(s)
         self.write("}\n")
 
     def write_return(self, s: stmts.Return):

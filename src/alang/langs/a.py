@@ -59,13 +59,17 @@ class AWriter(CodeWriter):
                 self.write("\n")
         else:
             for s in f.statements:
-                self.write_statement(s)
+                self.write_node(s)
 
     def write_return(self, r: stmts.Return):
         self.write("    return")
         if r.value is not None:
             self.write(" ")
             self.write_expr(r.value)
+
+    def write_support_node(self, n: "Node"):
+        # Support not needed for A
+        pass
 
     def write_name(self, n: exprs.Name):
         self.write(n.name)

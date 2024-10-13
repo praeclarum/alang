@@ -37,6 +37,8 @@ def test_3x5_times_5x7():
     f = define("f").param("a", t1).param("b", t2).ret("a @ b")
     code = f.wgsl_code
     assert code.strip() == """
+fn mul_int3x5_int5x7(a: int3x5, b: int5x7) -> int3x7 {
+}
 fn f(a: int3x5, b: int5x7) -> int3x7 {
     return mul_int3x5_int5x7(a, b);
 }""".strip()

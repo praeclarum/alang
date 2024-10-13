@@ -53,15 +53,32 @@ class CodeWriter:
             elif d.kind == "warning":
                 self.warning(m)
 
-    def write_node(self, n: "Node"): # type: ignore
-        if n.node_type == nodes.NodeType.MODULE:
-            self.write_module(n)
-        elif n.node_type == nodes.NodeType.FUNCTION:
-            self.write_function(n)
-        elif n.node_type == nodes.NodeType.STRUCT:
-            self.write_struct(n)
+    def write_binop(self, b: "Binop"): # type: ignore
+        raise NotImplementedError
+
+    def write_constant(self, c: "Constant"): # type: ignore
+        raise NotImplementedError
+
+    def write_expr(self, e: "Expression"): # type: ignore
+        if e.node_type == nodes.NodeType.NAME:
+            self.write_name(e)
+        elif e.node_type == nodes.NodeType.BINOP:
+            self.write_binop(e)
+        elif e.node_type == nodes.NodeType.FUNCALL:
+            self.write_funcall(e)
+        elif e.node_type == nodes.NodeType.CONSTANT:
+            self.write_constant(e)
         else:
-            raise ValueError(f"Cannot write node of type {n.node_type}")
+            raise ValueError(f"Cannot write expression of type {e.node_type}")
+    
+    def write_expr_stmt(self, e: "ExprStmt"): # type: ignore
+        raise NotImplementedError
+        
+    def write_funcall(self, f: "Funcall"): # type: ignore
+        raise NotImplementedError
+    
+    def write_function(self, f):
+        raise NotImplementedError
 
     def write_module(self, m: "modules.Module"): # type: ignore
         for type in m.types:
@@ -74,50 +91,37 @@ class CodeWriter:
         for line in lines:
             self.write_line_comment(line)
 
+    def write_name(self, n: "Name"): # type: ignore
+        raise NotImplementedError
+    
+    def write_node(self, n: "Node"): # type: ignore
+        if n.node_type == nodes.NodeType.MODULE:
+            self.write_module(n)
+        elif n.node_type == nodes.NodeType.FUNCTION:
+            self.write_function(n)
+        elif n.node_type == nodes.NodeType.STRUCT:
+            self.write_struct(n)
+        elif n.node_type == nodes.NodeType.RETURN:
+            self.write_return(n)
+        elif n.node_type == nodes.NodeType.EXPR_STMT:
+            self.write_expr_stmt(n)
+        else:
+            raise ValueError(f"Cannot write node of type {n.node_type}")
+
+    def write_return(self, r: "Return"): # type: ignore
+        raise NotImplementedError
+    
+    def write_struct(self, s):
+        raise NotImplementedError
+
+    def write_support_node(self, n: "Node"): # type: ignore
+        return self.write_node(n)
+
     def write_type(self, t: "typs.Type"): # type: ignore
         if t.node_type == nodes.NodeType.STRUCT:
             self.write_struct(t)
         else:
             self.write(f"    // {t.name}\n")
 
-    def write_struct(self, s):
-        raise NotImplementedError
-
-    def write_function(self, f):
-        raise NotImplementedError
-
-    def write_statement(self, s: "Statement"): # type: ignore
-        if s.node_type == nodes.NodeType.RETURN:
-            self.write_return(s)
-        elif s.node_type == nodes.NodeType.EXPR_STMT:
-            self.write_expr_stmt(s)
-        else:
-            raise ValueError(f"Cannot write statement of type {s.node_type}")
-        
-    def write_return(self, r: "Return"): # type: ignore
-        raise NotImplementedError
-    
-    def write_expr_stmt(self, e: "ExprStmt"): # type: ignore
-        raise NotImplementedError
-        
-    def write_expr(self, e: "Expression"): # type: ignore
-        if e.node_type == nodes.NodeType.NAME:
-            self.write_name(e)
-        elif e.node_type == nodes.NodeType.BINOP:
-            self.write_binop(e)
-        elif e.node_type == nodes.NodeType.FUNCALL:
-            self.write_funcall(e)
-        else:
-            raise ValueError(f"Cannot write expression of type {e.node_type}")
-    
-    def write_name(self, n: "Name"): # type: ignore
-        raise NotImplementedError
-    
-    def write_binop(self, b: "Binop"): # type: ignore
-        raise NotImplementedError
-    
-    def write_funcall(self, f: "Funcall"): # type: ignore
-        raise NotImplementedError
-    
     def write_zero_value_for_type(self, type: Optional["typs.Type"] = None): # type: ignore
         raise NotImplementedError

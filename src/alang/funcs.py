@@ -11,10 +11,15 @@ class Function(Block):
     parameters = NodeLinks()
     return_type = NodeLink()
 
-    def __init__(self, name: str = None):
+    def __init__(self, name: str, return_type: Optional[typs.Type], *parameters: "Parameter"):
         super().__init__(NodeType.FUNCTION, can_define_types=False, can_define_functions=False, can_define_variables=True, can_define_statements=True)
-        if name is not None:
-            self.name = name
+        self.name = name
+        self.return_type = typs.try_resolve_type(return_type, None)
+        for p in parameters:
+            if isinstance(p, Parameter):
+                self.link(p, "parameters")
+            else:
+                self.param(p)
 
     def param(self, name: str, param_type: str = None) -> "Function":
         if type(name) == tuple:

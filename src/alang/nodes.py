@@ -97,12 +97,16 @@ class Node:
         return None
     def resolve_type(self, diags) -> Optional["Type"]: # type: ignore
         raise NotImplementedError(f"resolve_type not implemented for {self.node_type}")
+    def collect_support_definitions(self, grouped_support_definitions: dict[str, list["Node"]]):
+        pass
     def write_code(self, out: Union[str, TextIO], language: Optional[Any] = None, options: Optional[CodeOptions] = None):
         from compiler import Compiler
         language = langs.get_language(language)
         compiler = Compiler(self)
         compiler.compile()
         with language.open_writer(out, options) as writer:
+            for s in compiler.support_definitions:
+                writer.write_support_node(s)
             writer.write_node(self)
             writer.write_diags(compiler.diags.messages)
     def get_code(self, language: Optional[Any] = None, options: Optional[CodeOptions] = None) -> str:
@@ -309,9 +313,7 @@ class Block(Node):
     def define(self, name: str, *parameters: list) -> "Function": # type: ignore
         if self.can_define_functions:
             from funcs import Function
-            f = Function(name)
-            for param in parameters:
-                f.param(param)
+            f = Function(name, None, *parameters)
             self.link(f, "functions")
             return f
         else:

@@ -1,7 +1,7 @@
 from typing import Optional
 from nodes import BreadthFirstVisitor, DepthFirstVisitor, Node, NodeType
-from typs import Field, Integer, Struct, Tensor, Vector, void_type, Type
-from funcs import Function, Parameter
+from typs import void_type
+from funcs import Function
 
 class DiagnosticKind:
     ERROR = "error"
@@ -115,29 +115,51 @@ class InferFunctionReturnTypePass(DepthFirstVisitor):
         return_type = list(distinct_types.values())[0]
         self.set_return_type(node, return_type)
 
+class CollectSupportDefinitions(DepthFirstVisitor):
+    def __init__(self):
+        self.grouped_support_definitions: dict[str, list[Node]] = dict()
+    @property
+    def support_definitions(self):
+        flattened = []
+        for k, v in self.grouped_support_definitions.items():
+            flattened.extend(v)
+        return flattened
+    def run(self, node: Node):
+        self.visit(node, None, None, None)
+    def visit_node(self, node: Node, parent: Node, rel: str, acc):
+        node.collect_support_definitions(self.grouped_support_definitions)
+        super().visit_node(node, parent, rel, acc)
+
 class Compiler:
     def __init__(self, ast: Node):
         self.ast = ast
         self.diags = Diagnostics()
+        self.support_definitions = []
 
-    def resolve_names(self) -> tuple[int, int, int]:
+    def resolve_names(self):
         res_pass = NameResolutionPass(self.diags)
         res_pass.run(self.ast)
         return res_pass
     
-    def resolve_types(self) -> tuple[int, int, int]:
+    def resolve_types(self):
         res_pass = TypeResolutionPass(self.diags)
         res_pass.run(self.ast)
         return res_pass
     
-    def infer_types(self) -> tuple[int, int, int]:
+    def infer_types(self):
         func_return_type_pass = InferFunctionReturnTypePass(self.diags)
         func_return_type_pass.run(self.ast)
         return func_return_type_pass
     
+    def collect_support_definitions(self):
+        c = CollectSupportDefinitions()
+        c.run(self.ast)
+        return c.support_definitions
+    
     def compile(self):
+        self.support_definitions.clear()
         should_iter = True
-        max_iterations = 1_000
+        max_iterations = 100
         iteration = 0
         while should_iter and iteration < max_iterations:
             self.diags.reset()
@@ -148,3 +170,4 @@ class Compiler:
             iteration += 1
         if iteration == max_iterations:
             self.diags.error("Max iterations reached")
+        self.support_definitions = self.collect_support_definitions()

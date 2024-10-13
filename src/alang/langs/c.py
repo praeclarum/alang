@@ -61,7 +61,7 @@ class CWriter(CodeWriter):
                 self.write(", ")
         self.write(") {\n")
         for s in f.statements:
-            self.write_statement(s)
+            self.write_node(s)
         self.write("}\n")
 
     def write_line_comment(self, comment: str):
