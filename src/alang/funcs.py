@@ -27,6 +27,20 @@ class Function(Block):
         r = Return(self.parse_expr(value))
         self.link(r, "statements")
         return self
+    
+    def resolve_type(self) -> typs.Type:
+        if self.return_type is None:
+            return None
+        return_type = self.return_type.resolved_type
+        if return_type is None:
+            return None
+        pts = []
+        for p in self.parameters:
+            pt = p.resolved_type
+            if pt == None:
+                return None
+            pts.append(pt)
+        return typs.FunctionType(return_type, pts)
 
 class Parameter(Node):
     name = NodeAttr()
@@ -36,3 +50,8 @@ class Parameter(Node):
         super().__init__(NodeType.PARAMETER)
         self.name = name
         self.parameter_type = typs.try_resolve_type(parameter_type, None)
+
+    def resolve_type(self):
+        pt = self.parameter_type
+        if pt is not None:
+            return pt.resolved_type

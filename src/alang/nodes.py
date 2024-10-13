@@ -20,8 +20,10 @@ class NodeType:
     FLOAT = 'float'
     FUNCALL = 'funcall'
     FUNCTION = 'function'
+    FUNCTION_TYPE = 'function_type'
     INTEGER = 'integer'
     MODULE = 'module'
+    MODULE_TYPE = 'module_type'
     NAME = 'name'
     PARAMETER = 'parameter'
     RETURN = 'return'
@@ -86,8 +88,8 @@ class Node:
                 return p.lookup_variable(name)
             p = p.parent
         return None
-    def resolve_type(self, resolver: "TypeResolver") -> Optional["Type"]: # type: ignore
-        return None
+    def resolve_type(self) -> Optional["Type"]: # type: ignore
+        raise NotImplementedError(f"resolve_type not implemented for {self.node_type}")
     def write_code(self, out: Union[str, TextIO], language: Optional[Any] = None, options: Optional[CodeOptions] = None):
         from compiler import Compiler
         language = langs.get_language(language)

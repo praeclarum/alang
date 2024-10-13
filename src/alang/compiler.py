@@ -1,6 +1,6 @@
 from typing import Optional
 from nodes import Node, NodeType
-from typs import Integer, Tensor, void_type, Type
+from typs import Field, Integer, Struct, Tensor, Vector, void_type, Type
 from funcs import Function, Parameter
 
 class DiagnosticKind:
@@ -42,8 +42,14 @@ class Visitor:
     def visit_node(self, node: Node, parent: Node, rel: str, acc):
         if node.node_type == NodeType.BINOP:
             return self.visit_binop(node, parent, rel, acc)
+        elif node.node_type == NodeType.CONSTANT:
+            return self.visit_constant(node, parent, rel, acc)
         elif node.node_type == NodeType.EXPR_STMT:
             return self.visit_expr_stmt(node, parent, rel, acc)
+        elif node.node_type == NodeType.FIELD:
+            return self.visit_field(node, parent, rel, acc)
+        elif node.node_type == NodeType.FLOAT:
+            return self.visit_float(node, parent, rel, acc)
         elif node.node_type == NodeType.FUNCALL:
             return self.visit_funcall(node, parent, rel, acc)
         elif node.node_type == NodeType.FUNCTION:
@@ -58,8 +64,12 @@ class Visitor:
             return self.visit_parameter(node, parent, rel, acc)
         elif node.node_type == NodeType.RETURN:
             return self.visit_return(node, parent, rel, acc)
+        elif node.node_type == NodeType.STRUCT:
+            return self.visit_struct(node, parent, rel, acc)
         elif node.node_type == NodeType.TENSOR:
             return self.visit_tensor(node, parent, rel, acc)
+        elif node.node_type == NodeType.VECTOR:
+            return self.visit_vector(node, parent, rel, acc)
         elif node.node_type == NodeType.VOID:
             return self.visit_void(node, parent, rel, acc)
         else:
@@ -68,9 +78,15 @@ class Visitor:
             return acc
     def visit_binop(self, node: "Binop", parent: Node, rel: str, acc): # type: ignore
         return acc
+    def visit_constant(self, node: "Constant", parent: Node, rel: str, acc): # type: ignore
+        return acc
     def visit_expr_stmt(self, node: "ExprStmt", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_funcall(self, node: "Funcall", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_field(self, node: Field, parent: Node, rel: str, acc):
+        return acc
+    def visit_float(self, node: "Float", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_function(self, node: Function, parent: Node, rel: str, acc):
         return acc
@@ -82,9 +98,13 @@ class Visitor:
         return acc
     def visit_parameter(self, node: Parameter, parent: Node, rel: str, acc):
         return acc
-    def visit_return(self, node: Node, parent: Node, rel: str, acc):
+    def visit_return(self, node: "Return", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_struct(self, node: Struct, parent: Node, rel: str, acc):
         return acc
     def visit_tensor(self, node: Tensor, parent: Node, rel: str, acc):
+        return acc
+    def visit_vector(self, node: Vector, parent: Node, rel: str, acc):
         return acc
     def visit_void(self, node: Node, parent: Node, rel: str, acc):
         return acc
@@ -110,34 +130,25 @@ def find_descendants_with_type(node: Node, node_type: NodeType) -> list[Node]:
         descendants.extend(find_descendants_with_type(child, node_type))
     return descendants
     
-class TypeResolver:
+class TypeResolutionPass(DepthFirstVisitor):
     def __init__(self, diags: Diagnostics):
         self.diags = diags
-        self.resolved_nodes: dict[int, Type] = dict()
-        self.pending_nodes: set[int] = set() # prevent infinite recursion
         self.num_changes = 0
         self.num_need_info = 0
         self.num_errors = 0
-    def resolve(self, node: Node) -> Type:
-        if node.id in self.resolved_nodes:
-            return self.resolved_nodes[node.id]
+    def run(self, node: Node):
+        self.visit(node, None, None, None)
+    def visit_node(self, node: Node, parent: Node, rel: str, acc):
         if node.resolved_type is not None:
-            self.resolved_nodes[node.id] = node.resolved_type
-        if node.id in self.pending_nodes:
-            self.diags.error("Circular type reference detected", node)
-            self.num_errors += 1
-            return None
-        self.pending_nodes.add(node.id)
-        t = node.resolve_type(self)
-        self.pending_nodes.remove(node.id)
+            return
+        t = node.resolve_type()
         if t is None:
             self.num_need_info += 1
-            return None
-        self.num_changes += 1
-        self.resolved_nodes[node.id] = t
-        return t
+        else:
+            self.num_changes += 1
+        return super().visit_node(node, parent, rel, acc)
     
-class NameResolver(BreadthFirstVisitor):
+class NameResolutionPass(BreadthFirstVisitor):
     def __init__(self, diags: Diagnostics):
         self.diags = diags
         self.num_changes = 0
@@ -162,10 +173,9 @@ class NameResolver(BreadthFirstVisitor):
             new_env[p.name] = p
         return new_env
 
-class InferFunctionReturnType(DepthFirstVisitor):
-    def __init__(self, diags: Diagnostics, type_resolver: TypeResolver):
+class InferFunctionReturnTypePass(DepthFirstVisitor):
+    def __init__(self, diags: Diagnostics):
         self.diags = diags
-        self.type_resolver = type_resolver
         self.num_changes = 0
         self.num_need_info = 0
         self.num_errors = 0
@@ -177,13 +187,13 @@ class InferFunctionReturnType(DepthFirstVisitor):
     def visit_function(self, node: Function, parent: Node, rel: str, cvals: list):
         if node.return_type is not None:
             return
-        return_values = [x.value for x in find_descendants_with_type(node, NodeType.RETURN)]
+        return_values: list[Node] = [x.value for x in find_descendants_with_type(node, NodeType.RETURN)]
         if len(return_values) == 0 or all(x is None for x in return_values):
             # No return statements, or all return statements are empty, so return void
             self.set_return_type(node, void_type)
             return
         # See if any of them have resolved types
-        maybe_resolved_types = [self.type_resolver.resolve(x) for x in return_values if x is not None]
+        maybe_resolved_types = [x.resolved_type for x in return_values if x is not None]
         resolved_types = [x for x in maybe_resolved_types if x is not None]
         # Distinct them by name
         distinct_types = {}
@@ -202,35 +212,32 @@ class Compiler:
     def __init__(self, ast: Node):
         self.ast = ast
         self.diags = Diagnostics()
-        self.type_resolver = TypeResolver(self.diags)
 
-    def infer_types(self) -> tuple[int, int, int]:
-        infer_return_type = InferFunctionReturnType(self.diags, self.type_resolver)
-        infer_return_type.run(self.ast)
-        return (infer_return_type.num_changes, infer_return_type.num_need_info, infer_return_type.num_errors)
-    
     def resolve_names(self) -> tuple[int, int, int]:
-        name_resolver = NameResolver(self.diags)
-        name_resolver.run(self.ast)
-        return (name_resolver.num_changes, name_resolver.num_need_info, name_resolver.num_errors)
+        res_pass = NameResolutionPass(self.diags)
+        res_pass.run(self.ast)
+        return res_pass
+    
+    def resolve_types(self) -> tuple[int, int, int]:
+        res_pass = TypeResolutionPass(self.diags)
+        res_pass.run(self.ast)
+        return res_pass
+    
+    def infer_types(self) -> tuple[int, int, int]:
+        func_return_type_pass = InferFunctionReturnTypePass(self.diags)
+        func_return_type_pass.run(self.ast)
+        return func_return_type_pass
     
     def compile(self):
         should_iter = True
-        should_infer_types = True
-        should_resolve_names = True
         max_iterations = 1_000
         iteration = 0
         while should_iter and iteration < max_iterations:
             self.diags.reset()
-            should_iter = False
-            if should_infer_types:
-                infer_types_num_changes, infer_types_num_need_info, infer_types_num_errors = self.infer_types()
-                should_infer_types = infer_types_num_changes > 0
-                should_iter = should_iter or should_infer_types
-            if should_resolve_names:
-                resolve_names_num_changes, resolve_names_num_need_info, resolve_names_num_errors = self.resolve_names()
-                should_resolve_names = resolve_names_num_changes > 0
-                should_iter = should_iter or should_resolve_names
+            resolve_name_info = self.resolve_names()
+            resolve_types_info = self.resolve_types()
+            infer_types_info = self.infer_types()
+            should_iter = resolve_name_info.num_changes > 0 or resolve_types_info.num_changes > 0 or infer_types_info.num_changes > 0
             iteration += 1
         if iteration == max_iterations:
             self.diags.error("Max iterations reached")

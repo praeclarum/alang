@@ -1,5 +1,5 @@
 from alang.langs.writer import CodeWriter
-from nodes import Expression, NodeAttr, NodeLink, NodeLinks, NodeType
+from nodes import Expression, Node, NodeAttr, NodeLink, NodeLinks, NodeType
 
 import compiler
 import funcs
@@ -10,11 +10,11 @@ class Name(Expression):
     def __init__(self, name: str):
         super().__init__(NodeType.NAME)
         self.name = name
-        self.resolved_node = None
-    def resolve_type(self, resolver: compiler.TypeResolver):
+        self.resolved_node: Node = None
+    def resolve_type(self):
         if self.resolved_node is None:
             return None
-        return resolver.resolve(self.resolved_node)
+        return self.resolved_node.resolved_type
 
 class BinopOp:
     def __init__(self, name: str, op: str, precedence: int = 0, left_assoc: bool = True):
@@ -65,9 +65,12 @@ class Binop(Expression):
             raise Exception(f"Unknown operator: {operator}")
         self.left = left
         self.right = right
-    def resolve_type(self, resolver: compiler.TypeResolver):
-        lt = resolver.resolve(self.left)
-        rt = resolver.resolve(self.right)
+    def resolve_type(self):
+        lt = self.left.resolved_type
+        rt = self.right.resolved_type
+        if lt is None or rt is None:
+            return None
+        raise NotImplementedError(f"Binop.resolve_type lhs={lt} op={self.operator.op} rhs={rt} {self}")
     
 class Funcall(Expression):
     func = NodeLink()
@@ -77,11 +80,14 @@ class Funcall(Expression):
         self.func = func
         for a in args:
             self.link(a, "args")
-    def resolve_type(self, resolver: compiler.TypeResolver):
+    def resolve_type(self):
         f = self.func
         if f is None:
             return None
-        return f.resolve_type(resolver)
+        fr = f.return_type
+        if fr is None:
+            return None
+        return fr.resolved_type
     def write(self, writer: CodeWriter):
         f = self.func
         if f is None:
@@ -99,7 +105,7 @@ class Constant(Expression):
     def __init__(self, value: object):
         super().__init__(NodeType.CONSTANT)
         self.value = value
-    def resolve_type(self, resolver):
+    def resolve_type(self):
         v = self.value
         if v is None:
             return None

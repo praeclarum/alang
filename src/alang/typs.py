@@ -18,7 +18,8 @@ class Type(TypeRef):
         self.is_vector = False
         self.is_struct = False
         self.is_tensor = False
-    def resolve_type(self, resolver):
+        self.resolved_type = self
+    def resolve_type(self):
         return self
     @property
     def layout(self) -> "TypeLayout":
@@ -182,9 +183,18 @@ half_type = Float(16)
 float_type = Float(32)
 double_type = Float(64)
 
-class TypeName(TypeRef):
+class FunctionType(Type):
+    return_type = NodeLink()
+    param_types = NodeLinks()
+    def __init__(self, return_type, param_types):
+        super().__init__(None, NodeType.FUNCTION_TYPE)
+        self.return_type = return_type
+        for pt in param_types:
+            self.link(pt, "param_types")
+
+class ModuleType(Type):
     def __init__(self, name: str):
-        super().__init__(name, NodeType.TYPE_NAME)
+        super().__init__(name, NodeType.MODULE_TYPE)
 
 class Field(Node):
     name = NodeAttr()
@@ -193,6 +203,11 @@ class Field(Node):
         super().__init__(NodeType.FIELD)
         self.name = name
         self.field_type = field_type
+    def resolve_type(self) -> Optional[Type]:
+        ft = self.field_type
+        if ft is not None:
+            return ft.resolved_type
+        return None
 
 class FieldLayout(TypeLayout):
     def __init__(self):
@@ -308,6 +323,10 @@ class Tensor(Algebraic):
             raise ValueError("Cannot multiply tensor by non-tensor")
         out_shape = get_tensor_mm_shape(self.shape, other.shape)
         return Tensor(out_shape, self.element_type)
+
+class TypeName(TypeRef):
+    def __init__(self, name: str):
+        super().__init__(name, NodeType.TYPE_NAME)
 
 def get_vector_name(element_type: Type, size: int) -> str:
     return f"vec{size}{element_type.get_type_suffix()}"
