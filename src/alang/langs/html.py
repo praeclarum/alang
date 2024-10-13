@@ -107,13 +107,45 @@ class HTMLWriter(CodeWriter):
         self.write_function_ui(f)
         self.write_function_ui_code(f)
 
-    def write_function_ui(self, s: funcs.Function):
-        enc_name = encode(s.name)
+    def write_function_ui(self, f: funcs.Function):
+        enc_name = encode(f.name)
         self.write(f"<h2>{enc_name}</h2>\n")
-        self.write(f"<code><pre>{encode(str(s))}</pre></code>\n")
+        self.write(f"<div style='display: flex'>\n")
+        for p in f.parameters:
+            self.write_param_ui(f, p)
+        self.write(f"</div>\n")
+        self.write(f"<code><pre>{encode(str(f))}</pre></code>\n")
         for lang in self.out_langs:
             self.write(f"<h3>{lang}</h3>\n")
-            self.write(f"<code><pre>{encode(s.get_code(lang))}</pre></code>\n")
+            self.write(f"<code><pre>{encode(f.get_code(lang))}</pre></code>\n")
+
+    def write_param_ui(self, f: funcs.Function, p: funcs.Parameter):
+        self.write_input_ui_for_type(p.name, f.name + "_" + p.name, p.parameter_type)
+
+    def write_input_ui_for_type(self, name: str, id: str, t: "Type"): # type: ignore
+        enc_name = encode(name)
+        self.write(f"<div>\n")
+        self.write(f"<label for='{id}'>{enc_name}</label>\n")
+        if t.is_scalar:
+            self.write(f"<input id='{id}' type='number'>\n")
+        elif t.is_vector:
+            axis_names = ["x", "y", "z", "w"]
+            n_axes = t.num_elements
+            for i in range(n_axes):
+                axis_name = axis_names[i]
+                self.write(f"<label for='{id}{axis_name}'>{axis_name}</label>\n")
+        elif t.is_tensor and len(t.shape) == 2:
+            self.write(f"<table id='{id}'>\n")
+            nr, nc = t.shape
+            for r in range(nr):
+                self.write(f"<tr>\n")
+                for c in range(nc):
+                    self.write(f"<td><input id='{id}_{r}_{c}' type='number' value=0></td>\n")
+                self.write(f"</tr>\n")
+            self.write(f"</table>\n")
+        else:
+            self.write(f"<input id='{id}' type='text'>\n")
+        self.write(f"</div>\n")
 
     def write_function_ui_code(self, s: funcs.Function):
         pass
