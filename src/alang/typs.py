@@ -354,8 +354,6 @@ class Tensor(Algebraic):
         from exprs import Constant
         flat_index = Constant(0)
         for i, s in enumerate(self.shape):
-            if indices[i] < 0 or indices[i] >= s:
-                return None
             flat_index = flat_index * s + indices[i]
         return flat_index
 

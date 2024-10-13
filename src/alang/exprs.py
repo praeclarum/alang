@@ -65,8 +65,8 @@ class Binop(Expression):
             self.operator = bop_from_op[operator]
         else:
             raise Exception(f"Unknown operator: {operator}")
-        self.left = left
-        self.right = right
+        self.left = parse_expr(left)
+        self.right = parse_expr(right)
     def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
         lt: typs.Type = self.left.resolved_type
         rt: typs.Type = self.right.resolved_type

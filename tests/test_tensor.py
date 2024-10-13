@@ -66,3 +66,17 @@ def test_const_flat_index():
     tt((1, 0, 0, 0), 1 * 5 * 7 * 11)
     tt((1, 2, 3, 4), 1 * 5 * 7 * 11 + 2 * 7 * 11 + 3 * 11 + 4)
     tt((2, 4, 6, 10),  2 * 5 * 7 * 11 + 4 * 7 * 11 + 6 * 11 + 10)
+
+def test_const_flat_index():
+    t = tensor_type((3, 5, 7, 11), float_type)
+    def tt(index, expected):
+        fi = t.get_flat_index(index)
+        fi_code: str = fi.wgsl_code
+        e_index = fi_code.find("//")
+        if e_index > 0:
+            fi_code = fi_code[:e_index].strip()
+        assert fi_code == expected
+    tt((0, 0, 0, 0), "0")
+    tt((0, 0, 0, 1), "1")
+    tt((0, 0, 0, "x"), "(0 + x)")
+    tt(("y", 0, 0, 0), "(((((((0 + y) * 5) + 0) * 7) + 0) * 11) + 0)")

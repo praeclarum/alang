@@ -61,7 +61,9 @@ class Node:
         return cs[0] if len(cs) > 0 else None
     def link(self, child: "Node", rel: str) -> "Node":
         if child is None:
-            raise ValueError(f"Cannot link {self.node_type} to None (rel={rel})")
+            raise ValueError(f"Cannot link {repr(self.node_type)} node to None (rel={rel})")
+        if not isinstance(child, Node):
+            raise ValueError(f"Cannot link {repr(self.node_type)} node to {repr(child)} (rel={rel})")
         self.links.append((rel, child))
         child.append_backlink(self, rel)
         return self
