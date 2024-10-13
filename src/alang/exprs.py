@@ -84,10 +84,10 @@ class Funcall(Expression):
         f = self.func
         if f is None:
             return None
-        fr = f.return_type
-        if fr is None:
+        ft = f.resolved_type
+        if ft is None:
             return None
-        return fr.resolved_type
+        return ft.return_type
     def write(self, writer: CodeWriter):
         f = self.func
         if f is None:

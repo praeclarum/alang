@@ -8,6 +8,8 @@ class ExprStmt(Statement):
     def __init__(self, expression: Expression):
         super().__init__(NodeType.EXPR_STMT)
         self.expression = expression
+    def resolve_type(self):
+        return self.expression.resolved_type
 
 class Return(Statement):
     value = NodeLink()
