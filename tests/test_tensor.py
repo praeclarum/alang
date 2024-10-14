@@ -20,6 +20,7 @@ def test_tensor_wgsl():
     t = tensor_type((3, 5, 7, 11), float_type)
     s = struct("StructWithTensor", ("t", t))
     assert s.wgsl_code.strip() == """
+alias float3x5x7x11 = array<f32, 1155>;
 struct StructWithTensor {
     t: float3x5x7x11
 }""".strip()
@@ -38,6 +39,8 @@ def test_1x2_matmul_2x1():
     write_standalone_html("test_1x2_times_2x1", f)
     code = f.wgsl_code
     assert code.strip() == """
+alias int1x2 = array<i32, 2>;
+alias int2x1 = array<i32, 2>;
 fn mul_int1x2_int2x1(a: int1x2, b: int2x1) -> int1x1 {
 for (var out_r: i32 = 0; out_r < 1; out_r++) {
 for (var out_c: i32 = 0; out_c < 1; out_c++) {
@@ -45,6 +48,7 @@ o[((out_r * 1) + out_c)] = ((a[(out_r * 2)] * b[out_c]) + (a[((out_r * 2) + 1)] 
 }
 }
 }
+alias int1x1 = array<i32, 1>;
 fn f(a: int1x2, b: int2x1) -> int1x1 {
     return mul_int1x2_int2x1(a, b);
 }""".strip()
@@ -57,6 +61,8 @@ def test_3x5_matmul_5x7():
     write_standalone_html("test_3x5_times_5x7", f)
     code = f.wgsl_code
     assert code.strip() == """
+alias int3x5 = array<i32, 15>;
+alias int5x7 = array<i32, 35>;
 fn mul_int3x5_int5x7(a: int3x5, b: int5x7) -> int3x7 {
 for (var out_r: i32 = 0; out_r < 3; out_r++) {
 for (var out_c: i32 = 0; out_c < 7; out_c++) {
@@ -64,6 +70,7 @@ o[((out_r * 7) + out_c)] = (((((a[(out_r * 5)] * b[out_c]) + (a[((out_r * 5) + 1
 }
 }
 }
+alias int3x7 = array<i32, 21>;
 fn f(a: int3x5, b: int5x7) -> int3x7 {
     return mul_int3x5_int5x7(a, b);
 }""".strip()
