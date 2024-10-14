@@ -1,5 +1,5 @@
 from alang.nodes import define
-from alang.typs import struct, tensor_type, Tensor, float_type, int_type
+from alang.typs import struct, tensor_type, Tensor, float_type, int_type, looks_like_tensor
 
 from test_html import write_standalone_html
 
@@ -112,3 +112,23 @@ def test_const_flat_index():
     tt((0, 0, 0, "x"), "x")
     tt(("y", 0, 0, 0), "(y * 385)")
     tt(("y", 0, 0, "x"), "((y * 385) + x)")
+
+def test_looks_like_tensor():
+    # import torch
+    # assert looks_like_tensor(torch.tensor([1.0, 2.0, 3.0])) == True
+    # assert looks_like_tensor(torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32)) == True
+    # assert looks_like_tensor(torch.tensor(0)) == True
+    # assert looks_like_tensor(torch.tensor(1) + torch.tensor(1)) == True
+    # import numpy as np
+    # assert looks_like_tensor(np.array([1.0, 2.0, 3.0])) == True
+    # assert looks_like_tensor(np.array([1.0, 2.0, 3.0], dtype=np.float32)) == True
+    # assert looks_like_tensor(np.array(0)) == True
+    # assert looks_like_tensor(torch.nn.Module()) == False
+    assert looks_like_tensor(0) == False
+    assert looks_like_tensor("hello") == False
+    assert looks_like_tensor(None) == False
+    class T:
+        def __init__(self):
+            self.dtype = "int"
+            self.shape = (1, 2, 3)
+    assert looks_like_tensor(T()) == True

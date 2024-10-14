@@ -337,6 +337,10 @@ class Struct(Type):
         self.nobuffer_layout = None
         return self
 
+def looks_like_tensor(x):
+    """Determines if x is a tensor just by looking at it and not importing any libs"""
+    return hasattr(x, "dtype") and hasattr(x, "shape")
+
 def get_tensor_shape_name(shape: tuple):
     sn = "x".join([str(s) for s in shape])
     return sn
