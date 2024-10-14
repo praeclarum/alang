@@ -8,7 +8,7 @@ class CodeWriter:
         self.indent_level = 0
         self.needs_indent = True
         if self.options is None:
-            from nodes import CodeOptions
+            from alang.nodes import CodeOptions
             self.options = CodeOptions()
         if type(path_or_io) is str:
             self.out = open(path_or_io, "w")
