@@ -70,9 +70,13 @@ fn f() {
 """.strip()
 
 def test_pointer_param():
-    f = define("f").param("x", float_type.ptr())
+    f = define("f").param("x", float_type.ptr(address_space=AddressSpace.STORAGE))
     assert f.parameters[0].parameter_type.name == "float*"
-#     assert f.wgsl_code.strip() == """
-# fn f(x: ptr<storage, f32>) {
-# }
-# """.strip()
+    assert f.wgsl_code.strip() == """
+fn f(x: ptr<storage, f32>) {
+}
+""".strip()
+    assert f.c_code.strip() == """
+void f(float* x) {
+}
+""".strip()

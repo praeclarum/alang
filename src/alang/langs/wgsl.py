@@ -248,6 +248,15 @@ class WGSLWriter(CodeWriter):
                 raise ValueError(f"Invalid vector size: {n}")
             element_type = self.get_type_name(t.element_type)
             return f"{vec_type}<{element_type}>"
+        elif isinstance(t, typs.Pointer):
+            element_type = self.get_type_name(t.element_type)
+            address_space = t.address_space
+            if address_space is None:
+                address_space = "function"
+            if t.access_mode is not None:
+                return f"ptr<{address_space}, {element_type}, {t.access_mode}>"
+            else:
+                return f"ptr<{address_space}, {element_type}>"
         else:
             return t.name
 

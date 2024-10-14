@@ -147,6 +147,8 @@ class CodeWriter:
             self.write_module(n)
         elif n.node_type == nodes.NodeType.NAME:
             self.write_name(n)
+        elif n.node_type == nodes.NodeType.POINTER:
+            self.write_pointer(n)
         elif n.node_type == nodes.NodeType.RETURN:
             self.write_return(n)
         elif n.node_type == nodes.NodeType.SET:
@@ -157,6 +159,9 @@ class CodeWriter:
             self.write_variable(n)
         else:
             raise ValueError(f"Cannot write node of type \"{n.node_type}\"")
+
+    def write_pointer(self, r: "Pointer"): # type: ignore
+        raise NotImplementedError
 
     def write_return(self, r: "Return"): # type: ignore
         raise NotImplementedError
@@ -174,10 +179,7 @@ class CodeWriter:
         return self.write_node(n)
 
     def write_type(self, t: "typs.Type"): # type: ignore
-        if t.node_type == nodes.NodeType.STRUCT:
-            self.write_struct(t)
-        else:
-            self.write(f"    // {t.name}\n")
+        self.write_node(t)
 
     def write_variable(self, v: "Variable"): # type: ignore
         raise NotImplementedError
