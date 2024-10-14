@@ -37,6 +37,16 @@ class WGSLWriter(CodeWriter):
             self.write_expr(b.right)
             self.write(")")
 
+    def write_block(self, f: stmts.Block):
+        self.writeln("{")
+        self.indent()
+        for v in f.variables:
+            self.write_variable(v)
+        for s in f.statements:
+            self.write_node(s)
+        self.dedent()
+        self.writeln("}")
+
     def write_constant(self, c: "Constant"): # type: ignore
         self.write(repr(c.value))
 
@@ -83,16 +93,6 @@ class WGSLWriter(CodeWriter):
                 self.write(", ")
             self.write_expr(arg)
         self.write(")")
-
-    def write_block(self, f: stmts.Block):
-        self.writeln("{")
-        self.indent()
-        for v in f.variables:
-            self.write_variable(v)
-        for s in f.statements:
-            self.write_node(s)
-        self.dedent()
-        self.writeln("}")
 
     def write_function(self, f: funcs.Function):
         stage_and_auto = self.get_func_stage(f)
@@ -189,7 +189,15 @@ class WGSLWriter(CodeWriter):
         self.write(self.get_type_name(t))
 
     def write_variable(self, v: nodes.Variable):
-        self.write("var ")
+        self.write("var")
+        if v.address_space is not None and v.address_space != "function":
+            self.write(f"<{v.address_space}")
+            if v.access_mode is not None and v.address_space == "storage":
+                self.write(", ")
+                self.write(v.access_mode)
+            self.write("> ")
+        else:
+            self.write(" ")
         self.write(v.name)
         self.write(": ")
         self.write_type_ref(v.resolved_type or v.variable_type)

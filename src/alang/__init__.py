@@ -1,7 +1,7 @@
 import typing
 
 from funcs import Function
-from nodes import AddressSpace, CodeOptions, Module, Variable
+from nodes import AccessMode, AddressSpace, CodeOptions, Module, Variable
 
 from typs import Array, Struct, Vector, Tensor, int_type, float_type, tensor_type
 

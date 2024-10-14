@@ -96,9 +96,6 @@ class CodeWriter:
     def write_expr_stmt(self, e: "ExprStmt"): # type: ignore
         raise NotImplementedError
 
-    def write_loop(self, f: "Loop"): # type: ignore
-        raise NotImplementedError
-
     def write_funcall(self, f: "Funcall"): # type: ignore
         raise NotImplementedError
 
@@ -108,9 +105,14 @@ class CodeWriter:
     def write_index(self, i: "Index"): # type: ignore
         raise NotImplementedError
 
+    def write_loop(self, f: "Loop"): # type: ignore
+        raise NotImplementedError
+
     def write_module(self, m: "modules.Module"): # type: ignore
         for type in m.types:
             self.write_type(type)
+        for var in m.variables:
+            self.write_variable(var)
         for func in m.functions:
             self.write_function(func)
 
@@ -151,6 +153,8 @@ class CodeWriter:
             self.write_set(n)
         elif n.node_type == nodes.NodeType.STRUCT:
             self.write_struct(n)
+        elif n.node_type == nodes.NodeType.VARIABLE:
+            self.write_variable(n)
         else:
             raise ValueError(f"Cannot write node of type \"{n.node_type}\"")
 
@@ -174,6 +178,9 @@ class CodeWriter:
             self.write_struct(t)
         else:
             self.write(f"    // {t.name}\n")
+
+    def write_variable(self, v: "Variable"): # type: ignore
+        raise NotImplementedError
 
     def write_zero_value_for_type(self, type: Optional["typs.Type"] = None): # type: ignore
         raise NotImplementedError

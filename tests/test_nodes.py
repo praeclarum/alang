@@ -1,4 +1,4 @@
-from alang import define, global_module, Module, AddressSpace, Function, Variable
+from alang import define, global_module, Module, AccessMode, AddressSpace, Function, Variable
 
 def test_define():
     f_count = len(global_module.functions)
@@ -31,6 +31,29 @@ def test_module_var_default_address_space():
     v = m.variables[0]
     assert v.address_space == AddressSpace.PRIVATE
     assert v.access_mode == "read_write"
+    assert m.wgsl_code.strip() == """
+var<private> x: i32;
+""".strip()
+
+def test_module_var_default_storage_access_mode():
+    m = Module("test")
+    m.var("x", "int", address_space=AddressSpace.STORAGE)
+    v = m.variables[0]
+    assert v.address_space == AddressSpace.STORAGE
+    assert v.access_mode == "read"
+    assert m.wgsl_code.strip() == """
+var<storage, read> x: i32;
+""".strip()
+
+def test_module_var_storage_read_write_access_mode():
+    m = Module("test")
+    m.var("x", "int", address_space=AddressSpace.STORAGE, access_mode=AccessMode.READ_WRITE)
+    v = m.variables[0]
+    assert v.address_space == AddressSpace.STORAGE
+    assert v.access_mode == "read_write"
+    assert m.wgsl_code.strip() == """
+var<storage, read_write> x: i32;
+""".strip()
 
 def test_function_var_default_address_space():
     m = Module("test")
@@ -40,3 +63,8 @@ def test_function_var_default_address_space():
     assert v.address_space is not None
     assert v.access_mode == "read_write"
     assert v.address_space == "function"
+    assert f.wgsl_code.strip() == """
+fn f() {
+    var x: i32;
+}
+""".strip()

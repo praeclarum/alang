@@ -240,6 +240,8 @@ class Visitor:
             return self.visit_swizzle(node, parent, rel, acc)
         elif node.node_type == NodeType.TENSOR:
             return self.visit_tensor(node, parent, rel, acc)
+        elif node.node_type == NodeType.VARIABLE:
+            return self.visit_variable(node, parent, rel, acc)
         elif node.node_type == NodeType.VECTOR:
             return self.visit_vector(node, parent, rel, acc)
         elif node.node_type == NodeType.VOID:
@@ -274,7 +276,7 @@ class Visitor:
         return acc
     def visit_member(self, node: "Member", parent: Node, rel: str, acc): # type: ignore
         return acc
-    def visit_module(self, node: "Module", parent: Node, rel: str, acc): # type: ignore
+    def visit_module(self, node: "Module", parent: Node, rel: str, acc):
         return acc
     def visit_name(self, node: "Name", parent: Node, rel: str, acc): # type: ignore
         return acc
@@ -290,16 +292,18 @@ class Visitor:
         return acc
     def visit_tensor(self, node: "Tensor", parent: Node, rel: str, acc): # type: ignore
         return acc
+    def visit_variable(self, node: "Variable", parent: Node, rel: str, acc):
+        return acc
     def visit_vector(self, node: "Vector", parent: Node, rel: str, acc): # type: ignore
         return acc
-    def visit_void(self, node: Node, parent: Node, rel: str, acc):
+    def visit_void(self, node: "Void", parent: Node, rel: str, acc): # type: ignore
         return acc
     
 class DepthFirstVisitor(Visitor):
     def visit(self, node: Node, parent: Node, rel: str, acc):
         sacc = []
         for crel, child in node.links:
-            sacc.append(self.visit(child, node, crel, acc))
+            sacc.append((crel, self.visit(child, node, crel, acc)))
         return self.visit_node(node, parent, rel, sacc)
 
 class BreadthFirstVisitor(Visitor):
@@ -523,3 +527,8 @@ class Variable(Node):
             raise ValueError(f"Cannot specify access mode for {repr(self.address_space)} address space")
         if self.address_space is not None and self.access_mode is None:
             self.access_mode = get_default_access_mode_for_address_space(self.address_space)
+    
+    def resolve_type(self, diags: "compiler.Diagnostics") -> "typs.Type":
+        if self.variable_type is None:
+            return None
+        return self.variable_type.resolved_type
