@@ -36,6 +36,12 @@ class CodeWriter:
         self.write_zero_value_for_type(type)
         self.write_inline_comment(f"ERROR! {message}")
 
+    def get_func_stage(self, f: "funcs.Function") -> Optional[str]: # type: ignore
+        for e, e_stage in self.options.entry_points:
+            if e.name == f.name:
+                return e_stage
+        return None
+
     def write_inline_comment(self, comment: str):
         raise NotImplementedError
 

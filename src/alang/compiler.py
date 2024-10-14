@@ -152,6 +152,7 @@ class Compiler:
         self.ast = ast
         self.diags = Diagnostics()
         self.support_definitions = []
+        self.entry_points = []
 
     def resolve_names(self):
         res_pass = NameResolutionPass(self.diags)
@@ -173,6 +174,15 @@ class Compiler:
         c.run(self.ast)
         return c.support_definitions
     
+    def find_entry_points(self):
+        self.entry_points.clear()
+        funcs: list[Function] = self.ast.find_reachable_with_type(NodeType.FUNCTION)
+        for node in funcs:
+            if node.stage is not None:
+                self.entry_points.append((node, node.stage))
+        if len(self.entry_points) == 0 and len(funcs) > 0:
+            self.entry_points.append((funcs[-1], "auto_compute"))
+    
     def compile(self):
         self.support_definitions.clear()
         should_iter = True
@@ -188,3 +198,4 @@ class Compiler:
         if iteration == max_iterations:
             self.diags.error("Max iterations reached")
         self.support_definitions = self.get_support_definitions()
+        self.find_entry_points()

@@ -10,6 +10,7 @@ class CodeOptions:
     def __init__(self, standalone: bool = False, struct_annotations: bool = False) -> None:
         self.standalone = standalone
         self.struct_annotations = struct_annotations
+        self.entry_points = []
 
 class NodeType:
     ALIAS = 'alias'
@@ -70,9 +71,9 @@ class Node:
         return self
     def find_reachable_with_type(self, node_type: NodeType) -> list["Node"]:
         reachable = []
+        if self.node_type == node_type:
+            reachable.append(self)
         for rel, link in self.links:
-            if link.node_type == node_type:
-                reachable.append(link)
             reachable.extend(link.find_reachable_with_type(node_type))
         return reachable
     def write_node(self, out, depth, rel):
@@ -111,9 +112,11 @@ class Node:
         pass
     def write_code(self, out: Union[str, TextIO], language: Optional[Any] = None, options: Optional[CodeOptions] = None):
         from compiler import Compiler
+        options = options or CodeOptions()
         language = langs.get_language(language)
         compiler = Compiler(self)
         compiler.compile()
+        options.entry_points = compiler.entry_points
         with language.open_writer(out, options) as writer:
             for s in compiler.support_definitions:
                 writer.write_support_node(s)

@@ -10,6 +10,7 @@ class Function(Block):
     name = NodeAttr()
     parameters = NodeLinks()
     return_type = NodeLink()
+    stage = NodeAttr()
 
     def __init__(self, name: str, return_type: Optional[typs.Type], *parameters: "Parameter"):
         super().__init__(NodeType.FUNCTION, can_define_types=False, can_define_functions=False, can_define_variables=True, can_define_statements=True)

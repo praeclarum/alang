@@ -41,6 +41,34 @@ class JSWriter(CodeWriter):
         self.write_expr(e.expression)
         self.write(";\n")
 
+    def write_function(self, f: funcs.Function):
+        self.write_js_function(f)
+        s = self.get_func_stage(f)
+        if s is not None:
+            self.write_gpu_function(f, s)
+
+    def write_js_function(self, f: funcs.Function):
+        self.write(f"function {f.name}(")
+        for i, param in enumerate(f.parameters):
+            if i > 0:
+                self.write(", ")
+            self.write(f"{param.name}/*: {self.get_typed_name(param.parameter_type)}*/")
+        self.write(") {\n")
+        for s in f.statements:
+            self.write_node(s)
+        self.write("}\n")
+
+    def write_gpu_function(self, f: funcs.Function, stage: str):
+        self.write(f"function {f.name}GPU(")
+        for i, param in enumerate(f.parameters):
+            if i > 0:
+                self.write(", ")
+            self.write(f"{param.name}/*: {self.get_typed_name(param.parameter_type)}*/")
+        self.write(") {\n")
+        for s in f.statements:
+            self.write_node(s)
+        self.write("}\n")
+
     def write_index(self, i: "Index"): # type: ignore
         self.write_expr(i.base)
         self.write("[")
@@ -148,17 +176,6 @@ class JSWriter(CodeWriter):
                 self.write(f"    set {field.name}(value) {{ this.{field.name}Array.set(value); this.dirty({sl.fields[i].offset}, {sl.fields[i].offset + sl.fields[i].byte_size}); }}\n")
             else:
                 raise NotImplementedError(f"Field type {field_type} not implemented")
-        self.write("}\n")
-
-    def write_function(self, f: funcs.Function):
-        self.write(f"function {f.name}(")
-        for i, param in enumerate(f.parameters):
-            if i > 0:
-                self.write(", ")
-            self.write(f"{param.name}/*: {self.get_typed_name(param.parameter_type)}*/")
-        self.write(") {\n")
-        for s in f.statements:
-            self.write_node(s)
         self.write("}\n")
 
     def write_return(self, s: stmts.Return):
