@@ -48,11 +48,11 @@ for (var out_c: i32 = 0; out_c < 1; out_c++) {
 o[((out_r * 1) + out_c)] = ((a[(out_r * 2)] * b[out_c]) + (a[((out_r * 2) + 1)] * b[(1 + out_c)]));
 }
 }
-    return o;
+return o;
 }
 alias int1x1 = array<i32, 1>;
 fn f(a: int1x2, b: int2x1) -> int1x1 {
-    return mul_int1x2_int2x1(a, b);
+return mul_int1x2_int2x1(a, b);
 }""".strip()
 
 def test_3x5_matmul_5x7():
@@ -72,11 +72,11 @@ for (var out_c: i32 = 0; out_c < 7; out_c++) {
 o[((out_r * 7) + out_c)] = (((((a[(out_r * 5)] * b[out_c]) + (a[((out_r * 5) + 1)] * b[(7 + out_c)])) + (a[((out_r * 5) + 2)] * b[(14 + out_c)])) + (a[((out_r * 5) + 3)] * b[(21 + out_c)])) + (a[((out_r * 5) + 4)] * b[(28 + out_c)]));
 }
 }
-    return o;
+return o;
 }
 alias int3x7 = array<i32, 21>;
 fn f(a: int3x5, b: int5x7) -> int3x7 {
-    return mul_int3x5_int5x7(a, b);
+return mul_int3x5_int5x7(a, b);
 }""".strip()
 
 def test_standalone_tensor():

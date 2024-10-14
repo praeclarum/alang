@@ -34,10 +34,11 @@ class CodeWriter:
         lines = s.split("\n")
         n_lines = len(lines)
         for i, line in enumerate(lines):
-            if self.needs_indent:
-                self.out.write("    " * self.indent_level)
-                self.needs_indent = False
-            self.out.write(line)
+            if len(line) > 0:
+                if self.needs_indent:
+                    self.out.write("    " * self.indent_level)
+                    self.needs_indent = False
+                self.out.write(line)
             if i < n_lines - 1:
                 self.out.write("\n")
                 self.needs_indent = True

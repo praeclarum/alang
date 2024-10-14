@@ -112,7 +112,7 @@ class WGSLWriter(CodeWriter):
         self.write(n.name)
 
     def write_return(self, r: stmts.Return):
-        self.write("    return")
+        self.write("return")
         if r.value is not None:
             self.write(" ")
             self.write_expr(r.value)

@@ -34,6 +34,14 @@ class JSWriter(CodeWriter):
             self.write_expr(b.right)
             self.write(")")
 
+    def write_block(self, b: stmts.Block):
+        self.write("{\n")
+        self.indent()
+        for s in b.statements:
+            self.write_node(s)
+        self.dedent()
+        self.write("}\n")
+
     def write_constant(self, c: "Constant"): # type: ignore
         self.write(repr(c.value))
 
@@ -53,22 +61,22 @@ class JSWriter(CodeWriter):
             if i > 0:
                 self.write(", ")
             self.write(f"{param.name}/*: {self.get_typed_name(param.parameter_type)}*/")
-        self.write(") {\n")
-        for s in f.statements:
-            self.write_node(s)
-        self.write("}\n")
+        self.write(") ")
+        self.write_block(f)
 
     def write_gpu_function(self, f: funcs.Function, stage: str):
         self.write(f"class {f.name}GPU {{\n")
-        self.write(f"    constructor(")
+        self.indent()
+        self.write(f"constructor(")
         for i, param in enumerate(f.parameters):
             if i > 0:
                 self.write(", ")
             self.write(f"{param.name}/*: {self.get_typed_name(param.parameter_type)}*/")
         self.write(") {\n")
-        for s in f.statements:
-            self.write_node(s)
+        self.indent()
+        self.dedent()
         self.write("}\n")
+        self.dedent()
         self.write("}\n")
 
     def write_index(self, i: "Index"): # type: ignore
@@ -88,8 +96,10 @@ class JSWriter(CodeWriter):
         self.write(f" {f.var} = 0; {f.var} < ")
         self.write_expr(f.count)
         self.write(f"; {f.var}++) {{\n")
+        self.indent()
         for s in f.statements:
             self.write_node(s)
+        self.dedent()
         self.write("}\n")
 
     def write_line_comment(self, comment: str):
@@ -181,7 +191,7 @@ class JSWriter(CodeWriter):
         self.write("}\n")
 
     def write_return(self, s: stmts.Return):
-        self.write(f"    return")
+        self.write(f"return")
         rv = s.value
         if rv is not None:
             self.write(" ")
