@@ -2,7 +2,7 @@ from typing import Optional, TextIO, Union
 from nodes import Expression, NodeType, Statement
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
-import modules
+import alang.mods as mods
 
 import typs
 import funcs
@@ -59,7 +59,8 @@ class JSWriter(CodeWriter):
         self.write("}\n")
 
     def write_gpu_function(self, f: funcs.Function, stage: str):
-        self.write(f"function {f.name}GPU(")
+        self.write(f"class {f.name}GPU {{\n")
+        self.write(f"    constructor(")
         for i, param in enumerate(f.parameters):
             if i > 0:
                 self.write(", ")
@@ -67,6 +68,7 @@ class JSWriter(CodeWriter):
         self.write(") {\n")
         for s in f.statements:
             self.write_node(s)
+        self.write("}\n")
         self.write("}\n")
 
     def write_index(self, i: "Index"): # type: ignore

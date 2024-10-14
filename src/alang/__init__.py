@@ -1,5 +1,5 @@
 from typing import Optional
-from modules import Module
+from alang.mods import Module
 from funcs import Function
 from nodes import Node, NodeType, CodeOptions
 

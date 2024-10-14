@@ -5,6 +5,8 @@ import nodes
 class CodeWriter:
     def __init__(self, path_or_io: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         self.options = options
+        self.indent_level = 0
+        self.needs_indent = True
         if self.options is None:
             from nodes import CodeOptions
             self.options = CodeOptions()
@@ -18,13 +20,27 @@ class CodeWriter:
         return self
     def __exit__(self, exc_type, exc_value, traceback):
         self.close()
-    def write(self, s: str):
-        self.out.write(s)
     def close(self):
         if self.owner and self.out is not None:
             self.out.close()
             self.out = None
             self.owner = False
+
+    def indent(self):
+        self.indent_level += 1
+    def dedent(self):
+        self.indent_level = max(0, self.indent_level - 1)
+    def write(self, s: str):
+        lines = s.split("\n")
+        n_lines = len(lines)
+        for i, line in enumerate(lines):
+            if self.needs_indent:
+                self.out.write("    " * self.indent_level)
+                self.needs_indent = False
+            self.out.write(line)
+            if i < n_lines - 1:
+                self.out.write("\n")
+                self.needs_indent = True
 
     def error(self, message: str):
         self.write_multiline_comment(f"ERROR! {message}")

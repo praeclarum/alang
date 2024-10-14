@@ -1,7 +1,7 @@
 """GLSL https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language"""
 
 from typing import Optional, TextIO, Union
-import modules
+import alang.mods as mods
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
 
@@ -37,7 +37,7 @@ class HTMLWriter(CodeWriter):
         self.write(encode(comment))
         self.write("</p>\n")
 
-    def write_module(self, s: modules.Module):
+    def write_module(self, s: mods.Module):
         self.write(f"<html>\n")
         self.write(f"<head>\n")
         self.write(f"<title>{encode(s.name)}</title>\n")
