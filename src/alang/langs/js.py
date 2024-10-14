@@ -2,7 +2,6 @@ from typing import Optional, TextIO, Union
 from nodes import Expression, NodeType, Statement
 from langs.language import Language, register_language
 from langs.writer import CodeWriter
-import alang.mods as mods
 
 import typs
 import funcs

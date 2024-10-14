@@ -1,7 +1,7 @@
-from typing import Optional
-from alang.mods import Module
+import typing
+
 from funcs import Function
-from nodes import Node, NodeType, CodeOptions
+from nodes import AddressSpace, CodeOptions, Module, Variable
 
 from typs import Array, Struct, Vector, Tensor, int_type, float_type, tensor_type
 
@@ -11,7 +11,7 @@ from compiler import Compiler
 
 global_module = Module("global", can_define_statements=True)
 
-def array(element_type: str, length: Optional[int] = None) -> Array:
+def array(element_type: str, length: typing.Optional[int] = None) -> Array:
     return global_module.array(element_type, length)
 
 def define(name: str, *parameters: list) -> Function:
@@ -24,6 +24,4 @@ def struct(name: str, *fields: list) -> Struct:
     return global_module.struct(name, *fields)
 
 if __name__ == "__main__":
-    print()
     pass
-

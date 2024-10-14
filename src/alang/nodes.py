@@ -339,7 +339,7 @@ class Statement(Node):
 class Block(Node):
     types = NodeLinks()
     variables = NodeLinks()
-    functions = NodeLinks()
+    functions: list["funcs.Functions"] = NodeLinks() # type: ignore
     statements = NodeLinks()
     def __init__(self, type: NodeType, can_define_types: bool, can_define_functions: bool, can_define_variables: bool, can_define_statements: bool):
         super().__init__(type)
@@ -368,45 +368,6 @@ class Block(Node):
             self.link(child, "statements")
         else:            
             raise ValueError(f"Cannot append {child.node_type} to {self.node_type}")
-    def set(self, lhs: Code, rhs: Code) -> "Block":
-        lhs = self.parse_expr(lhs)
-        rhs = self.parse_expr(rhs)
-        v = self.lookup_variable(lhs)
-        if v is None:
-            if self.can_define_variables:
-                v = Variable(lhs)
-                self.link(v, "variables")
-            else:
-                raise ValueError(f"Variable {lhs} not defined")
-        else:
-            raise ValueError(f"Variable {lhs} already defined")
-        return self
-    def var(self, name: str, type: str) -> "Block":
-        if self.can_define_variables:
-            type = self.parse_type(type)
-            v = Variable(name, type)
-            self.link(v, "variables")
-            return self
-        else:
-            raise ValueError(f"Variable {name} not defined")
-    def define(self, name: str, *parameters: list) -> "Function": # type: ignore
-        if self.can_define_functions:
-            from funcs import Function
-            f = Function(name, None, *parameters)
-            self.link(f, "functions")
-            return f
-        else:
-            raise ValueError(f"Cannot define function in {self.node_type}")
-    def struct(self, name: str, *fields: list) -> "Struct": # type: ignore
-        if self.can_define_types:
-            from typs import Struct
-            s = Struct(name)
-            for field in fields:
-                s.field(*field)
-            self.link(s, "types")
-            return s
-        else:
-            raise ValueError(f"Cannot define struct in {self.node_type}")
     def array(self, element_type: str, length: Optional[int] = None) -> "Array": # type: ignore
         if self.can_define_types:
             from typs import Array
@@ -421,32 +382,144 @@ class Block(Node):
         func = self.parse_expr(func)
         args = [self.parse_expr(x) for x in args]
         funcall = Funcall(func, args)
-        stmt = ExprStmt(funcall)
-        self.append_stmt(stmt)
+        call_stmt = ExprStmt(funcall)
+        self.stmt(call_stmt)
         return self
+    def define(self, name: str, *parameters: list) -> "Function": # type: ignore
+        if self.can_define_functions:
+            from funcs import Function
+            f = Function(name, None, *parameters)
+            self.link(f, "functions")
+            return f
+        else:
+            raise ValueError(f"Cannot define function in {self.node_type}")
     def loop(self, var: str, count: Code, *statements: list[Code]) -> "Block": # type: ignore
         from stmts import Loop
         count = self.parse_expr(count)
-        l = Loop(var, count, *statements)
-        self.append_stmt(l)
+        loop = Loop(var, count, *statements)
+        self.stmt(loop)
         return self
     def ret(self, value: Optional[Code]) -> "Block":
         from stmts import Return
         r = Return(self.parse_expr(value))
-        self.append_stmt(r)
-        return self    
-    def append_stmt(self, stmt):
+        self.stmt(r)
+        return self
+    def set(self, lhs: Code, rhs: Code) -> "Block":
+        lhs = self.parse_expr(lhs)
+        rhs = self.parse_expr(rhs)
+        v = self.lookup_variable(lhs)
+        if v is None:
+            if self.can_define_variables:
+                v = Variable(lhs)
+                self.link(v, "variables")
+            else:
+                raise ValueError(f"Variable {lhs} not defined")
+        else:
+            raise ValueError(f"Variable {lhs} already defined")
+        return self
+    def stmt(self, stmt):
         if not self.can_define_statements:
             raise ValueError(f"Cannot define return statements in {self.node_type}")
         self.link(stmt, "statements")
+    def struct(self, name: str, *fields: list) -> "Struct": # type: ignore
+        if self.can_define_types:
+            from typs import Struct
+            s = Struct(name)
+            for field in fields:
+                s.field(*field)
+            self.link(s, "types")
+            return s
+        else:
+            raise ValueError(f"Cannot define struct in {self.node_type}")
+    def get_default_address_space(self) -> Optional[str]:
+        return None
+    def var(
+            self,
+            name: str, type: Optional["Type"] = None, initial_value: Expression = None, # type: ignore
+            bind_group: Optional[int] = None, binding: Optional[int] = None,
+            address_space: Optional[str] = None, access_mode: Optional[str] = None,
+            ) -> "Block":
+        if self.can_define_variables:
+            type = self.parse_type(type)
+            if address_space is None:
+                address_space = self.get_default_address_space()
+            v = Variable(name,
+                         type=type, initial_value=initial_value,
+                         bind_group=bind_group, binding=binding,
+                         address_space=address_space, access_mode=access_mode)
+            self.link(v, "variables")
+            return self
+        else:
+            raise ValueError(f"Variable {name} not defined")
+        
+class AddressSpace:
+    FUNCTION = 'function'
+    PRIVATE = 'private'
+    STORAGE = 'storage'
+    UNIFORM = 'uniform'
+    WORKGROUP = 'workgroup'
+
+class AccessMode:
+    READ = 'read'
+    WRITE = 'write'
+    READ_WRITE = 'read_write'
+
+class Module(Block):
+    name = NodeAttr()
+
+    def __init__(self, name: str, can_define_statements: bool = False):
+        super().__init__(NodeType.MODULE, can_define_types=True, can_define_functions=True, can_define_variables=True, can_define_statements=can_define_statements)
+        if name is not None:
+            self.name = name
+
+    def get_default_address_space(self) -> Optional[str]:
+        return AddressSpace.PRIVATE
+
+    def resolve_type(self, diags: "compiler.Diagnostics") -> "typs.Type": # type: ignore
+        from typs import ModuleType
+        return ModuleType(self.name)
+
+def get_default_access_mode_for_address_space(address_space: str) -> str:
+    if address_space == AddressSpace.FUNCTION:
+        return AccessMode.READ_WRITE
+    elif address_space == AddressSpace.PRIVATE:
+        return AccessMode.READ_WRITE
+    elif address_space == AddressSpace.WORKGROUP:
+        return AccessMode.READ_WRITE
+    elif address_space == AddressSpace.UNIFORM:
+        return AccessMode.READ
+    elif address_space == AddressSpace.STORAGE:
+        return AccessMode.READ
+    else:
+        raise ValueError(f"Invalid address space: {address_space}")
 
 class Variable(Node):
+    # https://www.w3.org/TR/WGSL/#var-decls
     name = NodeAttr()
     variable_type = NodeLink()
     initial_value = NodeLink()
+    address_space = NodeAttr()
+    access_mode = NodeAttr()
 
-    def __init__(self, name: str, variable_type: Optional["Type"] = None, initial_value: Expression = None): # type: ignore
+    def __init__(
+            self,
+            name: str, type: Optional["Type"] = None, initial_value: Expression = None, # type: ignore
+            bind_group: Optional[int] = None, binding: Optional[int] = None,
+            address_space: Optional[str] = None, access_mode: Optional[str] = None,
+            ):
         super().__init__(NodeType.VARIABLE)
         self.name = name
-        self.variable_type = variable_type
+        self.variable_type = type
         self.initial_value = initial_value
+        self.bind_group = bind_group
+        self.binding = binding
+        self.address_space = address_space
+        self.access_mode = access_mode
+        # The address space must be specified if the access mode is specified.
+        if self.access_mode is not None and self.address_space is None:
+            raise ValueError(f"The address space must be specified if the access mode is specified")
+        # The access mode always has a default value, and except for variables in the storage address space, must not be specified in the WGSL source.
+        if self.access_mode is not None and self.address_space != AddressSpace.STORAGE:
+            raise ValueError(f"Cannot specify access mode for {repr(self.address_space)} address space")
+        if self.address_space is not None and self.access_mode is None:
+            self.access_mode = get_default_access_mode_for_address_space(self.address_space)

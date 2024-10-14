@@ -23,6 +23,9 @@ class Function(Block):
             else:
                 self.param(p)
 
+    def get_default_address_space(self) -> Optional[str]:
+        return "function"
+
     def param(self, name: str, param_type: str = None, location: Optional[str] = None) -> "Function":
         if type(name) == tuple:
             name, param_type = name

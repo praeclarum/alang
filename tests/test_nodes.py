@@ -1,4 +1,4 @@
-from alang import define, global_module, Module
+from alang import define, global_module, Module, AddressSpace, Function, Variable
 
 def test_define():
     f_count = len(global_module.functions)
@@ -24,3 +24,19 @@ def test_new_module():
 def test_var():
     f = define("f", "x").set("y", "2*x").ret("y")
     assert len(f.variables) == 1
+
+def test_module_var_default_address_space():
+    m = Module("test")
+    m.var("x", "int")
+    v = m.variables[0]
+    assert v.address_space == AddressSpace.PRIVATE
+    assert v.access_mode == "read_write"
+
+def test_function_var_default_address_space():
+    m = Module("test")
+    m.define("f").var("x", "int")
+    f: Function = m.functions[0]
+    v: Variable = f.variables[0]
+    assert v.address_space is not None
+    assert v.access_mode == "read_write"
+    assert v.address_space == "function"

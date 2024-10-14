@@ -198,7 +198,7 @@ class Compiler:
             # if not ft.return_type.is_void:
             #     new_f.param("_auto_out", ft.return_type).set("_auto_out", call)
             # else:
-            new_f.append_stmt(stmts.ExprStmt(call))
+            new_f.stmt(stmts.ExprStmt(call))
             new_f.workgroup_size = 1
             self.entry_points.append((f, "compute", new_f))
     
