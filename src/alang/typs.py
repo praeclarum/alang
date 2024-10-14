@@ -360,7 +360,7 @@ class Tensor(Algebraic):
     element_type = NodeLink()
     shape = NodeAttr()
     def __init__(self, shape: tuple, element_type: Type):
-        element_type = try_resolve_type(element_type, None)
+        element_type = try_resolve_type(element_type)
         if element_type is None:
             raise ValueError(f"Cannot create tensor with unresolved element type: {element_type}")
         elif not element_type.is_scalar:
@@ -516,7 +516,7 @@ def try_resolve_tensor_type(name: str) -> Optional[Type]:
     shape = tuple([int(s) for s in shape_str.split("x")])
     return Tensor(shape, element_type)
 
-def try_resolve_type(type, context: Optional[Node]) -> Type:
+def try_resolve_type(type, context: Optional[Node] = None) -> Type:
     if type is None:
         return None
     elif isinstance(type, Type):
