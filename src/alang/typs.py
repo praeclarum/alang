@@ -207,12 +207,12 @@ double_type = Float(64)
 
 class FunctionType(Type):
     return_type = NodeLink()
-    param_types = NodeLinks()
+    parameter_types = NodeLinks()
     def __init__(self, return_type, param_types):
         super().__init__(None, NodeType.FUNCTION_TYPE)
         self.return_type = return_type
         for pt in param_types:
-            self.link(pt, "param_types")
+            self.link(pt, "parameter_types")
 
 class ModuleType(Type):
     def __init__(self, name: str):

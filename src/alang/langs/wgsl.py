@@ -61,10 +61,12 @@ class WGSLWriter(CodeWriter):
         self.write_type_ref(typs.int_type)
         self.write(f" = 0; {f.var} < ")
         self.write_expr(f.count)
-        self.write(f"; {f.var}++) {{\n")
+        self.writeln(f"; {f.var}++) {{")
+        self.indent()
         for s in f.statements:
             self.write_node(s)
-        self.write("}\n")
+        self.dedent()
+        self.writeln("}")
 
     def write_funcall(self, c: exprs.Funcall):
         f = c.func
@@ -83,14 +85,19 @@ class WGSLWriter(CodeWriter):
         self.write(")")
 
     def write_block(self, f: stmts.Block):
-        self.write("{\n")
+        self.writeln("{")
+        self.indent()
         for v in f.variables:
             self.write_variable(v)
         for s in f.statements:
             self.write_node(s)
-        self.write("}\n")
+        self.dedent()
+        self.writeln("}")
 
     def write_function(self, f: funcs.Function):
+        stage_and_auto = self.get_func_stage(f)
+        if f.stage is not None:
+            self.writeln(f"@{f.stage}")
         self.write(f"fn {f.name}(")
         ps = f.parameters
         for i, param in enumerate(ps):
@@ -98,10 +105,14 @@ class WGSLWriter(CodeWriter):
             self.write_type_ref(param.parameter_type)
             if i < len(ps) - 1:
                 self.write(", ")
-        self.write(") -> ")
-        self.write_type_ref(f.return_type)
-        self.write(" ")
+        self.write(") ")
+        if not f.return_type.is_void:
+            self.write("-> ")
+            self.write_type_ref(f.return_type)
+            self.write(" ")
         self.write_block(f)
+        if stage_and_auto is not None:
+            self.write_function(stage_and_auto[1])
 
     def write_line_comment(self, comment: str):
         self.write("// ")

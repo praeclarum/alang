@@ -1,5 +1,5 @@
 from typing import Optional
-from nodes import BreadthFirstVisitor, DepthFirstVisitor, Node, NodeType
+from nodes import BreadthFirstVisitor, CodeOptions, DepthFirstVisitor, Node, NodeType
 from typs import void_type
 from funcs import Function
 
@@ -148,8 +148,9 @@ class CollectSupportDefinitions(DepthFirstVisitor):
         super().visit_node(node, parent, rel, acc)
 
 class Compiler:
-    def __init__(self, ast: Node):
+    def __init__(self, ast: Node, options: CodeOptions):
         self.ast = ast
+        self.options = options
         self.diags = Diagnostics()
         self.support_definitions = []
         self.entry_points = []
@@ -175,13 +176,30 @@ class Compiler:
         return c.support_definitions
     
     def find_entry_points(self):
+        import exprs, stmts, typs
         self.entry_points.clear()
         funcs: list[Function] = self.ast.find_reachable_with_type(NodeType.FUNCTION)
         for node in funcs:
             if node.stage is not None:
-                self.entry_points.append((node, node.stage))
-        if len(self.entry_points) == 0 and len(funcs) > 0:
-            self.entry_points.append((funcs[-1], "auto_compute"))
+                self.entry_points.append((node, node.stage, None))
+        if self.options.auto_entry_points and len(self.entry_points) == 0 and len(funcs) > 0:
+            # Synthesize an entry point for the last function
+            f = funcs[-1]
+            ft = f.resolved_type
+            if ft is None:
+                self.diags.warning(f"Function {f.name}'s type could not be determined so it will not be used as an entry point", f)
+            new_name = f.name + "_auto_compute"
+            new_f = Function(new_name, void_type)
+            new_f.stage = "compute"
+            for pi, p in enumerate(f.parameters):
+                new_f.param(p.name, ft.parameter_types[pi])
+            # add outputs to ps
+            call = exprs.Funcall(f, [p.name for p in f.parameters])
+            # if not ft.return_type.is_void:
+            #     new_f.param("_auto_out", ft.return_type).set("_auto_out", call)
+            # else:
+            new_f.append_stmt(stmts.ExprStmt(call))
+            self.entry_points.append((f, "compute", new_f))
     
     def compile(self):
         self.support_definitions.clear()

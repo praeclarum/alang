@@ -142,7 +142,7 @@ class HTMLWriter(CodeWriter):
         for lang in self.out_langs:
             self.write(f"<div class='code' style='max-width:40%;display:inline-block;vertical-align: top;'>\n")
             self.write(f"<h3>{lang}</h3>\n")
-            self.write(f"<code><pre>{encode(f.get_code(lang))}</pre></code>\n")
+            self.write(f"<code><pre>{encode(f.get_code(lang, self.options))}</pre></code>\n")
             self.write(f"</div>\n")
         self.write(f"<code style='max-width:40%;display:inline-block;'><pre>{encode(str(f))}</pre></code>\n")
         self.write(f"</div>\n")
@@ -172,19 +172,20 @@ class HTMLWriter(CodeWriter):
             self.write(f"<input id='{id}' type='text'>\n")
         self.write(f"</div>\n")
 
-    def write_function_ui_code(self, s: funcs.Function):
-        stage = self.get_func_stage(s)
-        if stage is None:
+    def write_function_ui_code(self, original_f: funcs.Function):
+        stage_and_f = self.get_func_stage(original_f)
+        if stage_and_f is None:
             return
+        stage, f = stage_and_f
         self.writeln(f"try {{")
         self.indent()
-        self.writeln(f"let {s.name}GPUTest = new {s.name}GPU(device, wgslModule);")
-        self.writeln(f"await {s.name}GPUTest.exec();")
+        self.writeln(f"let {f.name}GPUTest = new {f.name}GPU(device, wgslModule);")
+        self.writeln(f"await {f.name}GPUTest.exec();")
         self.dedent()
         self.writeln(f"}} catch (e) {{")
         self.indent()
-        self.writeln(f"console.error(`{s.name}GPUTest`, e);")
-        self.writeln(f"error(`{s.name}GPUTest: ${{e}}`);")
+        self.writeln(f"console.error(`{f.name}GPUTest`, e);")
+        self.writeln(f"error(`{f.name}GPUTest: ${{e}}`);")
         self.dedent()
         self.writeln(f"}}")
 

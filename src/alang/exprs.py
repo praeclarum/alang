@@ -207,9 +207,9 @@ class Funcall(Expression):
     args = NodeLinks()
     def __init__(self, func: Expression, args: list[Expression] = []):
         super().__init__(NodeType.FUNCALL)
-        self.func = func
+        self.func = parse_expr(func)
         for a in args:
-            self.link(a, "args")
+            self.link(parse_expr(a), "args")
     def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
         f = self.func
         if f is None:

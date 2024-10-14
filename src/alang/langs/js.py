@@ -64,7 +64,8 @@ class JSWriter(CodeWriter):
         self.write(") ")
         self.write_block(f)
 
-    def write_gpu_function(self, f: funcs.Function, stage: str):
+    def write_gpu_function(self, original_f: funcs.Function, stage_and_f: tuple[str, funcs.Function]):
+        stage, f = stage_and_f
         pts = [(p.resolved_type or p.parameter_type) for p in f.parameters]
         self.write(f"class {f.name}GPU {{\n")
         self.indent()

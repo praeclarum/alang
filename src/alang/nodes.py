@@ -7,9 +7,10 @@ TypeRef = str
 
 Code = str
 class CodeOptions:
-    def __init__(self, standalone: bool = False, struct_annotations: bool = False) -> None:
+    def __init__(self, standalone: bool = False, struct_annotations: bool = False, auto_entry_points: bool = False) -> None:
         self.standalone = standalone
         self.struct_annotations = struct_annotations
+        self.auto_entry_points = auto_entry_points
         self.entry_points = []
 
 class NodeType:
@@ -114,7 +115,7 @@ class Node:
         from compiler import Compiler
         options = options or CodeOptions()
         language = langs.get_language(language)
-        compiler = Compiler(self)
+        compiler = Compiler(self, options)
         compiler.compile()
         options.entry_points = compiler.entry_points
         with language.open_writer(out, options) as writer:
