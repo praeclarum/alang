@@ -372,8 +372,8 @@ class Block(Node):
         self.can_define_variables = can_define_variables
         self.can_define_statements = can_define_statements
     def parse_type(self, expr: Optional[Code]) -> Optional["Type"]: # type: ignore
-        from alang.typs import try_resolve_type
-        return try_resolve_type(expr, self)
+        from alang.typs import parse_type
+        return parse_type(expr, self)
     def parse_expr(self, expr: Optional[Code]) -> Optional["Expression"]:
         from alang.exprs import parse_expr
         return parse_expr(expr, self)

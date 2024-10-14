@@ -19,9 +19,6 @@ class Type(TypeRef):
         self.is_vector = False
         self.is_struct = False
         self.is_tensor = False
-        self.is_floatish = False
-        self.is_intish = False
-        self.is_boolish = False
         self.is_indexable = False
         self.is_void = False
         self.resolved_type = self
@@ -79,7 +76,7 @@ class Array(Type):
     element_type = NodeLink()
     num_elements = NodeAttr()
     def __init__(self, element_type: Type, length: Optional[int]):
-        element_type = try_resolve_type(element_type, self)
+        element_type = parse_type(element_type, self)
         super().__init__(f"{element_type.name}[{length}]", NodeType.ARRAY)
         self.element_type = element_type
         self.num_elements = length
@@ -161,7 +158,6 @@ class Integer(Scalar):
         self.bits = bits
         self.signed = signed
         self.nobuffer_layout = get_int_layout(bits)
-        self.is_intish = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.nobuffer_layout
     def get_type_suffix(self) -> str:
@@ -198,7 +194,6 @@ class Float(Scalar):
         super().__init__(get_float_name(bits), NodeType.FLOAT)
         self.bits = bits
         self.cached_layout = get_float_layout(bits)
-        self.is_floatish = True
     def get_type_suffix(self) -> str:
         return self.name[0]
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
@@ -226,7 +221,7 @@ class Pointer(Type):
     address_space = NodeAttr()
     access_mode = NodeAttr()
     def __init__(self, element_type: Type, address_space: Optional[str] = None, access_mode: Optional[str] = None):
-        element_type = try_resolve_type(element_type, self)
+        element_type = parse_type(element_type, self)
         super().__init__(f"{element_type.name}*", NodeType.POINTER)
         self.element_type = element_type
         self.address_space = address_space
@@ -332,14 +327,10 @@ class Struct(Type):
         return self.get_layout(None)
 
     def field(self, name: str, type: Type) -> "Struct":
-        f = Field(name, try_resolve_type(type, self))
+        f = Field(name, parse_type(type, self))
         self.link(f, "fields")
         self.nobuffer_layout = None
         return self
-
-def looks_like_tensor(x):
-    """Determines if x is a tensor just by looking at it and not importing any libs"""
-    return hasattr(x, "dtype") and hasattr(x, "shape")
 
 def get_tensor_shape_name(shape: tuple):
     sn = "x".join([str(s) for s in shape])
@@ -360,11 +351,9 @@ class Tensor(Algebraic):
     element_type = NodeLink()
     shape = NodeAttr()
     def __init__(self, shape: tuple, element_type: Type):
-        element_type = try_resolve_type(element_type)
+        element_type = parse_type(element_type)
         if element_type is None:
             raise ValueError(f"Cannot create tensor with unresolved element type: {element_type}")
-        elif not element_type.is_scalar:
-            raise ValueError(f"Cannot create tensor with non-scalar element type: {element_type}")
         super().__init__(get_tensor_name(shape, element_type), NodeType.TENSOR)
         self.element_type = element_type
         self.shape = shape
@@ -372,14 +361,13 @@ class Tensor(Algebraic):
         for s in shape:
             num_elements *= s
         self.num_elements = num_elements
-        self.nobuffer_layout = get_array_layout(element_type, num_elements)
         self.is_tensor = True
-        self.is_floatish = element_type.is_floatish
-        self.is_intish = element_type.is_intish
-        self.is_boolish = element_type.is_boolish
         self.is_indexable = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> ArrayLayout:
-        return self.nobuffer_layout
+        et = self.element_type.resolved_type or self.element_type
+        if not isinstance(et, Type):
+            return None
+        return get_array_layout(et, self.num_elements, buffer_byte_size)
     def __matmul__(self, other: "Tensor") -> "Tensor":
         if not other.is_tensor:
             raise ValueError("Cannot multiply tensor by non-tensor")
@@ -433,9 +421,6 @@ class Vector(Algebraic):
         self.size = size
         self.nobuffer_layout = get_vector_layout(element_type, size)
         self.is_vector = True
-        self.is_floatish = element_type.is_floatish
-        self.is_intish = element_type.is_intish
-        self.is_boolish = element_type.is_boolish
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.nobuffer_layout
 
@@ -491,53 +476,92 @@ builtin_types = {
 }
 builtin_types.update(scalar_types)
 
-def try_resolve_builtin_type(name: str) -> Optional[Type]:
+def try_parse_builtin_type(name: str) -> Optional[Type]:
     if name in builtin_types:
         return builtin_types[name]
     return None
 
 def resolve_builtin_type(name: str) -> Type:
-    bt = try_resolve_builtin_type(name)
+    bt = try_parse_builtin_type(name)
     if bt is None:
         raise ValueError(f"Unknown builtin type: {name}")
     return bt
 
+external_types = {
+    "float16": half_type,
+    "float32": float_type,
+    "float64": double_type,
+    "int8": sbyte_type,
+    "uint8": byte_type,
+    "int16": short_type,
+    "int32": int_type,
+    "int64": long_type,
+    "int8_t": sbyte_type,
+    "uint8_t": byte_type,
+    "int16_t": short_type,
+    "int32_t": int_type,
+    "int64_t": long_type,
+    "torch.float16": half_type,
+    "torch.float32": float_type,
+    "torch.float64": double_type,
+    "torch.int8": sbyte_type,
+    "torch.uint8": byte_type,
+    "torch.int16": short_type,
+    "torch.int32": int_type,
+    "torch.int64": long_type,
+}
+
+def try_parse_external_type(name: str) -> Optional[Type]:
+    if name in external_types:
+        return external_types[name]
+    return None
+
 tensor_type_re = re.compile(r"^([a-z][a-z]+)(((\d+)x)+(\d+))$", 0)
 
-def try_resolve_tensor_type(name: str) -> Optional[Type]:
+def try_parse_tensor_type(name: str) -> Optional[Type]:
     m = tensor_type_re.match(name)
     if m is None:
         return None
     element_type_name = m.group(1)
-    element_type = try_resolve_builtin_type(element_type_name)
+    element_type = try_parse_builtin_type(element_type_name)
     if element_type is None:
         return None
     shape_str = m.group(2)
     shape = tuple([int(s) for s in shape_str.split("x")])
     return Tensor(shape, element_type)
 
-def try_resolve_type(type, context: Optional[Node] = None) -> Type:
+def parse_type(type, context: Optional[Node] = None) -> Type:
     if type is None:
         return None
-    elif isinstance(type, Type):
+    if isinstance(type, Type):
         return type
-    elif isinstance(type, str):
-        bt = try_resolve_builtin_type(type)
-        if bt is not None:
-            return bt
-        tt = try_resolve_tensor_type(type)
-        if tt is not None:
-            return tt
-        # TODO: Implement lookup in context
-        return TypeName(str(type))
-    else:
-        raise ValueError(f"Invalid type: {type}")
+    type_name = str(type)
+    bt = try_parse_builtin_type(type_name)
+    if bt is not None:
+        return bt
+    et = try_parse_external_type(type_name)
+    if et is not None:
+        return et
+    tt = try_parse_tensor_type(type_name)
+    if tt is not None:
+        return tt
+    # TODO: Implement greedy lookup in context
+    return TypeName(str(type))
 
 def array(element_type: str, length: Optional[int] = None) -> Array:
     return Array(element_type, length)
 
-def tensor_type(shape: tuple, element_type: str) -> Tensor:
-    return Tensor(shape, try_resolve_type(element_type, None))
+def looks_like_tensor(x):
+    """Determines if x is a tensor just by looking at it and not importing any libs"""
+    return hasattr(x, "dtype") and hasattr(x, "shape")
+
+def tensor_type(shape: tuple, dtype: Optional[str] = None) -> Tensor:
+    if isinstance(shape, Tensor):
+        return shape
+    if looks_like_tensor(shape):
+        dtype = shape.dtype
+        shape = [int(x) for x in shape.shape]
+    return Tensor(shape, dtype)
 
 def struct(name: str, *fields: list) -> Struct:
     return Struct(name, *fields)

@@ -86,12 +86,7 @@ class Binop(Expression):
             else:
                 return None
         elif opn in ["add", "sub", "mul", "div", "mod"]:
-            if lt.is_floatish:
-                return lt
-            elif rt.is_floatish:
-                return rt
-            else:
-                return lt
+            return lt
         elif opn in ["shl", "shr", "band", "bor"]:
             return lt
         else:
