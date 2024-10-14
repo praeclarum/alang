@@ -15,7 +15,7 @@ def encode(str):
 class HTMLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
-        self.out_langs = ["wgsl", "js", "c", "metal", "glsl", "a"]
+        self.out_langs = ["js", "wgsl", "c", "metal", "glsl", "a"]
 
     def write_expr_stmt(self, e: stmts.ExprStmt):
         self.write_expr(e.expression)
@@ -46,7 +46,7 @@ class HTMLWriter(CodeWriter):
         self.write(f"html {{ color-scheme: light dark; font-family:Helvetica }}\n")
         self.write(f"#errors {{ color: #F88; }}\n")
         self.write(f"pre {{ overflow-x: auto; }}\n")
-        self.write(f".code {{ background-color:rgba(128,128,128,0.333); margin:1em; padding: 1em; }}\n")
+        self.write(f".code {{ background-color:rgba(128,128,128,0.25); margin:1em; padding: 1em; font-size:125%; }}\n")
         self.write(f"</style>\n")
         self.write(f"</head>\n")
         self.write(f"<body>\n")
@@ -137,12 +137,12 @@ class HTMLWriter(CodeWriter):
             self.write_input_ui_for_type(p.name, f.name + "_" + p.name, p.resolved_type or p.parameter_type)
         if f.resolved_type is not None and not f.resolved_type.return_type.is_void:
             self.write_input_ui_for_type("RETURN", f.name + "_return", f.resolved_type.return_type)
-        self.write(f"<code style='max-width:30%;display:inline-block;'><pre>{encode(str(f))}</pre></code>\n")
         for lang in self.out_langs:
-            self.write(f"<div class='code' style='max-width:30%;display:inline-block;vertical-align: top;'>\n")
+            self.write(f"<div class='code' style='max-width:40%;display:inline-block;vertical-align: top;'>\n")
             self.write(f"<h3>{lang}</h3>\n")
             self.write(f"<code><pre>{encode(f.get_code(lang))}</pre></code>\n")
             self.write(f"</div>\n")
+        self.write(f"<code style='max-width:40%;display:inline-block;'><pre>{encode(str(f))}</pre></code>\n")
         self.write(f"</div>\n")
 
     def write_input_ui_for_type(self, name: str, id: str, t: "Type"): # type: ignore
