@@ -54,7 +54,7 @@ class JSWriter(CodeWriter):
         self.write("for (let")
         self.write(f" {f.var} = 0; {f.var} < ")
         self.write_expr(f.count)
-        self.write(f"; ++{f.var}) {{\n")
+        self.write(f"; {f.var}++) {{\n")
         for s in f.statements:
             self.write_node(s)
         self.write("}\n")

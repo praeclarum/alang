@@ -106,7 +106,7 @@ class Node:
         return None
     def resolve_type(self, diags) -> Optional["Type"]: # type: ignore
         raise NotImplementedError(f"resolve_type not implemented for {self.node_type}")
-    def collect_support_definitions(self, grouped_support_definitions: dict[str, list["Node"]]):
+    def get_support_definitions(self, defs: "compiler.SupportDefinitions"): # type: ignore
         pass
     def write_code(self, out: Union[str, TextIO], language: Optional[Any] = None, options: Optional[CodeOptions] = None):
         from compiler import Compiler

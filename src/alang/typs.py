@@ -357,6 +357,8 @@ class Tensor(Algebraic):
         for i, s in enumerate(self.shape):
             flat_index = flat_index * s + indices[i]
         return flat_index
+    def get_support_lib_function_name(self) -> str:
+        return f"mul_{self.name}_{self.name}"
 
 class TypeName(TypeRef):
     def __init__(self, name: str):

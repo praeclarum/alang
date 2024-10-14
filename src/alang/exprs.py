@@ -121,13 +121,13 @@ class Binop(Expression):
             if lt is not None and rt is not None and lt.is_tensor and rt.is_tensor:
                 return f"mul_{lt.name}_{rt.name}"
         return None
-    def collect_support_definitions(self, grouped_support_definitions: dict[str, list["Node"]]):
+    def get_support_definitions(self, defs: compiler.SupportDefinitions):
         if self.operator.name == "matmul":
             lt: typs.Tensor = self.left.resolved_type
             rt: typs.Tensor = self.right.resolved_type
             if lt is not None and rt is not None and lt.is_tensor and rt.is_tensor:
                 name = self.get_support_lib_function_name()
-                if name is not None and name not in grouped_support_definitions:
+                if name is not None and defs.needs(name):
                     from stmts import Set
                     from exprs import parse_expr
                     ot = lt @ rt
@@ -145,7 +145,7 @@ class Binop(Expression):
                             inner_add = inner_add + mul
                     c_loop = stmts.Loop("out_c", ot.shape[1], Set(o_index_expr, inner_add))
                     f.loop("out_r", ot.shape[0], c_loop)
-                    grouped_support_definitions[name] = [f]
+                    defs.add(name, [f])
         return None
     
 class Constant(Expression):

@@ -49,7 +49,7 @@ class AWriter(CodeWriter):
         self.write_type_ref(typs.int_type)
         self.write(f" = 0; {f.var} < ")
         self.write_expr(f.count)
-        self.write(f"; ++{f.var}) {{\n")
+        self.write(f"; {f.var}++) {{\n")
         for s in f.statements:
             self.write_node(s)
         self.write("}\n")

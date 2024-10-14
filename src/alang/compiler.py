@@ -115,19 +115,36 @@ class InferFunctionReturnTypePass(DepthFirstVisitor):
         return_type = list(distinct_types.values())[0]
         self.set_return_type(node, return_type)
 
+class SupportDefinitions:
+    def __init__(self):
+        self.definitions: dict[str, list[Node]] = dict()
+        self.num_changes = 0
+    def add(self, group: str, defs: list[Node]):
+        if group in self.definitions:
+            return
+        self.definitions[group] = defs
+        self.num_changes += 1
+    def get(self, name: str):
+        return self.definitions.get(name)
+    def needs(self, name: str):
+        return name not in self.definitions
+
 class CollectSupportDefinitions(DepthFirstVisitor):
     def __init__(self):
-        self.grouped_support_definitions: dict[str, list[Node]] = dict()
+        self.defs = SupportDefinitions()
+    @property
+    def num_changes(self):
+        return self.defs.num_changes
     @property
     def support_definitions(self):
         flattened = []
-        for k, v in self.grouped_support_definitions.items():
+        for k, v in self.defs.definitions.items():
             flattened.extend(v)
         return flattened
     def run(self, node: Node):
         self.visit(node, None, None, None)
     def visit_node(self, node: Node, parent: Node, rel: str, acc):
-        node.collect_support_definitions(self.grouped_support_definitions)
+        node.get_support_definitions(self.defs)
         super().visit_node(node, parent, rel, acc)
 
 class Compiler:
@@ -151,7 +168,7 @@ class Compiler:
         func_return_type_pass.run(self.ast)
         return func_return_type_pass
     
-    def collect_support_definitions(self):
+    def get_support_definitions(self):
         c = CollectSupportDefinitions()
         c.run(self.ast)
         return c.support_definitions
@@ -170,4 +187,4 @@ class Compiler:
             iteration += 1
         if iteration == max_iterations:
             self.diags.error("Max iterations reached")
-        self.support_definitions = self.collect_support_definitions()
+        self.support_definitions = self.get_support_definitions()

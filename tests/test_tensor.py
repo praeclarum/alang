@@ -39,8 +39,8 @@ def test_1x2_matmul_2x1():
     code = f.wgsl_code
     assert code.strip() == """
 fn mul_int1x2_int2x1(a: int1x2, b: int2x1) -> int1x1 {
-for (var out_r: i32 = 0; out_r < 1; ++out_r) {
-for (var out_c: i32 = 0; out_c < 1; ++out_c) {
+for (var out_r: i32 = 0; out_r < 1; out_r++) {
+for (var out_c: i32 = 0; out_c < 1; out_c++) {
 o[((out_r * 1) + out_c)] = ((a[(out_r * 2)] * b[out_c]) + (a[((out_r * 2) + 1)] * b[(1 + out_c)]));
 }
 }
@@ -58,8 +58,8 @@ def test_3x5_matmul_5x7():
     code = f.wgsl_code
     assert code.strip() == """
 fn mul_int3x5_int5x7(a: int3x5, b: int5x7) -> int3x7 {
-for (var out_r: i32 = 0; out_r < 3; ++out_r) {
-for (var out_c: i32 = 0; out_c < 7; ++out_c) {
+for (var out_r: i32 = 0; out_r < 3; out_r++) {
+for (var out_c: i32 = 0; out_c < 7; out_c++) {
 o[((out_r * 7) + out_c)] = (((((a[(out_r * 5)] * b[out_c]) + (a[((out_r * 5) + 1)] * b[(7 + out_c)])) + (a[((out_r * 5) + 2)] * b[(14 + out_c)])) + (a[((out_r * 5) + 3)] * b[(21 + out_c)])) + (a[((out_r * 5) + 4)] * b[(28 + out_c)]));
 }
 }

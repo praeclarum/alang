@@ -16,7 +16,7 @@ def test_loop():
     code = f.wgsl_code
     assert code.strip() == """
 fn f() -> void {
-for (var i: i32 = 0; i < 10; ++i) {
+for (var i: i32 = 0; i < 10; i++) {
 }
 }
 """.strip()
