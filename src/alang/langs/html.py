@@ -15,7 +15,7 @@ def encode(str):
 class HTMLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
-        self.out_langs = ["a", "c", "glsl", "metal", "wgsl"]
+        self.out_langs = ["wgsl", "a", "c", "metal", "glsl"]
 
     def write_expr_stmt(self, e: stmts.ExprStmt):
         self.write_expr(e.expression)

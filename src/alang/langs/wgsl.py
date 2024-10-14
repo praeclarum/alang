@@ -82,6 +82,14 @@ class WGSLWriter(CodeWriter):
             self.write_expr(arg)
         self.write(")")
 
+    def write_block(self, f: stmts.Block):
+        self.write("{\n")
+        for v in f.variables:
+            self.write_variable(v)
+        for s in f.statements:
+            self.write_node(s)
+        self.write("}\n")
+
     def write_function(self, f: funcs.Function):
         self.write(f"fn {f.name}(")
         ps = f.parameters
@@ -92,10 +100,8 @@ class WGSLWriter(CodeWriter):
                 self.write(", ")
         self.write(") -> ")
         self.write_type_ref(f.return_type)
-        self.write(" {\n")
-        for s in f.statements:
-            self.write_node(s)
-        self.write("}\n")
+        self.write(" ")
+        self.write_block(f)
 
     def write_line_comment(self, comment: str):
         self.write("// ")
@@ -149,6 +155,13 @@ class WGSLWriter(CodeWriter):
 
     def write_type_ref(self, t: typs.Type):
         self.write(self.get_type_name(t))
+
+    def write_variable(self, v: nodes.Variable):
+        self.write("var ")
+        self.write(v.name)
+        self.write(": ")
+        self.write_type_ref(v.resolved_type or v.variable_type)
+        self.write(";\n")
 
     def get_type_name(self, t: typs.Type) -> str:
         if t is None:

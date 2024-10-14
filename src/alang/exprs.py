@@ -132,6 +132,7 @@ class Binop(Expression):
                     from exprs import parse_expr
                     ot = lt @ rt
                     f = funcs.Function(name, ot, ("a", lt), ("b", rt))
+                    f.var("o", ot)
                     inner_count = rt.shape[0]
                     inner_add = None
                     o_index_expr = Index("o", ot.get_flat_index(["out_r", "out_c"]))
@@ -144,7 +145,7 @@ class Binop(Expression):
                         else:
                             inner_add = inner_add + mul
                     c_loop = stmts.Loop("out_c", ot.shape[1], Set(o_index_expr, inner_add))
-                    f.loop("out_r", ot.shape[0], c_loop)
+                    f.loop("out_r", ot.shape[0], c_loop).ret("o")
                     defs.add(name, [f])
         return None
     

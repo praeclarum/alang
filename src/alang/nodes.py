@@ -343,6 +343,9 @@ class Block(Node):
         self.can_define_functions = can_define_functions
         self.can_define_variables = can_define_variables
         self.can_define_statements = can_define_statements
+    def parse_type(self, expr: Optional[Code]) -> Optional["Type"]: # type: ignore
+        from typs import try_resolve_type
+        return try_resolve_type(expr, self)
     def parse_expr(self, expr: Optional[Code]) -> Optional["Expression"]:
         from exprs import parse_expr
         return parse_expr(expr, self)
@@ -374,6 +377,14 @@ class Block(Node):
         else:
             raise ValueError(f"Variable {lhs} already defined")
         return self
+    def var(self, name: str, type: str) -> "Block":
+        if self.can_define_variables:
+            type = self.parse_type(type)
+            v = Variable(name, type)
+            self.link(v, "variables")
+            return self
+        else:
+            raise ValueError(f"Variable {name} not defined")
     def define(self, name: str, *parameters: list) -> "Function": # type: ignore
         if self.can_define_functions:
             from funcs import Function
@@ -409,7 +420,7 @@ class Block(Node):
         stmt = ExprStmt(funcall)
         self.append_stmt(stmt)
         return self
-    def loop(self, var: str, count: Code, *statements: list[Code]) -> "For": # type: ignore
+    def loop(self, var: str, count: Code, *statements: list[Code]) -> "Block": # type: ignore
         from stmts import Loop
         count = self.parse_expr(count)
         l = Loop(var, count, *statements)
