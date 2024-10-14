@@ -165,7 +165,7 @@ class CLanguage(Language):
     def __init__(self):
         super().__init__("c")
 
-    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> CWriter: # type: ignore
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> CWriter: # type: ignore
         return CWriter(out, options)
 
 c_lang = CLanguage()

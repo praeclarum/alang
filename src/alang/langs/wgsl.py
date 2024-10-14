@@ -264,7 +264,7 @@ class WGSLLanguage(Language):
     def __init__(self):
         super().__init__("wgsl")
 
-    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> WGSLWriter: # type: ignore
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> WGSLWriter: # type: ignore
         return WGSLWriter(out, options)
 
 wgsl_lang = WGSLLanguage()

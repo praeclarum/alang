@@ -49,7 +49,7 @@ class GLSLLanguage(Language):
     def __init__(self):
         super().__init__("glsl")
 
-    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> GLSLWriter: # type: ignore
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> GLSLWriter: # type: ignore
         return GLSLWriter(out, options)
 
 glsl_lang = GLSLLanguage()

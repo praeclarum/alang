@@ -303,7 +303,7 @@ class JSLanguage(Language):
     def __init__(self):
         super().__init__("js")
 
-    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> JSWriter: # type: ignore
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> JSWriter: # type: ignore
         return JSWriter(out, options)
 
 js_lang = JSLanguage()

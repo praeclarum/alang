@@ -50,7 +50,7 @@ class MetalLanguage(Language):
     def __init__(self):
         super().__init__("metal")
 
-    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> MetalWriter: # type: ignore
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> MetalWriter: # type: ignore
         return MetalWriter(out, options)
 
 metal_lang = MetalLanguage()

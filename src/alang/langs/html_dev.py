@@ -242,7 +242,7 @@ class HTMLLanguage(Language):
     def __init__(self):
         super().__init__("html")
 
-    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"]) -> HTMLWriter: # type: ignore
+    def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> HTMLWriter: # type: ignore
         return HTMLWriter(out, options)
 
 html_lang = HTMLLanguage()
