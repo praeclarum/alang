@@ -13,6 +13,9 @@ class JSWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
+    def write_alias(self, b: "Alias"): # type: ignore
+        pass # No types in JS
+
     def write_binop(self, b: exprs.Binop):
         support_name = b.get_support_lib_function_name()
         if support_name is not None:

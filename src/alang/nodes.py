@@ -12,6 +12,7 @@ class CodeOptions:
         self.struct_annotations = struct_annotations
 
 class NodeType:
+    ALIAS = 'alias'
     ARRAY = 'array'
     BINOP = 'binop'
     CONSTANT = 'constant'
@@ -193,7 +194,11 @@ class Visitor:
     def visit(self, node: Node, parent: Node, rel: str, acc):
         raise NotImplementedError()
     def visit_node(self, node: Node, parent: Node, rel: str, acc):
-        if node.node_type == NodeType.BINOP:
+        if node.node_type == NodeType.ALIAS:
+            return self.visit_alias(node, parent, rel, acc)
+        elif node.node_type == NodeType.ARRAY:
+            return self.visit_array(node, parent, rel, acc)
+        elif node.node_type == NodeType.BINOP:
             return self.visit_binop(node, parent, rel, acc)
         elif node.node_type == NodeType.CONSTANT:
             return self.visit_constant(node, parent, rel, acc)
@@ -239,6 +244,10 @@ class Visitor:
             missing_code = f"elif node.node_type == NodeType.{node.node_type.upper()}:\n    return self.visit_{node.node_type.lower()}(node, parent, rel, acc)"
             print(missing_code)
             return acc
+    def visit_alias(self, node: "Alias", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_array(self, node: "Array", parent: Node, rel: str, acc): # type: ignore
+        return acc
     def visit_binop(self, node: "Binop", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_constant(self, node: "Constant", parent: Node, rel: str, acc): # type: ignore

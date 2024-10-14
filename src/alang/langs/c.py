@@ -12,6 +12,11 @@ class CWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
+    def write_alias(self, a: "Alias"): # type: ignore
+        self.write(f"typedef ")
+        self.write_type_ref(a.aliased_type)
+        self.write(f" {a.name};\n")
+
     def write_binop(self, b: exprs.Binop):
         support_name = b.get_support_lib_function_name()
         if support_name is not None:

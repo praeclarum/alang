@@ -66,6 +66,12 @@ def get_array_layout(element_type: Type, length: Optional[int], buffer_byte_size
     layout.align = e_layout.align
     return layout
 
+class Alias(TypeRef):
+    aliased_type = NodeLink()
+    def __init__(self, name: str, aliased_type: Type):
+        super().__init__(name, NodeType.ALIAS)
+        self.aliased_type = aliased_type
+
 class Array(Type):
     element_type = NodeLink()
     num_elements = NodeAttr()
@@ -357,8 +363,9 @@ class Tensor(Algebraic):
         for i, s in enumerate(self.shape):
             flat_index = flat_index * s + indices[i]
         return flat_index
-    def get_support_lib_function_name(self) -> str:
-        return f"mul_{self.name}_{self.name}"
+    def get_support_definitions(self, defs: "compiler.SupportDefinitions"): # type: ignore
+        if defs.needs(self.name):
+            defs.add(self.name, [Alias(self.name, Array(self.element_type, self.num_elements))])
 
 class TypeName(TypeRef):
     def __init__(self, name: str):

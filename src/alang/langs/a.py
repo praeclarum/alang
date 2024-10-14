@@ -15,6 +15,11 @@ class AWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
 
+    def write_alias(self, a: "Alias"): # type: ignore
+        self.write(f"{a.name} = ")
+        self.write_type_ref(a.aliased_type)
+        self.write("\n")
+
     def write_binop(self, b: exprs.Binop):
         self.write("(")
         self.write_expr(b.left)

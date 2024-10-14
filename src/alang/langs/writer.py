@@ -53,6 +53,12 @@ class CodeWriter:
             elif d.kind == "warning":
                 self.warning(m)
 
+    def write_alias(self, b: "Alias"): # type: ignore
+        raise NotImplementedError
+
+    def write_array(self, b: "Array"): # type: ignore
+        raise NotImplementedError
+
     def write_binop(self, b: "Binop"): # type: ignore
         raise NotImplementedError
 
@@ -92,8 +98,10 @@ class CodeWriter:
         raise NotImplementedError
     
     def write_node(self, n: "Node"): # type: ignore
-        if n.node_type == nodes.NodeType.NAME:
-            self.write_name(n)
+        if n.node_type == nodes.NodeType.ALIAS:
+            self.write_alias(n)
+        elif n.node_type == nodes.NodeType.ARRAY:
+            self.write_array(n)
         elif n.node_type == nodes.NodeType.BINOP:
             self.write_binop(n)
         elif n.node_type == nodes.NodeType.EXPR_STMT:
@@ -110,6 +118,8 @@ class CodeWriter:
             self.write_loop(n)
         elif n.node_type == nodes.NodeType.MODULE:
             self.write_module(n)
+        elif n.node_type == nodes.NodeType.NAME:
+            self.write_name(n)
         elif n.node_type == nodes.NodeType.RETURN:
             self.write_return(n)
         elif n.node_type == nodes.NodeType.SET:
