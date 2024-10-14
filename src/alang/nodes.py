@@ -528,7 +528,7 @@ class Variable(Node):
         if self.address_space is not None and self.access_mode is None:
             self.access_mode = get_default_access_mode_for_address_space(self.address_space)
     
-    def resolve_type(self, diags: "compiler.Diagnostics") -> "typs.Type":
+    def resolve_type(self, diags: "compiler.Diagnostics") -> "typs.Type": # type: ignore
         if self.variable_type is None:
             return None
         return self.variable_type.resolved_type
