@@ -101,6 +101,8 @@ class WGSLWriter(CodeWriter):
         self.write(f"fn {f.name}(")
         ps = f.parameters
         for i, param in enumerate(ps):
+            if param.location is not None:
+                self.write(f"@location({param.location}) ")
             self.write(f"{param.name}: ")
             self.write_type_ref(param.parameter_type)
             if i < len(ps) - 1:

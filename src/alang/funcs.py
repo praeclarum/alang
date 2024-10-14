@@ -22,10 +22,10 @@ class Function(Block):
             else:
                 self.param(p)
 
-    def param(self, name: str, param_type: str = None) -> "Function":
+    def param(self, name: str, param_type: str = None, location: Optional[str] = None) -> "Function":
         if type(name) == tuple:
             name, param_type = name
-        p = Parameter(name, typs.try_resolve_type(param_type, self))
+        p = Parameter(name, parameter_type=typs.try_resolve_type(param_type, self), location=location)
         self.link(p, "parameters")
         return self
     
@@ -46,11 +46,13 @@ class Function(Block):
 class Parameter(Node):
     name = NodeAttr()
     parameter_type = NodeLink()
+    location = NodeAttr()
 
-    def __init__(self, name: str, parameter_type: "Type" = None): # type: ignore
+    def __init__(self, name: str, parameter_type: "Type" = None, location: Optional[int] = None): # type: ignore
         super().__init__(NodeType.PARAMETER)
         self.name = name
         self.parameter_type = typs.try_resolve_type(parameter_type, None)
+        self.location = location
 
     def resolve_type(self, diags: "compiler.Diagnostics") -> typs.Type: # type: ignore
         pt = self.parameter_type
