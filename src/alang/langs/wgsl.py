@@ -153,6 +153,10 @@ class WGSLWriter(CodeWriter):
     def get_type_name(self, t: typs.Type) -> str:
         if t is None:
             return "void"
+        elif isinstance(t, typs.Array):
+            n = t.num_elements
+            element_type = self.get_type_name(t.element_type)
+            return f"array<{element_type}, {n}>" if n is not None else f"array<{element_type}>"
         elif isinstance(t, typs.Integer):
             tn = t.name
             if tn == "sbyte":
