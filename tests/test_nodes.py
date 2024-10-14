@@ -1,5 +1,6 @@
 from io import StringIO
 from alang.nodes import define, global_module, Module, AccessMode, AddressSpace, Variable
+from alang.funcs import Function
 from alang.typs import float_type
 
 def test_define():
