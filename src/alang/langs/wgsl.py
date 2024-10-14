@@ -114,7 +114,26 @@ class WGSLWriter(CodeWriter):
             self.write(" ")
         self.write_block(f)
         if stage_and_auto is not None:
-            self.write_function(stage_and_auto[1])
+            self.write_auto_entry_point_function(f, *stage_and_auto)
+
+    def write_auto_entry_point_function(self, original_f: funcs.Function, stage: str, f: funcs.Function):
+        pts = original_f.resolved_type.parameter_types
+        for i, p in enumerate(original_f.parameters):
+            self.write(f"@group(0) @binding({i}) var<storage> {p.name}_auto_compute: ")
+            self.write_type_ref(pts[i])
+            self.write(";\n")
+        workgroup_size = f.workgroup_size or 1
+        self.writeln(f"@{stage} @workgroup_size({workgroup_size})")
+        self.writeln(f"fn {f.name}() {{")
+        self.indent()
+        self.write(f"{original_f.name}(")
+        for i, p in enumerate(original_f.parameters):
+            if i > 0:
+                self.write(", ")
+            self.write(p.name + "_auto_compute")
+        self.writeln(");")
+        self.dedent()
+        self.writeln("}")
 
     def write_line_comment(self, comment: str):
         self.write("// ")

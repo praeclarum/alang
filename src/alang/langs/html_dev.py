@@ -46,7 +46,7 @@ class HTMLWriter(CodeWriter):
         self.write(f"html {{ color-scheme: light dark; font-family:Helvetica }}\n")
         self.write(f"#errors {{ color: #F88; }}\n")
         self.write(f"pre {{ overflow-x: auto; }}\n")
-        self.write(f".code {{ background-color:rgba(128,128,128,0.25); margin:1em; padding: 1em; font-size:125%; }}\n")
+        self.write(f".code {{ background-color:rgba(128,128,128,0.25); margin:1em; padding: 1em; font-size:110%; }}\n")
         self.write(f"</style>\n")
         self.write(f"</head>\n")
         self.write(f"<body>\n")
@@ -172,11 +172,10 @@ class HTMLWriter(CodeWriter):
             self.write(f"<input id='{id}' type='text'>\n")
         self.write(f"</div>\n")
 
-    def write_function_ui_code(self, original_f: funcs.Function):
-        stage_and_f = self.get_func_stage(original_f)
-        if stage_and_f is None:
+    def write_function_ui_code(self, f: funcs.Function):
+        stage_and_auto = self.get_func_stage(f)
+        if stage_and_auto is None:
             return
-        stage, f = stage_and_f
         self.writeln(f"try {{")
         self.indent()
         self.writeln(f"let {f.name}GPUTest = new {f.name}GPU(device, wgslModule);")

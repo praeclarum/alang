@@ -67,10 +67,12 @@ class CWriter(CodeWriter):
             self.write(f" {param.name}")
             if i < len(ps) - 1:
                 self.write(", ")
-        self.write(") {\n")
+        self.writeln(") {")
+        self.indent()
         for s in f.statements:
             self.write_node(s)
-        self.write("}\n")
+        self.dedent()
+        self.writeln("}")
 
     def write_index(self, i: "Index"): # type: ignore
         self.write_expr(i.base)
@@ -94,10 +96,12 @@ class CWriter(CodeWriter):
         self.write_type_ref(typs.int_type)
         self.write(f" {f.var} = 0; {f.var} < ")
         self.write_expr(f.count)
-        self.write(f"; {f.var}++) {{\n")
+        self.writeln(f"; {f.var}++) {{")
+        self.indent()
         for s in f.statements:
             self.write_node(s)
-        self.write("}\n")
+        self.dedent()
+        self.writeln("}")
 
     def write_return(self, r: stmts.Return):
         self.write("return")

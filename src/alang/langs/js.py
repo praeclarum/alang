@@ -67,7 +67,7 @@ class JSWriter(CodeWriter):
     def write_gpu_function(self, original_f: funcs.Function, stage_and_f: tuple[str, funcs.Function]):
         stage, f = stage_and_f
         pts = [(p.resolved_type or p.parameter_type) for p in f.parameters]
-        self.write(f"class {f.name}GPU {{\n")
+        self.write(f"class {original_f.name}GPU {{\n")
         self.indent()
         self.writeln(f"constructor(device, shaderModule) {{")
         self.indent()
@@ -82,7 +82,7 @@ class JSWriter(CodeWriter):
         self.writeln("compute: {")
         self.indent()
         self.writeln("module: shaderModule,")
-        self.writeln("entryPoint: 'main'")
+        self.writeln(f"entryPoint: '{f.name}'")
         self.dedent()
         self.writeln("}")
         self.dedent()
