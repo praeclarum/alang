@@ -65,15 +65,20 @@ class JSWriter(CodeWriter):
         self.write_block(f)
 
     def write_gpu_function(self, f: funcs.Function, stage: str):
+        pts = [(p.resolved_type or p.parameter_type) for p in f.parameters]
         self.write(f"class {f.name}GPU {{\n")
         self.indent()
-        self.write(f"constructor(")
-        for i, param in enumerate(f.parameters):
-            if i > 0:
-                self.write(", ")
-            self.write(f"{param.name}/*: {self.get_typed_name(param.parameter_type)}*/")
-        self.write(") {\n")
+        self.writeln(f"constructor(device) {{")
         self.indent()
+        self.writeln(f"console.log('Creating GPU function {f.name}');")
+        for i, param in enumerate(f.parameters):
+            self.writeln(f"self.{param.name} = null; // {self.get_typed_name(pts[i])}")
+        self.dedent()
+        self.write("}\n")
+        self.write(f"exec(")
+        self.writeln(") {")
+        self.indent()
+        self.writeln(f"console.log('Executing GPU function {f.name}');")
         self.dedent()
         self.write("}\n")
         self.dedent()

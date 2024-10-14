@@ -15,7 +15,7 @@ def encode(str):
 class HTMLWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
         super().__init__(out, options)
-        self.out_langs = ["js", "wgsl", "c", "metal", "glsl", "a"]
+        self.out_langs = ["wgsl", "js", "c", "metal", "glsl", "a"]
 
     def write_expr_stmt(self, e: stmts.ExprStmt):
         self.write_expr(e.expression)
@@ -63,6 +63,7 @@ class HTMLWriter(CodeWriter):
         self.write("`;\n")
         self.write("const wgslLines = wgslCode.split('\\n');\n")
         self.write(f"async function main() {{\n")
+        self.indent()
         self.write(f"const $errors = document.getElementById('errors');\n")
         self.write(f"const error = (m) => {{ $errors.appendChild(document.createElement('li')).textContent = m; }};\n")
         self.write(f"const adapter = await navigator.gpu.requestAdapter();\n")
@@ -78,6 +79,7 @@ class HTMLWriter(CodeWriter):
             self.write_type_ui_code(type)
         for func in s.functions:
             self.write_function_ui_code(func)
+        self.dedent()
         self.write(f"}}\n")
         self.write(f"main();\n")
         self.write(f"</script>\n")
@@ -171,7 +173,20 @@ class HTMLWriter(CodeWriter):
         self.write(f"</div>\n")
 
     def write_function_ui_code(self, s: funcs.Function):
-        pass
+        stage = self.get_func_stage(s)
+        if stage is None:
+            return
+        self.writeln(f"try {{")
+        self.indent()
+        self.writeln(f"let {s.name}GPUTest = new {s.name}GPU(device, wgslModule);")
+        self.writeln(f"await {s.name}GPUTest.exec();")
+        self.dedent()
+        self.writeln(f"}} catch (e) {{")
+        self.indent()
+        self.writeln(f"console.error(`{s.name}GPUTest`, e);")
+        self.writeln(f"error(`{s.name}GPUTest: ${{e}}`);")
+        self.dedent()
+        self.writeln(f"}}")
 
     def write_support_node(self, n: "Node"): # type: ignore
         pass
