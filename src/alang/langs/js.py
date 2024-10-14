@@ -1,12 +1,11 @@
 from typing import Optional, TextIO, Union
-from nodes import Expression, NodeType, Statement
-from langs.language import Language, register_language
-from langs.writer import CodeWriter
 
-import typs
-import funcs
-import stmts
-import exprs
+from alang.langs.language import Language, register_language
+from alang.langs.writer import CodeWriter
+import alang.exprs as exprs
+import alang.typs as typs
+import alang.funcs as funcs
+import alang.stmts as stmts
 
 class JSWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore

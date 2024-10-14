@@ -1,4 +1,5 @@
-from alang import define, Compiler, CodeOptions
+from alang.nodes import define
+from alang.compiler import Compiler, CodeOptions
 
 def test_infer_void_return_type():
     f = define("f")

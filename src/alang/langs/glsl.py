@@ -1,10 +1,8 @@
 from typing import Optional, TextIO, Union
-from langs.language import Language, register_language
-from langs.c import CWriter
 
-import exprs
-import funcs
-import typs
+from alang.langs.language import Language, register_language
+from alang.langs.c import CWriter
+import alang.typs as typs
 
 class GLSLWriter(CWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore

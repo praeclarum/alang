@@ -1,7 +1,7 @@
 import io
 from typing import Any, Callable, Optional, TextIO, TypeVar, Union
 
-import langs
+import alang.langs as langs
 
 TypeRef = str
 
@@ -114,7 +114,7 @@ class Node:
     def get_support_definitions(self, defs: "compiler.SupportDefinitions"): # type: ignore
         pass
     def write_code(self, out: Union[str, TextIO], language: Optional[Any] = None, options: Optional[CodeOptions] = None):
-        from compiler import Compiler
+        from alang.compiler import Compiler
         options = options or CodeOptions()
         language = langs.get_language(language)
         compiler = Compiler(self, options)
@@ -326,22 +326,22 @@ class Expression(Node):
     def __add__(self, other: "Expression") -> "Expression":
         return self.add(other)
     def add(self, other: "Expression") -> "Expression":
-        from exprs import Binop
+        from alang.exprs import Binop
         return Binop(self, "+", other)
     def __sub__(self, other: "Expression") -> "Expression":
         return self.sub(other)
     def sub(self, other: "Expression") -> "Expression":
-        from exprs import Binop
+        from alang.exprs import Binop
         return Binop(self, "-", other)
     def __mul__(self, other: "Expression") -> "Expression":
         return self.mul(other)
     def mul(self, other: "Expression") -> "Expression":
-        from exprs import Binop
+        from alang.exprs import Binop
         return Binop(self, "*", other)
     def __truediv__(self, other: "Expression") -> "Expression":
         return self.div(other)
     def div(self, other: "Expression") -> "Expression":
-        from exprs import Binop
+        from alang.exprs import Binop
         return Binop(self, "/", other)
 
 class Statement(Node):
@@ -360,10 +360,10 @@ class Block(Node):
         self.can_define_variables = can_define_variables
         self.can_define_statements = can_define_statements
     def parse_type(self, expr: Optional[Code]) -> Optional["Type"]: # type: ignore
-        from typs import try_resolve_type
+        from alang.typs import try_resolve_type
         return try_resolve_type(expr, self)
     def parse_expr(self, expr: Optional[Code]) -> Optional["Expression"]:
-        from exprs import parse_expr
+        from alang.exprs import parse_expr
         return parse_expr(expr, self)
     def parse_stmt(self, stmt: Optional[Code]) -> Optional["Expression"]:
         return self.parse_expr(stmt)
@@ -382,15 +382,15 @@ class Block(Node):
             raise ValueError(f"Cannot append {child.node_type} to {self.node_type}")
     def array(self, element_type: str, length: Optional[int] = None) -> "Array": # type: ignore
         if self.can_define_types:
-            from typs import Array
+            from alang.typs import Array
             a = Array(element_type, length)
             self.link(a, "types")
             return a
         else:
             raise ValueError(f"Cannot define array in {self.node_type}")
     def call(self, func: str, *args: list) -> "Block":
-        from exprs import Funcall
-        from stmts import ExprStmt
+        from alang.exprs import Funcall
+        from alang.stmts import ExprStmt
         func = self.parse_expr(func)
         args = [self.parse_expr(x) for x in args]
         funcall = Funcall(func, args)
@@ -399,20 +399,20 @@ class Block(Node):
         return self
     def define(self, name: str, *parameters: list) -> "Function": # type: ignore
         if self.can_define_functions:
-            from funcs import Function
+            from alang.funcs import Function
             f = Function(name, None, *parameters)
             self.link(f, "functions")
             return f
         else:
             raise ValueError(f"Cannot define function in {self.node_type}")
     def loop(self, var: str, count: Code, *statements: list[Code]) -> "Block": # type: ignore
-        from stmts import Loop
+        from alang.stmts import Loop
         count = self.parse_expr(count)
         loop = Loop(var, count, *statements)
         self.stmt(loop)
         return self
     def ret(self, value: Optional[Code]) -> "Block":
-        from stmts import Return
+        from alang.stmts import Return
         r = Return(self.parse_expr(value))
         self.stmt(r)
         return self
@@ -435,7 +435,7 @@ class Block(Node):
         self.link(stmt, "statements")
     def struct(self, name: str, *fields: list) -> "Struct": # type: ignore
         if self.can_define_types:
-            from typs import Struct
+            from alang.typs import Struct
             s = Struct(name)
             for field in fields:
                 s.field(*field)
@@ -488,7 +488,7 @@ class Module(Block):
         return AddressSpace.PRIVATE
 
     def resolve_type(self, diags: "compiler.Diagnostics") -> "typs.Type": # type: ignore
-        from typs import ModuleType
+        from alang.typs import ModuleType
         return ModuleType(self.name)
 
 def get_default_access_mode_for_address_space(address_space: str) -> str:
@@ -540,3 +540,12 @@ class Variable(Node):
         if self.variable_type is None:
             return None
         return self.variable_type.resolved_type
+
+global_module = Module("global", can_define_statements=True)
+
+def define(name: str, *parameters: list) -> "Function": # type: ignore
+    return global_module.define(name, *parameters)
+
+def loop(var: str, count, body = None) -> "Array": # type: ignore
+    return global_module.loop(var, count, body)
+

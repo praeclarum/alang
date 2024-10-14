@@ -1,5 +1,6 @@
 from typing import Any, Optional, TextIO, Union
-from langs.writer import CodeWriter
+
+from alang.langs.writer import CodeWriter
 
 class Language:
     def __init__(self, name: str):

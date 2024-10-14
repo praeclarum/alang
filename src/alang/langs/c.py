@@ -1,12 +1,12 @@
 from typing import Optional, TextIO, Union
 
-from langs.language import Language, register_language
-from langs.writer import CodeWriter
-import exprs
-import funcs
-import nodes
-import stmts
-import typs
+from alang.langs.language import Language, register_language
+from alang.langs.writer import CodeWriter
+import alang.exprs as exprs
+import alang.funcs as funcs
+import alang.nodes as nodes
+import alang.stmts as stmts
+import alang.typs as typs
 
 class CWriter(CodeWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore

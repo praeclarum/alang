@@ -1,8 +1,7 @@
 from typing import Optional
-from langs.writer import CodeWriter
-from nodes import Block, Node, NodeAttr, NodeLink, NodeLinks, NodeType
-from stmts import Return
-import typs
+
+from alang.nodes import Block, Node, NodeAttr, NodeLink, NodeLinks, NodeType
+import alang.typs as typs
 
 Code = str
 

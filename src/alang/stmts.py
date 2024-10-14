@@ -1,7 +1,7 @@
 from typing import Optional
-from nodes import Block, Expression, NodeAttr, NodeLink, NodeType, Statement
 
-import typs
+from alang.nodes import Block, Expression, NodeAttr, NodeLink, NodeType, Statement
+import alang.typs as typs
 
 class ExprStmt(Statement):
     expression = NodeLink()
@@ -18,7 +18,7 @@ class Loop(Block):
         super().__init__(NodeType.LOOP, can_define_types=False, can_define_functions=False, can_define_variables=False, can_define_statements=True)
         self.var = str(var)
         if isinstance(count, int):
-            from exprs import Constant
+            from alang.exprs import Constant
             count = Constant(count)
         self.count = count
         self.statements = statements

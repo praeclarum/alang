@@ -1,6 +1,7 @@
 import re
 from typing import Optional
-from nodes import Node, Node, NodeLink, NodeLinks, NodeType, NodeAttr
+
+from alang.nodes import Node, Node, NodeLink, NodeLinks, NodeType, NodeAttr
 
 class TypeRef(Node):
     name = NodeAttr()
@@ -308,11 +309,13 @@ def round_up(k: int, n: int) -> int:
 
 class Struct(Type):
     fields = NodeLinks()
-    def __init__(self, name, fields: Optional[list[Field]] = None):
+    def __init__(self, name, *fields: Optional[list[Field]]):
         super().__init__(name, NodeType.STRUCT)
-        if fields is not None:
-            for field in fields:
+        for field in fields:
+            if isinstance(field, Field):
                 self.link(field, "fields")
+            else:
+                self.field(*field)
         self.nobuffer_layout = None
         self.is_struct = True
 
@@ -383,7 +386,7 @@ class Tensor(Algebraic):
             return None
         if len(indices) != len(self.shape):
             return None
-        from exprs import Constant
+        from alang.exprs import Constant
         flat_index = Constant(0)
         for i, s in enumerate(self.shape):
             flat_index = flat_index * s + indices[i]
@@ -526,5 +529,11 @@ def try_resolve_type(type, context: Optional[Node]) -> Type:
     else:
         raise ValueError(f"Invalid type: {type}")
 
+def array(element_type: str, length: Optional[int] = None) -> Array:
+    return Array(element_type, length)
+
 def tensor_type(shape: tuple, element_type: str) -> Tensor:
     return Tensor(shape, try_resolve_type(element_type, None))
+
+def struct(name: str, *fields: list) -> Struct:
+    return Struct(name, *fields)

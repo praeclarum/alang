@@ -1,6 +1,6 @@
 from typing import Optional, TextIO, Union
 
-import nodes
+import alang.nodes as nodes
 
 class CodeWriter:
     def __init__(self, path_or_io: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore

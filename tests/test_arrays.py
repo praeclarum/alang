@@ -1,4 +1,4 @@
-from alang import array
+from alang.typs import array
 
 def test_is_fixed():
     a = array("int", 10)

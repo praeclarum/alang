@@ -1,11 +1,12 @@
 from typing import Optional
-from langs.writer import CodeWriter
-from nodes import Expression, Node, NodeAttr, NodeLink, NodeLinks, NodeType
 
-import compiler
-import funcs
-import stmts
-import typs
+from alang.langs.writer import CodeWriter
+from alang.nodes import Expression, Node, NodeAttr, NodeLink, NodeLinks, NodeType
+
+import alang.compiler as compiler
+import alang.funcs as funcs
+import alang.stmts as stmts
+import alang.typs as typs
 
 class Name(Expression):
     name = NodeAttr()
@@ -128,8 +129,8 @@ class Binop(Expression):
             if lt is not None and rt is not None and lt.is_tensor and rt.is_tensor:
                 name = self.get_support_lib_function_name()
                 if name is not None and defs.needs(name):
-                    from stmts import Set
-                    from exprs import parse_expr
+                    from alang.stmts import Set
+                    from alang.exprs import parse_expr
                     ot = lt @ rt
                     f = funcs.Function(name, ot, ("a", lt), ("b", rt))
                     f.var("o", ot)
@@ -257,5 +258,5 @@ def parse_expr(expr: object, context: Optional[Node] = None) -> Node:
     elif isinstance(expr, float):
         return Constant(expr)
     else:
-        from langs.a import a_lang
+        from alang.langs.a import a_lang
         return a_lang.parse_expr(expr)

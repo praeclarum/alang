@@ -1,7 +1,8 @@
 from typing import Optional
-from nodes import BreadthFirstVisitor, CodeOptions, DepthFirstVisitor, Node, NodeType
-from typs import void_type
-from funcs import Function
+
+from alang.nodes import BreadthFirstVisitor, CodeOptions, DepthFirstVisitor, Node, NodeType
+from alang.typs import void_type
+from alang.funcs import Function
 
 class DiagnosticKind:
     ERROR = "error"
@@ -176,7 +177,7 @@ class Compiler:
         return c.support_definitions
     
     def find_entry_points(self):
-        import exprs, stmts, typs
+        from alang import exprs, stmts
         self.entry_points.clear()
         funcs: list[Function] = self.ast.find_reachable_with_type(NodeType.FUNCTION)
         for node in funcs:

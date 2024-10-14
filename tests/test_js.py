@@ -1,4 +1,4 @@
-from alang import array, struct, CodeOptions
+from alang.typs import array, struct
 
 def test_simple_struct():
     # https://www.w3.org/TR/WGSL/#structure-member-layout

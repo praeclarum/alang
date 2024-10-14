@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "alang"
-version = "0.0.2"
+version = "0.0.3"
 authors = [
   { name="Frank A. Krueger", email="fak@praeclarum.org" },
 ]
@@ -24,5 +24,4 @@ Issues = "https://github.com/praeclarum/alang/issues"
 [tool.pytest.ini_options]
 pythonpath = [
   "src",
-  "src/alang",
 ]

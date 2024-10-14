@@ -1,12 +1,13 @@
 """GLSL https://www.khronos.org/opengl/wiki/OpenGL_Shading_Language"""
 
 from typing import Optional, TextIO, Union
-from langs.language import Language, register_language
-from langs.writer import CodeWriter
 
-import stmts
-import typs
-import funcs
+from alang.langs.language import Language, register_language
+from alang.langs.writer import CodeWriter
+
+import alang.stmts as stmts
+import alang.typs as typs
+import alang.funcs as funcs
 
 def encode(str):
     return str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")

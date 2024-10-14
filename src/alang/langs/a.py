@@ -1,13 +1,13 @@
 from typing import Optional, TextIO, Union
 import ast
 
-from langs.language import Language, register_language
-from langs.writer import CodeWriter
-import nodes
-import exprs
-import typs
-import funcs
-import stmts
+from alang.langs.language import Language, register_language
+from alang.langs.writer import CodeWriter
+import alang.nodes as nodes
+import alang.exprs as exprs
+import alang.typs as typs
+import alang.funcs as funcs
+import alang.stmts as stmts
 
 Code = str
 

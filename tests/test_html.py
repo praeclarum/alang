@@ -1,5 +1,8 @@
 import os
-from alang import define, struct, CodeOptions, get_language, Module
+
+from alang.nodes import define, CodeOptions, Module
+from alang.langs import get_language
+from alang.typs import struct
 
 html_lang = get_language("html")
 

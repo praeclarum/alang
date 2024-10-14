@@ -1,4 +1,5 @@
-from alang import define, global_module, float_type, Module, AccessMode, AddressSpace, Function, Variable
+from alang.nodes import define, global_module, Module, AccessMode, AddressSpace, Variable
+from alang.typs import float_type
 
 def test_define():
     f_count = len(global_module.functions)

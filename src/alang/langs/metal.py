@@ -1,12 +1,10 @@
 """Metal https://developer.apple.com/metal/Metal-Shading-Language-Specification.pdf"""
 
 from typing import Optional, TextIO, Union
-from langs.language import Language, register_language
-from langs.c import CWriter
 
-import exprs
-import funcs
-import typs
+from alang.langs.language import Language, register_language
+import alang.typs as typs
+from alang.langs.c import CWriter
 
 class MetalWriter(CWriter):
     def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore

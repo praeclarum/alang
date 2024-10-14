@@ -1,4 +1,5 @@
-from alang import define, struct, tensor_type, Tensor, CodeOptions, float_type, int_type
+from alang.nodes import define
+from alang.typs import struct, tensor_type, Tensor, float_type, int_type
 
 from test_html import write_standalone_html
 
