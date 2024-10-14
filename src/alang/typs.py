@@ -35,6 +35,8 @@ class Type(TypeRef):
         raise NotImplementedError()
     def get_flat_index(self, indices: list[int]) -> Optional[int]:
         return None
+    def ptr(self, address_space: Optional[str] = None, access_mode: Optional[str] = None) -> "Pointer":
+        return Pointer(self, address_space, access_mode)
     
 class TypeLayout:
     def __init__(self):
@@ -217,6 +219,29 @@ class FunctionType(Type):
 class ModuleType(Type):
     def __init__(self, name: str):
         super().__init__(name, NodeType.MODULE_TYPE)
+
+class Pointer(Type):
+    element_type = NodeLink()
+    address_space = NodeAttr()
+    access_mode = NodeAttr()
+    def __init__(self, element_type: Type, address_space: Optional[str] = None, access_mode: Optional[str] = None):
+        element_type = try_resolve_type(element_type, self)
+        super().__init__(f"{element_type.name}*", NodeType.POINTER)
+        self.element_type = element_type
+        self.address_space = address_space
+        self.access_mode = access_mode
+    def get_type_suffix(self) -> str:
+        return "P"
+    def resolve_type(self, diags: "compiler.Diagnostics") -> Optional[Type]: # type: ignore
+        et = self.element_type
+        if et is None:
+            return None
+        ret = et.resolved_type
+        if ret is None:
+            return None
+        if ret.id == et.id:
+            return self
+        return ret.ptr(self.address_space, self.access_mode)
 
 class Field(Node):
     name = NodeAttr()

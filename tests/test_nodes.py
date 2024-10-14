@@ -1,4 +1,4 @@
-from alang import define, global_module, Module, AccessMode, AddressSpace, Function, Variable
+from alang import define, global_module, float_type, Module, AccessMode, AddressSpace, Function, Variable
 
 def test_define():
     f_count = len(global_module.functions)
@@ -68,3 +68,11 @@ fn f() {
     var x: i32;
 }
 """.strip()
+
+def test_pointer_param():
+    f = define("f").param("x", float_type.ptr())
+    assert f.parameters[0].parameter_type.name == "float*"
+#     assert f.wgsl_code.strip() == """
+# fn f(x: ptr<storage, f32>) {
+# }
+# """.strip()

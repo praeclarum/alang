@@ -14,6 +14,7 @@ class CodeOptions:
         self.entry_points = []
 
 class NodeType:
+    ADDRESS = 'address'
     ALIAS = 'alias'
     ARRAY = 'array'
     BINOP = 'binop'
@@ -32,6 +33,7 @@ class NodeType:
     MODULE_TYPE = 'module_type'
     NAME = 'name'
     PARAMETER = 'parameter'
+    POINTER = 'pointer'
     RETURN = 'return'
     SET = 'set'
     STRUCT = 'struct'
@@ -230,6 +232,8 @@ class Visitor:
             return self.visit_name(node, parent, rel, acc)
         elif node.node_type == NodeType.PARAMETER:
             return self.visit_parameter(node, parent, rel, acc)
+        elif node.node_type == NodeType.POINTER:
+            return self.visit_pointer(node, parent, rel, acc)
         elif node.node_type == NodeType.RETURN:
             return self.visit_return(node, parent, rel, acc)
         elif node.node_type == NodeType.SET:
@@ -250,6 +254,8 @@ class Visitor:
             missing_code = f"elif node.node_type == NodeType.{node.node_type.upper()}:\n    return self.visit_{node.node_type.lower()}(node, parent, rel, acc)"
             print(missing_code)
             return acc
+    def visit_address(self, node: "Address", parent: Node, rel: str, acc): # type: ignore
+        return acc
     def visit_alias(self, node: "Alias", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_array(self, node: "Array", parent: Node, rel: str, acc): # type: ignore
@@ -281,6 +287,8 @@ class Visitor:
     def visit_name(self, node: "Name", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_parameter(self, node: "Parameter", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_pointer(self, node: "Pointer", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_return(self, node: "Return", parent: Node, rel: str, acc): # type: ignore
         return acc
