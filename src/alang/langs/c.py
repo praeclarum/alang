@@ -9,8 +9,8 @@ import alang.stmts as stmts
 import alang.typs as typs
 
 class CWriter(CodeWriter):
-    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
-        super().__init__(out, options)
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"], language: Language): # type: ignore
+        super().__init__(out, options, language)
 
     def write_alias(self, a: "Alias"): # type: ignore
         self.write(f"typedef ")
@@ -166,7 +166,7 @@ class CLanguage(Language):
         super().__init__("c")
 
     def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> CWriter: # type: ignore
-        return CWriter(out, options)
+        return CWriter(out, options, self)
 
 c_lang = CLanguage()
 register_language(c_lang)

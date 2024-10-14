@@ -8,8 +8,8 @@ import alang.funcs as funcs
 import alang.stmts as stmts
 
 class JSWriter(CodeWriter):
-    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
-        super().__init__(out, options)
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"], language: Language): # type: ignore
+        super().__init__(out, options, language)
 
     def write_alias(self, b: "Alias"): # type: ignore
         pass # No types in JS
@@ -304,7 +304,7 @@ class JSLanguage(Language):
         super().__init__("js")
 
     def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> JSWriter: # type: ignore
-        return JSWriter(out, options)
+        return JSWriter(out, options, self)
 
 js_lang = JSLanguage()
 register_language(js_lang)

@@ -13,8 +13,8 @@ def encode(str):
     return str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 class HTMLWriter(CodeWriter):
-    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
-        super().__init__(out, options)
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"], language: Language): # type: ignore
+        super().__init__(out, options, language)
         self.out_langs = ["wgsl", "js", "c", "metal", "glsl", "a"]
 
     def write_expr_stmt(self, e: stmts.ExprStmt):
@@ -243,7 +243,7 @@ class HTMLLanguage(Language):
         super().__init__("html")
 
     def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> HTMLWriter: # type: ignore
-        return HTMLWriter(out, options)
+        return HTMLWriter(out, options, self)
 
 html_lang = HTMLLanguage()
 register_language(html_lang)

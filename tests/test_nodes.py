@@ -1,3 +1,4 @@
+from io import StringIO
 from alang.nodes import define, global_module, Module, AccessMode, AddressSpace, Variable
 from alang.typs import float_type
 
@@ -79,5 +80,20 @@ fn f(x: ptr<storage, f32>) {
 """.strip()
     assert f.c_code.strip() == """
 void f(float* x) {
+}
+""".strip()
+
+
+def test_write_code_to_already_open_writer():
+    f = define("f")
+    from alang import open_writer
+    from alang.langs.wgsl import wgsl_lang
+    c_out = StringIO()
+    c_writer = open_writer(c_out, "c")
+    f.write_code(c_writer)
+    c_writer.close()
+    c_code = c_out.getvalue().strip()
+    assert c_code == """
+void f() {
 }
 """.strip()

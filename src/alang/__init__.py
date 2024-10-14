@@ -1,10 +1,9 @@
-# import typing
+from typing import Optional
 
-# from alang.funcs import Function
-# from alang.nodes import AccessMode, AddressSpace, CodeOptions, Module, Variable
-# from alang.typs import Array, Struct, Vector, Tensor, int_type, float_type, tensor_type
-# from alang.langs import get_language
-# from alang.compiler import Compiler
+def open_writer(out: str, language: Optional[str] = None, options: Optional["CodeOptions"] = None): # type: ignore
+    from alang.langs import get_language
+    lang = get_language(language)
+    return lang.open_writer(out, options)
 
 if __name__ == "__main__":
     pass

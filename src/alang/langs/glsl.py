@@ -5,8 +5,8 @@ from alang.langs.c import CWriter
 import alang.typs as typs
 
 class GLSLWriter(CWriter):
-    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
-        super().__init__(out, options)
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"], language: Language): # type: ignore
+        super().__init__(out, options, language)
 
     def get_type_name(self, t: typs.Type) -> str:
         if t is None:
@@ -50,7 +50,7 @@ class GLSLLanguage(Language):
         super().__init__("glsl")
 
     def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> GLSLWriter: # type: ignore
-        return GLSLWriter(out, options)
+        return GLSLWriter(out, options, self)
 
 glsl_lang = GLSLLanguage()
 register_language(glsl_lang)

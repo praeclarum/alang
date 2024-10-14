@@ -6,7 +6,7 @@ class Language:
     def __init__(self, name: str):
         self.name = name
     def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> CodeWriter: # type: ignore
-        return CodeWriter(out, options)
+        raise NotImplementedError()
     def parse_expr(self, code: str):
         raise NotImplementedError()
 

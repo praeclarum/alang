@@ -115,16 +115,28 @@ class Node:
         pass
     def write_code(self, out: Union[str, TextIO], language: Optional[Any] = None, options: Optional[CodeOptions] = None):
         from alang.compiler import Compiler
-        options = options or CodeOptions()
-        language = langs.get_language(language)
+        from alang.langs.writer import CodeWriter
+        if isinstance(out, CodeWriter):
+            writer = out
+            needs_close = False
+            options = writer.options
+            language = writer.language
+        else:
+            language = langs.get_language(language)
+            writer = language.open_writer(out, options)
+            needs_close = True
+            options = writer.options
         compiler = Compiler(self, options)
         compiler.compile()
         options.entry_points = compiler.entry_points
-        with language.open_writer(out, options) as writer:
+        try:
             for s in compiler.support_definitions:
                 writer.write_support_node(s)
             writer.write_node(self)
             writer.write_diags(compiler.diags.messages)
+        finally:
+            if needs_close:
+                writer.close()
     def get_code(self, language: Optional[Any] = None, options: Optional[CodeOptions] = None) -> str:
         out = io.StringIO()
         self.write_code(out, language, options)
@@ -543,9 +555,9 @@ class Variable(Node):
 
 global_module = Module("global", can_define_statements=True)
 
-def define(name: str, *parameters: list) -> "Function": # type: ignore
+def define(name: str, *parameters: list) -> Node:
     return global_module.define(name, *parameters)
 
-def loop(var: str, count, body = None) -> "Array": # type: ignore
+def loop(var: str, count, body = None) -> Node:
     return global_module.loop(var, count, body)
 

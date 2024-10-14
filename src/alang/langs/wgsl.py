@@ -11,8 +11,8 @@ import alang.funcs as funcs
 import alang.stmts as stmts
 
 class WGSLWriter(CodeWriter):
-    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
-        super().__init__(out, options)
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"], language: Language): # type: ignore
+        super().__init__(out, options, language)
 
     def write_alias(self, a: "Alias"): # type: ignore
         self.write(f"alias {a.name} = ")
@@ -265,7 +265,7 @@ class WGSLLanguage(Language):
         super().__init__("wgsl")
 
     def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> WGSLWriter: # type: ignore
-        return WGSLWriter(out, options)
+        return WGSLWriter(out, options, self)
 
 wgsl_lang = WGSLLanguage()
 register_language(wgsl_lang)

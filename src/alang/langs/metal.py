@@ -7,8 +7,8 @@ import alang.typs as typs
 from alang.langs.c import CWriter
 
 class MetalWriter(CWriter):
-    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
-        super().__init__(out, options)
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"], language: Language): # type: ignore
+        super().__init__(out, options, language)
 
     def get_type_name(self, t: typs.Type) -> str:
         if t is None:
@@ -51,7 +51,7 @@ class MetalLanguage(Language):
         super().__init__("metal")
 
     def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> MetalWriter: # type: ignore
-        return MetalWriter(out, options)
+        return MetalWriter(out, options, self)
 
 metal_lang = MetalLanguage()
 register_language(metal_lang)

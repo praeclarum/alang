@@ -3,8 +3,9 @@ from typing import Optional, TextIO, Union
 import alang.nodes as nodes
 
 class CodeWriter:
-    def __init__(self, path_or_io: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
+    def __init__(self, path_or_io: Union[str, TextIO], options: Optional["CodeOptions"], language: "Language"): # type: ignore
         self.options = options
+        self.language = language
         self.indent_level = 0
         self.needs_indent = True
         if self.options is None:

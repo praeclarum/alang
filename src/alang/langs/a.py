@@ -12,8 +12,8 @@ import alang.stmts as stmts
 Code = str
 
 class AWriter(CodeWriter):
-    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"]): # type: ignore
-        super().__init__(out, options)
+    def __init__(self, out: Union[str, TextIO], options: Optional["CodeOptions"], language: Language): # type: ignore
+        super().__init__(out, options, language)
 
     def write_alias(self, a: "Alias"): # type: ignore
         self.write(f"{a.name} = ")
@@ -120,7 +120,7 @@ class ALanguage(Language):
         super().__init__("a")
 
     def open_writer(self, out: Union[str, TextIO], options: Optional["CodeOptions"] = None) -> AWriter: # type: ignore
-        return AWriter(out, options)
+        return AWriter(out, options, self)
 
     def parse_expr(self, expr: Code):
         if expr is None:
