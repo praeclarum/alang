@@ -33,6 +33,8 @@ class Type(TypeRef):
         raise NotImplementedError()
     def get_flat_index(self, indices: list[int]) -> Optional[int]:
         return None
+    def create(self, *args, **kwargs):
+        raise NotImplementedError(f"Type {self.name} does not have a create method")
     def ptr(self, address_space: Optional[str] = None, access_mode: Optional[str] = None) -> "Pointer":
         return Pointer(self, address_space, access_mode)
     
@@ -149,6 +151,9 @@ class Scalar(Algebraic):
     def __init__(self, name: str, node_type: NodeType):
         super().__init__(name, node_type)
         self.is_scalar = True
+    def create(self, value: int = 0) -> "alang.vals.Integer": # type: ignore
+        import alang.vals as vals
+        return vals.ScalarValue(self, value)
 
 class Integer(Scalar):
     bits = NodeAttr()

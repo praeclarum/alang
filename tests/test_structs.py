@@ -134,3 +134,5 @@ def test_init_struct():
     s: StructValue = st.create(x=42, y=69)
     assert s.x == 42
     assert s.y == 69
+    s.x = 100
+    assert s.x == 100
