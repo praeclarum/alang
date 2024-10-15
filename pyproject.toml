@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "alang"
-version = "0.0.3"
+version = "0.0.4"
 authors = [
   { name="Frank A. Krueger", email="fak@praeclarum.org" },
 ]
