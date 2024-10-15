@@ -1,8 +1,8 @@
-from alang.typs import array, struct
+from alang.typs import array_type, struct_type
 
 def test_simple_struct():
     # https://www.w3.org/TR/WGSL/#structure-member-layout
-    s_a = struct(
+    s_a = struct_type(
         "A",
         ("u", "float"),
         ("v", "float"),

@@ -1,13 +1,13 @@
-from alang.typs import array
+from alang.typs import array_type
 
 def test_is_fixed():
-    a = array("int", 10)
+    a = array_type("int", 10)
     assert a.is_fixed_size
     assert not a.is_runtime_sized
     assert a.num_elements == 10
 
 def test_is_runtime():
-    a = array("int")
+    a = array_type("int")
     assert not a.is_fixed_size
     assert a.is_runtime_sized
     assert a.num_elements is None
@@ -15,28 +15,28 @@ def test_is_runtime():
 # https://www.w3.org/TR/WGSL/#array-layout-examples
 
 def test_small_stride():
-    a = array("float", 8)
+    a = array_type("float", 8)
     l = a.layout
     assert l.align == 4
     assert l.element_stride == 4
     assert l.byte_size == 32
 
 def test_bigger_stride():
-    a = array("vec3f", 8)
+    a = array_type("vec3f", 8)
     l = a.layout
     assert l.align == 16
     assert l.element_stride == 16
     assert l.byte_size == 128
 
 def test_runtime_sized_nobuffer():
-    a = array("float")
+    a = array_type("float")
     l = a.layout
     assert l.align == 4
     assert l.element_stride == 4
     assert l.byte_size == 0
 
 def test_runtime_sized_floats():
-    a = array("float")
+    a = array_type("float")
     l = a.get_layout(8)
     assert l.align == 4
     assert l.element_stride == 4
@@ -44,7 +44,7 @@ def test_runtime_sized_floats():
     assert l.byte_size == 8
 
 def test_runtime_sized_float3s_not_enough_buffer():
-    a = array("vec3f")
+    a = array_type("vec3f")
     l = a.get_layout(8)
     assert l.align == 16
     assert l.element_stride == 16
@@ -52,7 +52,7 @@ def test_runtime_sized_float3s_not_enough_buffer():
     assert l.byte_size == 0
 
 def test_runtime_sized_float3s():
-    a = array("vec3f")
+    a = array_type("vec3f")
     l = a.get_layout(48)
     assert l.align == 16
     assert l.element_stride == 16
@@ -61,7 +61,7 @@ def test_runtime_sized_float3s():
 
 def test_runtime_truncation():
     # https://www.w3.org/TR/WGSL/#buffer-binding-determines-runtime-sized-array-element-count
-    a = array("float")
+    a = array_type("float")
     assert a.get_layout(1024).num_elements == 256
     assert a.get_layout(1025).num_elements == 256
     assert a.get_layout(1026).num_elements == 256

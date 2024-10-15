@@ -2,7 +2,7 @@ import os
 
 from alang.nodes import define, CodeOptions, Module
 from alang.langs import get_language
-from alang.typs import struct
+from alang.typs import struct_type
 
 html_lang = get_language("html")
 
@@ -22,7 +22,7 @@ def write_standalone_html(mod_name, node):
         return f.read()
 
 def test_just_struct():
-    s_a = struct(
+    s_a = struct_type(
         "TestStruct",
         ("u", "float"),
         ("v", "float"),
@@ -32,7 +32,7 @@ def test_just_struct():
     assert s_a.html_code.strip().startswith("<h2>TestStruct</h2>")
 
 def test_standalone_struct():
-    s_a = struct(
+    s_a = struct_type(
         "TestStruct",
         ("u", "float"),
         ("v", "float"),

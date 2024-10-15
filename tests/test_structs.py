@@ -1,9 +1,9 @@
-from alang.typs import array, struct
+from alang.typs import array_type, struct_type
 from alang.nodes import CodeOptions
 
 def test_simple_struct_layout():
     # https://www.w3.org/TR/WGSL/#structure-member-layout
-    s_a = struct(
+    s_a = struct_type(
         "A",
         ("u", "float"),
         ("v", "float"),
@@ -22,15 +22,15 @@ def test_simple_struct_layout():
 
 def test_nested_struct_layout():
     # https://www.w3.org/TR/WGSL/#structure-member-layout
-    s_a = struct(
+    s_a = struct_type(
         "A",
         ("u", "float"),
         ("v", "float"),
         ("w", "vec2f"),
         ("x", "float"),
     )
-    a = array(s_a, 3)
-    s_b = struct(
+    a = array_type(s_a, 3)
+    s_b = struct_type(
         "B",
         ("a", "vec2f"),
         ("b", "vec3f"),
@@ -57,7 +57,7 @@ def test_nested_struct_layout():
     assert l.byte_size == 160
 
 def test_struct_a():
-    s = struct("Point", ("x", "int"), ("y", "int"))
+    s = struct_type("Point", ("x", "int"), ("y", "int"))
     assert s.code.strip() == """
 struct Point:
     x: int
@@ -65,7 +65,7 @@ struct Point:
     """.strip()
 
 def test_struct_wgsl():
-    s = struct(
+    s = struct_type(
         "Ray",
         ("id", "int"),
         ("position", "vec3f"),
@@ -80,15 +80,15 @@ struct Ray {
 
 def test_runtime_sized():
     # https://www.w3.org/TR/WGSL/#buffer-binding-determines-runtime-sized-array-element-count
-    point_light = struct(
+    point_light = struct_type(
         "PointLight",
         ("position", "vec3f"),
         ("color", "vec3f"),
     )
-    light_storage = struct(
+    light_storage = struct_type(
         "LightStorage",
         ("pointCount", "uint"),
-        ("point", array(point_light)),
+        ("point", array_type(point_light)),
     )
     pl = point_light.layout
     assert pl.align == 16
@@ -107,7 +107,7 @@ def test_runtime_sized():
 
 def test_annotations():
     # https://www.w3.org/TR/WGSL/#structure-member-layout
-    s_a = struct(
+    s_a = struct_type(
         "A",
         ("u", "float"),
         ("v", "float"),

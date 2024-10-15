@@ -1,5 +1,5 @@
 from alang.nodes import define
-from alang.typs import struct, tensor_type, Tensor, float_type, int_type, looks_like_tensor
+from alang.typs import struct_type, tensor_type, Tensor, float_type, int_type, looks_like_tensor
 
 from test_html import write_standalone_html
 
@@ -12,14 +12,14 @@ def test_tensor_from_str_element_type():
     assert t.element_type.name == "short"
 
 def test_tensor_from_str_element_type():
-    s = struct("S", ("t", "byte42x69x7"))
+    s = struct_type("S", ("t", "byte42x69x7"))
     t: Tensor = s.fields[0].field_type
     assert t.node_type == "tensor"
     assert t.element_type.name == "byte"
 
 def test_tensor_wgsl():
     t = tensor_type((3, 5, 7, 11), float_type)
-    s = struct("StructWithTensor", ("t", t))
+    s = struct_type("StructWithTensor", ("t", t))
     assert s.wgsl_code.strip() == """
 alias float3x5x7x11 = array<f32, 1155>;
 struct StructWithTensor {
@@ -82,7 +82,7 @@ fn f(a: int3x5, b: int5x7) -> int3x7 {
 
 def test_standalone_tensor():
     t = tensor_type((3, 5, 7, 11), float_type)
-    s = struct("StructWithTensor", ("t", t))
+    s = struct_type("StructWithTensor", ("t", t))
     html = write_standalone_html("test_standalone_tensor", s)
     assert html.index("Float32Array") > 0
 

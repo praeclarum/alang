@@ -516,6 +516,10 @@ def try_parse_external_type(name: str) -> Optional[Type]:
         return external_types[name]
     return None
 
+def looks_like_tensor(x):
+    """Determines if x is a tensor just by looking at it and not importing any libs"""
+    return hasattr(x, "dtype") and hasattr(x, "shape")
+
 tensor_type_re = re.compile(r"^([a-z][a-z]+)(((\d+)x)+(\d+))$", 0)
 
 def try_parse_tensor_type(name: str) -> Optional[Type]:
@@ -548,12 +552,8 @@ def parse_type(type, context: Optional[Node] = None) -> Type:
     # TODO: Implement greedy lookup in context
     return TypeName(str(type))
 
-def array(element_type: str, length: Optional[int] = None) -> Array:
+def array_type(element_type: str, length: Optional[int] = None) -> Array:
     return Array(element_type, length)
-
-def looks_like_tensor(x):
-    """Determines if x is a tensor just by looking at it and not importing any libs"""
-    return hasattr(x, "dtype") and hasattr(x, "shape")
 
 def tensor_type(shape: tuple, dtype: Optional[str] = None) -> Tensor:
     if isinstance(shape, Tensor):
@@ -563,5 +563,5 @@ def tensor_type(shape: tuple, dtype: Optional[str] = None) -> Tensor:
         shape = [int(x) for x in shape.shape]
     return Tensor(shape, dtype)
 
-def struct(name: str, *fields: list) -> Struct:
+def struct_type(name: str, *fields: list) -> Struct:
     return Struct(name, *fields)
