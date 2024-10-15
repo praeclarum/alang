@@ -314,6 +314,10 @@ class Struct(Type):
         self.nobuffer_layout = None
         self.is_struct = True
 
+    def create(self, **kwargs) -> "alang.vals.Struct": # type: ignore
+        import alang.vals as vals
+        return vals.StructValue(self, **kwargs)
+
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> StructLayout:
         if buffer_byte_size is None:
             if self.nobuffer_layout is None:

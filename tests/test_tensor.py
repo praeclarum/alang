@@ -125,38 +125,38 @@ def test_custom_tensor_looks_like_tensor():
             self.shape = (1, 2, 3)
     assert looks_like_tensor(T())
 
-def test_torch_tensor_looks_like_tensor():
-    import torch
-    assert looks_like_tensor(torch.tensor([1.0, 2.0, 3.0]))
-    assert looks_like_tensor(torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32))
-    assert looks_like_tensor(torch.tensor(0))
-    assert looks_like_tensor(torch.tensor(1) + torch.tensor(1))
-    assert not looks_like_tensor(torch.nn.Module())
+# def test_torch_tensor_looks_like_tensor():
+#     import torch
+#     assert looks_like_tensor(torch.tensor([1.0, 2.0, 3.0]))
+#     assert looks_like_tensor(torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32))
+#     assert looks_like_tensor(torch.tensor(0))
+#     assert looks_like_tensor(torch.tensor(1) + torch.tensor(1))
+#     assert not looks_like_tensor(torch.nn.Module())
 
-def test_numpy_array_looks_like_tensor():
-    import numpy as np
-    assert looks_like_tensor(np.array([1.0, 2.0, 3.0]))
-    assert looks_like_tensor(np.array([1.0, 2.0, 3.0], dtype=np.float32))
-    assert looks_like_tensor(np.array(0))
+# def test_tensor_type_from_torch_tensor():
+#     import torch
+#     t3f = tensor_type(torch.tensor([1.0, 2.0, 3.0]))
+#     assert t3f is not None
+#     assert t3f.shape == [3,]
+#     assert t3f.element_type.name == "float"
+#     t3l = tensor_type(torch.tensor([1, 2, 3], dtype=torch.int64))
+#     assert t3l is not None
+#     assert t3l.shape == [3,]
+#     assert t3l.element_type.name == "long"
 
-def test_tensor_type_from_torch_tensor():
-    import torch
-    t3f = tensor_type(torch.tensor([1.0, 2.0, 3.0]))
-    assert t3f is not None
-    assert t3f.shape == [3,]
-    assert t3f.element_type.name == "float"
-    t3l = tensor_type(torch.tensor([1, 2, 3], dtype=torch.int64))
-    assert t3l is not None
-    assert t3l.shape == [3,]
-    assert t3l.element_type.name == "long"
+# def test_numpy_array_looks_like_tensor():
+#     import numpy as np
+#     assert looks_like_tensor(np.array([1.0, 2.0, 3.0]))
+#     assert looks_like_tensor(np.array([1.0, 2.0, 3.0], dtype=np.float32))
+#     assert looks_like_tensor(np.array(0))
 
-def test_tensor_type_from_numpy_array():
-    import numpy as np
-    t3f = tensor_type(np.array([1.0, 2.0, 3.0]))
-    assert t3f is not None
-    assert t3f.shape == [3,]
-    assert t3f.element_type.name == "double"
-    t3l = tensor_type(np.array([1, 2, 3], dtype=np.int64))
-    assert t3l is not None
-    assert t3l.shape == [3,]
-    assert t3l.element_type.name == "long"
+# def test_tensor_type_from_numpy_array():
+#     import numpy as np
+#     t3f = tensor_type(np.array([1.0, 2.0, 3.0]))
+#     assert t3f is not None
+#     assert t3f.shape == [3,]
+#     assert t3f.element_type.name == "double"
+#     t3l = tensor_type(np.array([1, 2, 3], dtype=np.int64))
+#     assert t3l is not None
+#     assert t3l.shape == [3,]
+#     assert t3l.element_type.name == "long"

@@ -1,5 +1,6 @@
 from alang.typs import array_type, struct_type
 from alang.nodes import CodeOptions
+from alang.vals import StructValue
 
 def test_simple_struct_layout():
     # https://www.w3.org/TR/WGSL/#structure-member-layout
@@ -122,3 +123,14 @@ struct A {                                     //             align(8)  size(24)
     x: f32                                     // offset(16)  align(4)  size(4)
 }
 """.strip()
+    
+def test_create_struct():
+    st = struct_type("Point", ("x", "int"), ("y", "int"))
+    s: StructValue = st.create()
+    assert s.type.name == "Point"
+
+def test_init_struct():
+    st = struct_type("Point", ("x", "int"), ("y", "int"))
+    s: StructValue = st.create(x=42, y=69)
+    assert s.x == 42
+    assert s.y == 69
