@@ -14,6 +14,53 @@ class Value:
         out = BytesIO()
         self.write(out, buffer_byte_size=buffer_byte_size)
         return out.getvalue()
+    
+class ArrayValue(Value):
+    def __init__(self, type: Array, values=None):
+        super().__init__(type)
+        self.type: Array
+        n = self.type.num_elements
+        self.values: list[Value] = []
+        if values is None:
+            if n is not None:
+                et = self.type.element_type.resolved_type or self.type.element_type
+                self.values = [et.create() for _ in range(n)]
+            else:
+                self.values = []
+        else:
+            if len(values) != n:
+                raise ValueError(f"Array value length mismatch: {len(self.values)} != {n}")
+            self.values = [None] * n
+            for i, v in enumerate(values):
+                self[i] = v
+
+    def get_python_value(self):
+        return self    
+
+    def __getitem__(self, index: int):
+        return self.values[index].get_python_value()
+    def __setitem__(self, index: int, value):
+        et = self.type.element_type.resolved_type or self.type.element_type
+        if not isinstance(value, Value):
+            self.values[index] = et.create(value)
+        else:
+            if value.type.type != self.type.element_type:
+                raise ValueError(f"Array value type mismatch: {value.type.type} != {self.type.element_type}")
+            self.values[index] = value
+    def __len__(self):
+        return len(self.values)
+
+    def write(self, out: BinaryIO, buffer_byte_size: Optional[int] = None):
+        at: Array = self.type.resolved_type or self.type
+        al = at.get_layout(buffer_byte_size=buffer_byte_size)
+        e_stride = al.element_stride
+        e_size = at.element_type.get_layout().byte_size
+        n_padding = e_stride - e_size
+        padding = b"\x00" * n_padding
+        for v in self.values:
+            v.write(out)
+            if n_padding > 0:
+                out.write(padding)
 
 class ScalarValue(Value):
     def __init__(self, type: Scalar, value):

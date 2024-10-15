@@ -90,6 +90,9 @@ class Array(Type):
         self.nobuffer_layout = get_array_layout(element_type, length)
         self.is_array = True
         self.is_indexable = True
+    def create(self, values=None):
+        from alang.vals import ArrayValue
+        return ArrayValue(self, values=values)
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> ArrayLayout:
         if buffer_byte_size is not None:
             return get_array_layout(self.element_type, self.num_elements, buffer_byte_size)

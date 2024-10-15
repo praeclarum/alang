@@ -185,3 +185,15 @@ def test_serialize_struct_in_struct():
     bs = s.serialize()
     assert len(bs) == sl.byte_size
     assert bs == b"\x42\x00\x00\x00\x69\x00\x00\x00\x96\x00\x00\x00"
+
+def test_serialize_array_in_struct():
+    at = array_type("int", 2)
+    st = struct_type("Outer", ("a", at), ("b", "int"))
+    s: StructValue = st.create()
+    s.a[0] = 0x42
+    s.a[1] = 0x69
+    s.b = 0x96
+    sl = st.layout
+    bs = s.serialize()
+    assert len(bs) == sl.byte_size
+    assert bs == b"\x42\x00\x00\x00\x69\x00\x00\x00\x96\x00\x00\x00"
