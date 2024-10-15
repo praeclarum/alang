@@ -1,3 +1,4 @@
+from io import BytesIO
 from alang.typs import array_type, struct_type
 from alang.nodes import CodeOptions
 from alang.vals import StructValue
@@ -155,3 +156,11 @@ def test_cant_set_nonfield():
         assert False
     except AttributeError:
         pass
+
+def test_write():
+    st = struct_type("Point", ("x", "int"), ("y", "int"))
+    s: StructValue = st.create()
+    bs = BytesIO()
+    s.write(bs)
+    bs = bs.getvalue()
+    assert bs == b"\x00\x00\x00\x00\x00\x00\x00\x00"

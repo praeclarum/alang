@@ -1,19 +1,35 @@
-from typing import Any
-from alang.typs import Array, Scalar, Struct, Tensor, Type, Vector
+
+from typing import BinaryIO
+from alang.typs import Array, Float, Integer, Scalar, Struct, Tensor, Type, Vector
 
 class Value:
     def __init__(self, type: Type):
         self.type = type
     def get_python_value(self):
         raise NotImplementedError()
+    def write(self, out: BinaryIO):
+        raise NotImplementedError()
 
 class ScalarValue(Value):
     def __init__(self, type: Scalar, value):
         super().__init__(type)
-        self.type: Scalar
         self.value = value
     def get_python_value(self):
         return self.value
+    
+class FloatValue(ScalarValue):
+    def __init__(self, type: Float, value):
+        super().__init__(type, value)
+        self.type: Float
+    def write(self, out: BinaryIO):
+        out.write(self.value.to_bytes(self.type.bits // 8, "little"))
+
+class IntegerValue(ScalarValue):
+    def __init__(self, type: Integer, value):
+        super().__init__(type, value)
+        self.type: Integer
+    def write(self, out: BinaryIO):
+        out.write(self.value.to_bytes(self.type.bits // 8, "little"))
 
 class StructValue(Value):
     def __init__(self, type: Struct, **kwargs):
@@ -55,11 +71,15 @@ class StructValue(Value):
             raise AttributeError(f"Field not found: {name}")
         return self.values[name].get_python_value()
     
-    def __setattr__(self, name: str, value: Any) -> None:
+    def __setattr__(self, name: str, value) -> None:
         if name == "type" or name == "values":
             super().__setattr__(name, value)
         else:
             self.set_field_value(name, value)
+
+    def write(self, out: BinaryIO):
+        for f in self.type.fields:
+            self.values[f.name].write(out)
     
 class TensorValue(Value):
     def __init__(self, type: Tensor, value):

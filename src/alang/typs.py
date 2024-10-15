@@ -73,6 +73,10 @@ class Alias(TypeRef):
     def __init__(self, name: str, aliased_type: Type):
         super().__init__(name, NodeType.ALIAS)
         self.aliased_type = aliased_type
+    def resolve_type(self, diags) -> Optional[Type]:
+        if self.aliased_type is not None:
+            return self.aliased_type.resolved_type
+        return None
 
 class Array(Type):
     element_type = NodeLink()
@@ -151,9 +155,6 @@ class Scalar(Algebraic):
     def __init__(self, name: str, node_type: NodeType):
         super().__init__(name, node_type)
         self.is_scalar = True
-    def create(self, value: int = 0) -> "alang.vals.Integer": # type: ignore
-        import alang.vals as vals
-        return vals.ScalarValue(self, value)
 
 class Integer(Scalar):
     bits = NodeAttr()
@@ -167,6 +168,9 @@ class Integer(Scalar):
         return self.nobuffer_layout
     def get_type_suffix(self) -> str:
         return self.name[0]
+    def create(self, value: int = 0) -> "alang.vals.Integer": # type: ignore
+        import alang.vals as vals
+        return vals.IntegerValue(self, value)
 
 sbyte_type = Integer(8, True)
 byte_type = Integer(8, False)
@@ -203,6 +207,9 @@ class Float(Scalar):
         return self.name[0]
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.cached_layout
+    def create(self, value: float = 0.0) -> "alang.vals.FloatValue": # type: ignore
+        import alang.vals as vals
+        return vals.FloatValue(self, value)
 
 half_type = Float(16)
 float_type = Float(32)
