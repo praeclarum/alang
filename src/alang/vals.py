@@ -158,9 +158,26 @@ class StructValue(Value):
     
 class TensorValue(Value):
     def __init__(self, type: Tensor, value):
+        if type is None and value is not None:
+            from alang.typs import tensor_type
+            type = tensor_type(value)
         super().__init__(type)
         self.type: Tensor
         self.value = value
+    def write(self, out: BinaryIO, buffer_byte_size: Optional[int] = None):
+        vt = self.value.__class__.__name__
+        if vt == "ndarray":
+            self.write_numpy(self.value, out)
+        elif hasattr(self.value, "numpy"):
+            self.write_numpy(self.value.numpy(), out)
+        else:
+            raise ValueError(f"Unsupported tensor type: {vt}")
+    def write_numpy(self, a, out: BinaryIO):
+        bs = a.copy().tobytes()
+        tl = self.type.get_layout()
+        if len(bs) != tl.byte_size:
+            raise ValueError(f"Tensor value byte size mismatch: {len(bs)} != {tl.byte_size}")
+        out.write(bs)
 
 class VectorValue(Value):
     def __init__(self, type: Vector, x=None, y=None, z=None, w=None):

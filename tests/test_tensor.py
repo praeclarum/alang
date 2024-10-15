@@ -1,6 +1,7 @@
 from alang.nodes import define
 from alang.typs import struct_type, tensor_type, Tensor, float_type, int_type, looks_like_tensor
 
+from alang.vals import TensorValue
 from test_html import write_standalone_html
 
 def test_tensor_from_element_type():
@@ -124,6 +125,38 @@ def test_custom_tensor_looks_like_tensor():
             self.dtype = "int"
             self.shape = (1, 2, 3)
     assert looks_like_tensor(T())
+
+def do_test_serialize(ct):
+    t = ct([0x00, 0x11, 0x22])
+    tv = TensorValue(None, t)
+    bs = tv.serialize()
+    assert bs == b"\x00\x00\x00\x00\x11\x00\x00\x00\x22\x00\x00\x00"
+
+def do_test_serialize_view(ct):
+    t = ct([
+        [0x0100, 0x0111, 0x0122],
+        [0x0200, 0x0211, 0x0222],
+        [0x0300, 0x0311, 0x0322],
+        [0x0400, 0x0411, 0x0422],
+    ])
+    tt = t.T
+    ttt = tt[1:2, 2:4]
+    tv = TensorValue(None, ttt)
+    bs = tv.serialize()
+    # print([hex(x) for x in ttt.flatten()])
+    assert bs == b"\x11\x03\x00\x00\x11\x04\x00\x00"
+
+# def test_serialize_numpy_array():
+#     import numpy as np
+#     ct = lambda x: np.array(x, dtype=np.int32)
+#     do_test_serialize(ct)
+#     do_test_serialize_view(ct)
+
+# def test_serialize_torch_tensor():
+#     import torch
+#     ct = lambda x: torch.tensor(x, dtype=torch.int32)
+#     do_test_serialize(ct)
+#     do_test_serialize_view(ct)
 
 # def test_torch_tensor_looks_like_tensor():
 #     import torch
