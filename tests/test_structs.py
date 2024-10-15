@@ -136,3 +136,22 @@ def test_init_struct():
     assert s.y == 69
     s.x = 100
     assert s.x == 100
+
+def test_mutate_struct():
+    st = struct_type("Point", ("x", "int"), ("y", "int"))
+    s: StructValue = st.create()
+    assert s.x == 0
+    assert s.y == 0
+    s.x = 100
+    assert s.x == 100
+    s.y = 200
+    assert s.y == 200
+
+def test_cant_set_nonfield():
+    st = struct_type("Point", ("x", "int"), ("y", "int"))
+    s: StructValue = st.create()
+    try:
+        s.z = 42
+        assert False
+    except AttributeError:
+        pass

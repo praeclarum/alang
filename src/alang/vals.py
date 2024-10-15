@@ -1,3 +1,4 @@
+from typing import Any
 from alang.typs import Array, Scalar, Struct, Tensor, Type, Vector
 
 class Value:
@@ -37,7 +38,7 @@ class StructValue(Value):
             raise ValueError(f"Field value cannot be None: {name}")
         f = self.find_field(name)
         if f is None:
-            raise ValueError(f"Field not found: {name}")
+            raise AttributeError(f"Field not found: {name}")
         if not isinstance(value, Value):
             ft = (f.resolved_type or f.field_type.resolved_type) or f.field_type
             if ft is None:
@@ -53,6 +54,12 @@ class StructValue(Value):
         if f is None:
             raise AttributeError(f"Field not found: {name}")
         return self.values[name].get_python_value()
+    
+    def __setattr__(self, name: str, value: Any) -> None:
+        if name == "type" or name == "values":
+            super().__setattr__(name, value)
+        else:
+            self.set_field_value(name, value)
     
 class TensorValue(Value):
     def __init__(self, type: Tensor, value):
