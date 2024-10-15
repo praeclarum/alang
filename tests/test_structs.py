@@ -173,3 +173,15 @@ def test_serialize_padding():
     sl = st.layout
     bs = s.serialize()
     assert len(bs) == sl.byte_size
+
+def test_serialize_struct_in_struct():
+    inner_st = struct_type("Inner", ("x", "int"), ("y", "int"))
+    outer_st = struct_type("Outer", ("a", "int"), ("b", inner_st))
+    s: StructValue = outer_st.create()
+    s.a = 0x42
+    s.b.x = 0x69
+    s.b.y = 0x96
+    sl = outer_st.layout
+    bs = s.serialize()
+    assert len(bs) == sl.byte_size
+    assert bs == b"\x42\x00\x00\x00\x69\x00\x00\x00\x96\x00\x00\x00"

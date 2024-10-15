@@ -55,6 +55,9 @@ class StructValue(Value):
                 ft = (f.resolved_type or f.field_type.resolved_type) or f.field_type
                 self.values[f.name] = ft.create()
 
+    def get_python_value(self):
+        return self
+
     def find_field(self, name: str):
         for f in self.type.fields:
             if f.name == name:
