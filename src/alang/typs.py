@@ -15,6 +15,7 @@ class Type(TypeRef):
         self.is_primitive = False
         self.is_algebraic = False
         self.is_scalar = False
+        self.is_float = False
         self.is_array = False
         self.is_vector = False
         self.is_struct = False
@@ -203,6 +204,7 @@ class Float(Scalar):
         super().__init__(get_float_name(bits), NodeType.FLOAT)
         self.bits = bits
         self.cached_layout = get_float_layout(bits)
+        self.is_float = True
     def get_type_suffix(self) -> str:
         return self.name[0]
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
@@ -435,10 +437,14 @@ class Vector(Algebraic):
             raise ValueError(f"Invalid vector size: {size}. Size must be 2, 3, or 4")
         self.element_type = element_type
         self.size = size
+        self.num_elements = size
         self.nobuffer_layout = get_vector_layout(element_type, size)
         self.is_vector = True
     def get_layout(self, buffer_byte_size: Optional[int] = None) -> TypeLayout:
         return self.nobuffer_layout
+    def create(self, *args, **kwargs):
+        from alang.vals import VectorValue
+        return VectorValue(self, *args, **kwargs)
 
 vec2h_type = Vector(half_type, 2)
 vec3h_type = Vector(half_type, 3)

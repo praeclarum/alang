@@ -160,7 +160,16 @@ def test_cant_set_nonfield():
 def test_write():
     st = struct_type("Point", ("x", "int"), ("y", "int"))
     s: StructValue = st.create()
+    sl = st.layout
     bs = BytesIO()
     s.write(bs)
     bs = bs.getvalue()
+    assert len(bs) == sl.byte_size
     assert bs == b"\x00\x00\x00\x00\x00\x00\x00\x00"
+
+def test_serialize_padding():
+    st = struct_type("NeedsPadding", ("x", "int"), ("y", "vec4f"))
+    s: StructValue = st.create()
+    sl = st.layout
+    bs = s.serialize()
+    assert len(bs) == sl.byte_size
