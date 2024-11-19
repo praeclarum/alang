@@ -67,9 +67,15 @@ class CWriter(CodeWriter):
             self.write(f" {param.name}")
             if i < len(ps) - 1:
                 self.write(", ")
-        self.writeln(") {")
+        self.write(") ")
+        self.write_block(f)
+
+    def write_block(self, b: stmts.Block):
+        self.writeln("{")
         self.indent()
-        for s in f.statements:
+        for v in b.variables:
+            self.write_variable(v)
+        for s in b.statements:
             self.write_node(s)
         self.dedent()
         self.writeln("}")
@@ -121,6 +127,15 @@ class CWriter(CodeWriter):
 
     def write_type_ref(self, t: typs.Type):
         self.write(self.get_type_name(t))
+
+    def write_variable(self, v: nodes.Variable):
+        self.write_type_ref(v.resolved_type or v.variable_type)
+        self.write(" ")
+        self.write(v.name)
+        if v.initial_value is not None:
+            self.write(" = ")
+            self.write_expr(v.initial_value)
+        self.write(";\n")
 
     def get_type_name(self, t: typs.Type) -> str:
         if t is None:

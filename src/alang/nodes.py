@@ -1,6 +1,8 @@
 import io
 from typing import Any, Callable, Optional, TextIO, TypeVar, Union
 
+from numpy import isin
+
 import alang.langs as langs
 
 TypeRef = str
@@ -434,13 +436,16 @@ class Block(Node):
         v = self.lookup_variable(lhs)
         if v is None:
             if self.can_define_variables:
-                v = Variable(lhs)
+                v = Variable(lhs, initial_value=rhs)
                 self.link(v, "variables")
+                return self
             else:
                 raise ValueError(f"Variable {lhs} not defined")
         else:
-            raise ValueError(f"Variable {lhs} already defined")
-        return self
+            from alang.stmts import Set
+            s = Set(lhs, rhs)
+            self.stmt(s)
+            return self
     def stmt(self, stmt):
         if not self.can_define_statements:
             raise ValueError(f"Cannot define return statements in {self.node_type}")
@@ -527,12 +532,13 @@ class Variable(Node):
 
     def __init__(
             self,
-            name: str, type: Optional["Type"] = None, initial_value: Expression = None, # type: ignore
+            name: Union[str, "Name"], # type: ignore
+            type: Optional["Type"] = None, initial_value: Expression = None, # type: ignore
             bind_group: Optional[int] = None, binding: Optional[int] = None,
             address_space: Optional[str] = None, access_mode: Optional[str] = None,
             ):
         super().__init__(NodeType.VARIABLE)
-        self.name = name
+        self.name = name if isinstance(name, str) else name.name
         self.variable_type = type
         self.initial_value = initial_value
         self.bind_group = bind_group

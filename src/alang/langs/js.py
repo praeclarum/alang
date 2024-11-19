@@ -35,6 +35,8 @@ class JSWriter(CodeWriter):
     def write_block(self, b: stmts.Block):
         self.write("{\n")
         self.indent()
+        for s in b.variables:
+            self.write_variable(s)
         for s in b.statements:
             self.write_node(s)
         self.dedent()
@@ -251,6 +253,13 @@ class JSWriter(CodeWriter):
 
     def write_name(self, s: exprs.Name):
         self.write(s.name)
+
+    def write_variable(self, v: "Variable"): # type: ignore
+        self.write(f"let {v.name}")
+        if v.initial_value is not None:
+            self.write(" = ")
+            self.write_expr(v.initial_value)
+        self.writeln(";")
 
     def get_typed_name(self, t: typs.Type) -> str:
         if isinstance(t, typs.Integer):

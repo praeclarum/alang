@@ -1,5 +1,6 @@
 """WGSL https://www.w3.org/TR/WGSL/"""
 
+from mimetypes import init
 from typing import Optional, TextIO, Union
 
 from alang.langs.language import Language, register_language
@@ -201,6 +202,9 @@ class WGSLWriter(CodeWriter):
         self.write(v.name)
         self.write(": ")
         self.write_type_ref(v.resolved_type or v.variable_type)
+        if v.initial_value is not None:
+            self.write(" = ")
+            self.write_expr(v.initial_value)
         self.write(";\n")
 
     def get_type_name(self, t: typs.Type) -> str:
