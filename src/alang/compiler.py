@@ -39,6 +39,7 @@ class Diagnostics:
 
 class TypeResolutionPass(DepthFirstVisitor):
     def __init__(self, diags: Diagnostics):
+        super().__init__()
         self.diags = diags
         self.num_changes = 0
         self.num_need_info = 0
@@ -58,6 +59,7 @@ class TypeResolutionPass(DepthFirstVisitor):
     
 class NameResolutionPass(BreadthFirstVisitor):
     def __init__(self, diags: Diagnostics):
+        super().__init__()
         self.diags = diags
         self.num_changes = 0
         self.num_need_info = 0
@@ -83,6 +85,7 @@ class NameResolutionPass(BreadthFirstVisitor):
 
 class InferFunctionReturnTypePass(DepthFirstVisitor):
     def __init__(self, diags: Diagnostics):
+        super().__init__()
         self.diags = diags
         self.num_changes = 0
         self.num_need_info = 0
@@ -132,6 +135,7 @@ class SupportDefinitions:
 
 class CollectSupportDefinitions(DepthFirstVisitor):
     def __init__(self):
+        super().__init__()
         self.defs = SupportDefinitions()
     @property
     def num_changes(self):

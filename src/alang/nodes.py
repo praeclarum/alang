@@ -218,6 +218,12 @@ class NodeLink:
             obj.link(value, self.rel)
 
 class Visitor:
+    def __init__(self):
+        self.visited = set()
+    def mark_visited(self, node: Node):
+        already_visited = node.id in self.visited
+        self.visited.add(node.id)
+        return already_visited
     def visit(self, node: Node, parent: Node, rel: str, acc):
         raise NotImplementedError()
     def visit_node(self, node: Node, parent: Node, rel: str, acc):
@@ -329,14 +335,22 @@ class Visitor:
         return acc
     
 class DepthFirstVisitor(Visitor):
+    def __init__(self):
+        super().__init__()
     def visit(self, node: Node, parent: Node, rel: str, acc):
+        if self.mark_visited(node):
+            return acc
         sacc = []
         for crel, child in node.links:
             sacc.append((crel, self.visit(child, node, crel, acc)))
         return self.visit_node(node, parent, rel, sacc)
 
 class BreadthFirstVisitor(Visitor):
+    def __init__(self):
+        super().__init__()
     def visit(self, node: Node, parent: Node, rel: str, acc):
+        if self.mark_visited(node):
+            return acc
         cacc = self.visit_node(node, parent, rel, acc)
         for crel, child in node.links:
             self.visit(child, node, crel, cacc)
