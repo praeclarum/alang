@@ -76,12 +76,17 @@ class Node:
         self.links.append((rel, child))
         child.append_backlink(self, rel)
         return self
-    def find_reachable_with_type(self, node_type: NodeType) -> list["Node"]:
+    def find_reachable_with_type(self, node_type: NodeType, visited=None) -> list["Node"]:
+        if visited is None:
+            visited = set()
+        if self.id in visited:
+            return []
+        visited.add(self.id)
         reachable = []
         if self.node_type == node_type:
             reachable.append(self)
         for rel, link in self.links:
-            reachable.extend(link.find_reachable_with_type(node_type))
+            reachable.extend(link.find_reachable_with_type(node_type, visited=visited))
         return reachable
     def write_node(self, out, depth, rel):
         if depth > 5:
