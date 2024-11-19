@@ -60,6 +60,8 @@ class Node:
         self.resolved_type = None # all nodes get typed
         self.resolved_node = None # some nodes (name, type_name) get resolved to a node
     def append_backlink(self, backlink: "Node", rel: str):
+        if backlink == self:
+            return
         self.last_backlink = backlink
     def get_rels(self, rel: str) -> list["Node"]:
         return [child for (crel, child) in self.links if crel == rel]
@@ -104,12 +106,17 @@ class Node:
         return out.getvalue()
     def __repr__(self):
         return str(self)
-    def lookup_variable(self, name: str) -> Optional["Variable"]:
+    def lookup_variable(self, name: str, visited=None) -> Optional["Variable"]:
+        if visited is None:
+            visited = set()
+        if self.id in visited:
+            return None
+        visited.add(self.id)
         p = self.last_backlink
         while p is not None:
             if isinstance(p, Node):
-                return p.lookup_variable(name)
-            p = p.parent
+                return p.lookup_variable(name, visited)
+            p = p.last_backlink
         return None
     def resolve_type(self, diags) -> Optional["Type"]: # type: ignore
         raise NotImplementedError(f"resolve_type not implemented for {self.node_type}")
@@ -414,7 +421,10 @@ class Block(Node):
     def define(self, name: str, *parameters: list) -> "Function": # type: ignore
         if self.can_define_functions:
             from alang.funcs import Function
-            f = Function(name, None, *parameters)
+            if isinstance(name, Function):
+                f = name
+            else:
+                f = Function(name, None, *parameters)
             self.link(f, "functions")
             return f
         else:
