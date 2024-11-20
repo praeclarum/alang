@@ -19,6 +19,7 @@ class NodeType:
     ADDRESS = 'address'
     ALIAS = 'alias'
     ARRAY = 'array'
+    ATTRIBUTE = 'attribute'
     BINOP = 'binop'
     CONSTANT = 'constant'
     EXPR_STMT = 'expr_stmt'
@@ -242,6 +243,8 @@ class Visitor:
             return self.visit_alias(node, parent, rel, acc)
         elif node.node_type == NodeType.ARRAY:
             return self.visit_array(node, parent, rel, acc)
+        elif node.node_type == NodeType.ATTRIBUTE:
+            return self.visit_attribute(node, parent, rel, acc)
         elif node.node_type == NodeType.BINOP:
             return self.visit_binop(node, parent, rel, acc)
         elif node.node_type == NodeType.CONSTANT:
@@ -297,6 +300,8 @@ class Visitor:
     def visit_alias(self, node: "Alias", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_array(self, node: "Array", parent: Node, rel: str, acc): # type: ignore
+        return acc
+    def visit_attribute(self, node: "Attribute", parent: Node, rel: str, acc): # type: ignore
         return acc
     def visit_binop(self, node: "Binop", parent: Node, rel: str, acc): # type: ignore
         return acc

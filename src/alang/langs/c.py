@@ -17,6 +17,11 @@ class CWriter(CodeWriter):
         self.write_type_ref(a.aliased_type)
         self.write(f" {a.name};\n")
 
+    def write_attribute(self, a: "Attribute"): # type: ignore
+        self.write_expr(a.target)
+        self.write(".")
+        self.write(a.name)
+
     def write_binop(self, b: exprs.Binop):
         support_name = b.get_support_lib_function_name()
         if support_name is not None:

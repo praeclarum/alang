@@ -41,7 +41,7 @@ class MetalWriter(CWriter):
             if n > 4 or n < 2:
                 self.error(f"Invalid vector size: {n}")
                 n = 4
-            element_type_name = self.get_type_name(t.element_type).name
+            element_type_name = self.get_type_name(t.element_type)
             return f"{element_type_name}{n}"
         else:
             return t.name

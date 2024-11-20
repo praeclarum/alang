@@ -8,6 +8,21 @@ import alang.funcs as funcs
 import alang.stmts as stmts
 import alang.typs as typs
 
+class Attribute(Expression):
+    target = NodeLink()
+    name = NodeAttr()
+    def __init__(self, target: Expression, name: str):
+        super().__init__(NodeType.ATTRIBUTE)
+        self.target = parse_expr(target)
+        self.name = name
+    def _get_precedence(self):
+        return 100
+    def resolve_type(self, diags: compiler.Diagnostics) -> typs.Type:
+        bt: typs.Type = self.target.resolved_type
+        if bt is None:
+            return None
+        return bt.get_attribute_type(self.name)
+
 class Name(Expression):
     name = NodeAttr()
     def __init__(self, name: str):

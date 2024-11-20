@@ -85,6 +85,9 @@ class CodeWriter:
     def write_array(self, b: "Array"): # type: ignore
         raise NotImplementedError
 
+    def write_attribute(self, a: "Attribute"): # type: ignore
+        raise NotImplementedError
+
     def write_binop(self, b: "Binop"): # type: ignore
         raise NotImplementedError
 
@@ -130,6 +133,8 @@ class CodeWriter:
             self.write_alias(n)
         elif n.node_type == nodes.NodeType.ARRAY:
             self.write_array(n)
+        elif n.node_type == nodes.NodeType.ATTRIBUTE:
+            self.write_attribute(n)
         elif n.node_type == nodes.NodeType.BINOP:
             self.write_binop(n)
         elif n.node_type == nodes.NodeType.EXPR_STMT:

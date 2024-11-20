@@ -25,6 +25,8 @@ class Type(TypeRef):
         self.resolved_type = self
     def resolve_type(self, diags: "compiler.Diagnostics") -> "Type": # type: ignore
         return self
+    def get_attribute_type(self, name: str) -> Optional["Type"]:
+        return None
     @property
     def layout(self) -> "TypeLayout":
         return self.get_layout(None)
@@ -448,6 +450,12 @@ class Vector(Algebraic):
     def create(self, *args, **kwargs):
         from alang.vals import VectorValue
         return VectorValue(self, *args, **kwargs)
+    def get_attribute_type(self, name):
+        l = len(name)
+        if l == 1:
+            return self.element_type
+        else:
+            return Vector(self.element_type, l)
 
 vec2h_type = Vector(half_type, 2)
 vec3h_type = Vector(half_type, 3)

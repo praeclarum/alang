@@ -135,6 +135,10 @@ class ALanguage(Language):
 def python_expr_to_alang_expr(expr: ast.expr):
     if isinstance(expr, ast.Name):
         return exprs.Name(expr.id)
+    elif isinstance(expr, ast.Attribute):
+        attr = expr.attr
+        target = python_expr_to_alang_expr(expr.value)
+        return exprs.Attribute(target, attr)
     elif isinstance(expr, ast.BinOp):
         op_name = expr.op.__class__.__name__.lower()
         left = python_expr_to_alang_expr(expr.left)
