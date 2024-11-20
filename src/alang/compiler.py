@@ -77,6 +77,11 @@ class NameResolutionPass(BreadthFirstVisitor):
             self.diags.error(f"Name {node.name} not found", node)
             self.num_errors += 1
             return env
+    def visit_module(self, node: Node, parent: Node, rel: str, env: dict):
+        new_env = dict(env)
+        for c in node.functions:
+            new_env[c.name] = c
+        return new_env
     def visit_function(self, node: Function, parent: Node, rel: str, env: dict):
         new_env = dict(env)
         for p in node.parameters:

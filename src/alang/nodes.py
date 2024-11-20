@@ -117,11 +117,17 @@ class Node:
         if self.id in visited:
             return None
         visited.add(self.id)
+        v = self.do_lookup_variable(name)
+        if v is not None:
+            return v
         p = self.last_backlink
         while p is not None:
             if isinstance(p, Node):
                 return p.lookup_variable(name, visited)
-            p = p.last_backlink
+            else:
+                return None
+        return None
+    def do_lookup_variable(self, name: str) -> Optional["Variable"]:
         return None
     def resolve_type(self, diags) -> Optional["Type"]: # type: ignore
         raise NotImplementedError(f"resolve_type not implemented for {self.node_type}")
@@ -399,6 +405,11 @@ class Block(Node):
         self.can_define_functions = can_define_functions
         self.can_define_variables = can_define_variables
         self.can_define_statements = can_define_statements
+    def do_lookup_variable(self, name: str) -> Optional["Variable"]:
+        for v in self.variables:
+            if v.name == name:
+                return v
+        return None
     def parse_type(self, expr: Optional[Code]) -> Optional["Type"]: # type: ignore
         from alang.typs import parse_type
         return parse_type(expr, self)
