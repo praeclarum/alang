@@ -43,7 +43,7 @@ class CodeWriter:
             if i < n_lines - 1:
                 self.out.write("\n")
                 self.needs_indent = True
-    def writeln(self, s: str):
+    def writeln(self, s: str = ""):
         self.write(s + "\n")
 
     def error(self, message: str):
