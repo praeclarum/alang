@@ -369,6 +369,11 @@ class BreadthFirstVisitor(Visitor):
 class Expression(Node):
     def __init__(self, node_type: NodeType):
         super().__init__(node_type)
+    @property
+    def precedence(self) -> int:
+        return self._get_precedence()
+    def _get_precedence(self) -> int:
+        return 0
     def __add__(self, other: "Expression") -> "Expression":
         return self.add(other)
     def add(self, other: "Expression") -> "Expression":

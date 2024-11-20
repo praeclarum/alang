@@ -27,13 +27,22 @@ class CWriter(CodeWriter):
             self.write_expr(b.right)
             self.write(")")
         else:
-            self.write("(")
-            self.write_expr(b.left)
+            b_p = b.precedence
+            if b.left.precedence < b_p:
+                self.write("(")
+                self.write_expr(b.left)
+                self.write(")")
+            else:
+                self.write_expr(b.left)
             self.write(" ")
             self.write(b.operator.op)
             self.write(" ")
-            self.write_expr(b.right)
-            self.write(")")
+            if b.right.precedence < b_p:
+                self.write("(")
+                self.write_expr(b.right)
+                self.write(")")
+            else:
+                self.write_expr(b.right)
 
     def write_constant(self, c: "Constant"): # type: ignore
         self.write(repr(c.value))
