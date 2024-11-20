@@ -128,6 +128,31 @@ class InferFunctionReturnTypePass(DepthFirstVisitor):
         return_type = list(distinct_types.values())[0]
         self.set_return_type(node, return_type)
 
+class InferVariableTypePass(DepthFirstVisitor):
+    def __init__(self, diags: Diagnostics):
+        super().__init__()
+        self.diags = diags
+        self.num_changes = 0
+        self.num_need_info = 0
+        self.num_errors = 0
+    def run(self, node: Node):
+        self.visit(node, None, None, None)
+    def set_return_type(self, node: Function, return_type: str):
+        node.return_type = return_type
+        self.num_changes += 1
+    def visit_variable(self, node: Node, parent: Node, rel: str, cvals: list):
+        if node.resolved_type is not None:
+            return
+        if node.initial_value is None:
+            self.num_need_info += 1
+            return
+        t = node.initial_value.resolved_type
+        if t is None:
+            self.num_need_info += 1
+            return
+        node.resolved_type = t
+        self.num_changes += 1
+
 class SupportDefinitions:
     def __init__(self):
         self.definitions: dict[str, list[Node]] = dict()
@@ -179,11 +204,16 @@ class Compiler:
         res_pass.run(self.ast)
         return res_pass
     
-    def infer_types(self):
+    def infer_return_types(self):
         func_return_type_pass = InferFunctionReturnTypePass(self.diags)
         func_return_type_pass.run(self.ast)
         return func_return_type_pass
-    
+
+    def infer_variable_types(self):
+        type_pass = InferVariableTypePass(self.diags)
+        type_pass.run(self.ast)
+        return type_pass
+
     def get_support_definitions(self):
         c = CollectSupportDefinitions()
         c.run(self.ast)
@@ -225,8 +255,12 @@ class Compiler:
             self.diags.reset()
             resolve_name_info = self.resolve_names()
             resolve_types_info = self.resolve_types()
-            infer_types_info = self.infer_types()
-            should_iter = resolve_name_info.num_changes > 0 or resolve_types_info.num_changes > 0 or infer_types_info.num_changes > 0
+            infer_return_types_info = self.infer_return_types()
+            infer_variable_types_info = self.infer_variable_types()
+            should_iter = (resolve_name_info.num_changes > 0 or
+                           resolve_types_info.num_changes > 0 or
+                           infer_return_types_info.num_changes > 0 or
+                           infer_variable_types_info.num_changes > 0)
             iteration += 1
         if iteration == max_iterations:
             self.diags.error("Max iterations reached")
