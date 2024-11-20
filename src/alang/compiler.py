@@ -81,11 +81,15 @@ class NameResolutionPass(BreadthFirstVisitor):
         new_env = dict(env)
         for c in node.functions:
             new_env[c.name] = c
+        for v in node.variables:
+            new_env[v.name] = v
         return new_env
     def visit_function(self, node: Function, parent: Node, rel: str, env: dict):
         new_env = dict(env)
         for p in node.parameters:
             new_env[p.name] = p
+        for v in node.variables:
+            new_env[v.name] = v
         return new_env
 
 class InferFunctionReturnTypePass(DepthFirstVisitor):
